@@ -60,8 +60,10 @@ int main(int argc, char **argv) {
 
     int status = 0;
 
-    do {
+    //do {
         status = system(xmrigMinerPath.c_str());
-    } while (WEXITSTATUS(status) == EINTR);
+
+        printf("Status: %d", status);
+    //} while (WEXITSTATUS(status) == EINTR);
 }
 
