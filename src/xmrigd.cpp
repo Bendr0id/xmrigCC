@@ -29,6 +29,7 @@
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
     #include <windows.h>
     #include <signal.h>
+    #include <direct.h>
 #endif
 
 static std::string getAppName()
