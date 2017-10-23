@@ -8,7 +8,6 @@ platform: x64
 clone_folder: c:\xmrigCC
 
 install:
-  - vcpkg install curl:x64-windows
   - vcpkg install libuv:x64-windows
   - vcpkg install libmicrohttpd:x64-windows
 
