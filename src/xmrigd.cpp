@@ -34,7 +34,7 @@
 static char* getAppName()
 {
 #ifdef WIN32
-  char location[MAX_PATH + 1];
+  wchar_t location[MAX_PATH + 1];
   int length = GetModuleFileName (NULL, location, sizeof (location) - 1);
   if (length < 0)
     return NULL;
