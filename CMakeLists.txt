@@ -255,7 +255,7 @@ if (WITH_CC)
     if (CURL_FOUND)
         include_directories(${CURL_INCLUDE_DIRS})
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
+        message(FATAL_ERROR "curl NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
 
     set(HEADERS_CC_COMMON
