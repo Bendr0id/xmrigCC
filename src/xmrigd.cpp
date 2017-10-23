@@ -24,29 +24,12 @@
 
 #include <stdlib.h>
 #include <string>
+
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
     #include <windows.h>
+    #include <signal.h>
 #endif
-
-int main(int argc, char **argv) {
-    std::string ownPath(argv[0]);
-    std::string ownAppName(getAppName);
-    std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
-
-    for (int i=1; i < argc; i++){
-        xmrigMinerPath += " ";
-        xmrigMinerPath += argv[i];
-    }
-
-    xmrigMinerPath += " --daemonized";
-
-    int status = 0;
-
-    do {
-        status = system(xmrigMinerPath.c_str());
-    } while (WEXITSTATUS(status) == ERESTART);
-}
 
 static char* getAppName()
 {
@@ -60,5 +43,25 @@ static char* getAppName()
   return strdup (location);
 #else
   return program_invocation_short_name;
-
+#endif
 }
+
+int main(int argc, char **argv) {
+    std::string ownPath(argv[0]);
+    std::string ownAppName(getAppName());
+    std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
+
+    for (int i=1; i < argc; i++){
+        xmrigMinerPath += " ";
+        xmrigMinerPath += argv[i];
+    }
+
+    xmrigMinerPath += " --daemonized";
+
+    int status = 0;
+
+    do {
+        status = system(xmrigMinerPath.c_str());
+    } while (WEXITSTATUS(status) == EINTR);
+}
+

@@ -156,7 +156,7 @@ int App::start()
     const int r = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
 
-    return m_restart ? ERESTART : r;
+    return m_restart ? EINTR : r;
 }
 
 void App::onConsoleCommand(char command)
