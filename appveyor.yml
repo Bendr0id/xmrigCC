@@ -8,8 +8,7 @@ platform: x64
 clone_folder: c:\xmrigCC
 
 install:
-  - vcpkg install libuv:x64-windows
-  - vcpkg install libmicrohttpd:x64-windows
+  - vcpkg install libmicrohttpd
 
 build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
