@@ -31,24 +31,21 @@
     #include <signal.h>
 #endif
 
-static char* getAppName()
+static std::string getAppName()
 {
 #ifdef WIN32
-  wchar_t location[MAX_PATH + 1];
-  int length = GetModuleFileName (NULL, location, sizeof (location) - 1);
-  if (length < 0)
-    return NULL;
-  if (length == sizeof (location) - 1)
-    location[length] = '\0';
-  return strdup (location);
+    char* cwd = _getcwd( 0, 0 ) ; // **** microsoft specific ****
+    std::string working_directory(cwd) ;
+    std::free(cwd) ;
+    return working_directory ;
 #else
-  return program_invocation_short_name;
+    return std::string(program_invocation_short_name);
 #endif
 }
 
 int main(int argc, char **argv) {
     std::string ownPath(argv[0]);
-    std::string ownAppName(getAppName());
+    std::string ownAppName = getAppName();
     std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
 
     for (int i=1; i < argc; i++){
