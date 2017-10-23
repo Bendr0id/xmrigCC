@@ -24,12 +24,15 @@
 
 #include <stdlib.h>
 #include <string>
-#include <regex>
-
+#ifdef WIN32
+    #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
+    #include <windows.h>
+#endif
 
 int main(int argc, char **argv) {
     std::string ownPath(argv[0]);
-    std::string xmrigMinerPath = std::regex_replace(ownPath, std::regex(program_invocation_short_name), "xmrigMiner");
+    std::string ownAppName(getAppName);
+    std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
 
     for (int i=1; i < argc; i++){
         xmrigMinerPath += " ";
@@ -43,4 +46,19 @@ int main(int argc, char **argv) {
     do {
         status = system(xmrigMinerPath.c_str());
     } while (WEXITSTATUS(status) == ERESTART);
+}
+
+static char* getAppName()
+{
+#ifdef WIN32
+  char location[MAX_PATH + 1];
+  int length = GetModuleFileName (NULL, location, sizeof (location) - 1);
+  if (length < 0)
+    return NULL;
+  if (length == sizeof (location) - 1)
+    location[length] = '\0';
+  return strdup (location);
+#else
+  return program_invocation_short_name;
+
 }
