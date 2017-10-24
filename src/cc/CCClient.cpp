@@ -44,6 +44,7 @@ CCClient::CCClient(const Options *options)
 {
     m_self = this;
 
+    LOG_INFO("[CC-Client] Start");
     std::string clientId;
     if (m_options->ccWorkerId()){
         clientId = m_options->ccWorkerId();
@@ -53,16 +54,26 @@ CCClient::CCClient(const Options *options)
         gethostname(hostname, sizeof(hostname)-1);
         clientId = std::string(hostname);
     }
+    LOG_INFO("[CC-Client] clientId: %s", clientId.c_str());
 
     m_clientStatus.setClientId(clientId);
     m_serverURL = std::string("http://") + options->ccUrl();
+
+    LOG_INFO("[CC-Client] serverURL: %s", m_serverURL.c_str());
 
     if (m_options->ccToken() != nullptr) {
         m_authorization = std::string("Authorization: Bearer ") + m_self->m_options->ccToken();
     }
 
+    LOG_INFO("[CC-Client] token: %s", m_authorization.c_str());
+
     uv_timer_init(uv_default_loop(), &m_timer);
+
+    LOG_INFO("[CC-Client] timer.init");
+
     uv_timer_start(&m_timer, CCClient::onReport, kTickInterval, kTickInterval);
+
+    LOG_INFO("[CC-Client] timer.start");
 }
 
 CCClient::~CCClient()
@@ -75,10 +86,12 @@ void CCClient::updateHashrate(const Hashrate *hashrate)
 {
     uv_mutex_lock(&m_mutex);
 
-    m_self->m_clientStatus.setHashrateShort(hashrate->calc(Hashrate::ShortInterval));
-    m_self->m_clientStatus.setHashrateMedium(hashrate->calc(Hashrate::MediumInterval));
-    m_self->m_clientStatus.setHashrateLong(hashrate->calc(Hashrate::LargeInterval));
-    m_self->m_clientStatus.setHashrateHighest(hashrate->highest());
+    if (m_self) {
+        m_self->m_clientStatus.setHashrateShort(hashrate->calc(Hashrate::ShortInterval));
+        m_self->m_clientStatus.setHashrateMedium(hashrate->calc(Hashrate::MediumInterval));
+        m_self->m_clientStatus.setHashrateLong(hashrate->calc(Hashrate::LargeInterval));
+        m_self->m_clientStatus.setHashrateHighest(hashrate->highest());
+    }
 
     uv_mutex_unlock(&m_mutex);
 }
@@ -88,13 +101,14 @@ void CCClient::updateNetworkState(const NetworkState &network)
 {
     uv_mutex_lock(&m_mutex);
 
-    m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
-    m_self->m_clientStatus.setCurrentPool(network.pool);
-    m_self->m_clientStatus.setSharesGood(network.accepted);
-    m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
-    m_self->m_clientStatus.setHashesTotal(network.total);
-    m_self->m_clientStatus.setAvgTime(network.avgTime());
-
+    if (m_self) {
+        m_self->m_clientStatus.setCurrentStatus(Workers::isEnabled() ? ClientStatus::RUNNING : ClientStatus::PAUSED);
+        m_self->m_clientStatus.setCurrentPool(network.pool);
+        m_self->m_clientStatus.setSharesGood(network.accepted);
+        m_self->m_clientStatus.setSharesTotal(network.accepted + network.rejected);
+        m_self->m_clientStatus.setHashesTotal(network.total);
+        m_self->m_clientStatus.setAvgTime(network.avgTime());
+    }
     uv_mutex_unlock(&m_mutex);
 }
 
@@ -210,7 +224,9 @@ CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string&
 
 void CCClient::onReport(uv_timer_t *handle)
 {
-    m_self->publishClientStatusReport();
+    if (m_self) {
+        m_self->publishClientStatusReport();
+    }
 }
 
 int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer)
@@ -224,4 +240,3 @@ int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* res
 
     return result;
 }
-
