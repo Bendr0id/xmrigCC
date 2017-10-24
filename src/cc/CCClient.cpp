@@ -47,6 +47,8 @@ uv_mutex_t CCClient::m_mutex;
 CCClient::CCClient(const Options *options)
     : m_options(options)
 {
+    uv_mutex_init(&m_mutex);
+
     m_self = this;
 
     std::string clientId;
