@@ -25,7 +25,6 @@
 
 #include <stdlib.h>
 #include <uv.h>
-#include <zconf.h>
 
 #include "api/Api.h"
 #include "App.h"
