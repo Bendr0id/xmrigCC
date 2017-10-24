@@ -110,7 +110,9 @@ App::~App()
 #   endif
 
 #   ifndef XMRIG_NO_CC
-    delete m_ccclient;
+    if (m_ccclient) {
+        delete m_ccclient;
+    }
 #   endif
 }
 
@@ -145,7 +147,11 @@ int App::start()
 #   endif
 
 #   ifndef XMRIG_NO_CC
-    m_ccclient = new CCClient(m_options);
+    if (m_options->ccUrl()) {
+        m_ccclient = new CCClient(m_options);
+    } else {
+        LOG_WARN("Please configure CC-Url and restart. CC feature is now deactivated.");
+    }
 #   endif
 
     Workers::start(m_options->affinity(), m_options->priority());
