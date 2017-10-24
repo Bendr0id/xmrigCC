@@ -80,8 +80,6 @@ CCClient::~CCClient()
 
 void CCClient::updateHashrate(const Hashrate *hashrate)
 {
-    LOG_ERR("[CC-Client] updateHashrate");
-
     uv_mutex_lock(&m_mutex);
 
     if (m_self) {
@@ -97,8 +95,6 @@ void CCClient::updateHashrate(const Hashrate *hashrate)
 
 void CCClient::updateNetworkState(const NetworkState &network)
 {
-    LOG_ERR("[CC-Client] updateNetworkState");
-
     uv_mutex_lock(&m_mutex);
 
     if (m_self) {
@@ -193,8 +189,6 @@ void CCClient::updateConfig()
 CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string& requestBuffer,
                                const std::string& operation, std::string& responseBuffer)
 {
-    LOG_ERR("[CC-Client] performCurl");
-
     curl_global_init(CURL_GLOBAL_ALL);
     CURL *curl = curl_easy_init();
 
@@ -226,8 +220,6 @@ CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string&
 
 void CCClient::onReport(uv_timer_t *handle)
 {
-    LOG_ERR("[CC-Client] onReport");
-
     if (m_self) {
         m_self->publishClientStatusReport();
     }
@@ -235,8 +227,6 @@ void CCClient::onReport(uv_timer_t *handle)
 
 int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer)
 {
-    LOG_ERR("[CC-Client] onResponse");
-
     int result = 0;
 
     if (responseBuffer != nullptr) {
