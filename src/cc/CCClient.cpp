@@ -22,10 +22,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <zconf.h>
 #include <fstream>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/prettywriter.h>
+
+#if _WIN32
+#   include "winsock2.h"
+#else
+#   include "unistd.h"
+#endif
 
 #include "CCClient.h"
 #include "App.h"
