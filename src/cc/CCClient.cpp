@@ -78,6 +78,8 @@ CCClient::~CCClient()
 
 void CCClient::updateHashrate(const Hashrate *hashrate)
 {
+    LOG_ERR("[CC-Client] updateHashrate");
+
     uv_mutex_lock(&m_mutex);
 
     if (m_self) {
@@ -93,6 +95,8 @@ void CCClient::updateHashrate(const Hashrate *hashrate)
 
 void CCClient::updateNetworkState(const NetworkState &network)
 {
+    LOG_ERR("[CC-Client] updateNetworkState");
+
     uv_mutex_lock(&m_mutex);
 
     if (m_self) {
