@@ -22,6 +22,6 @@ build_script:
   - msbuild xmrig.sln /p:Configuration=Release
 
 after_build:
-- cmd: 7z a c:\xmrigCC\xmrigCC.zip "c:\xmrigCC\*.*"
+- cmd: 7z a xmrigCC.zip "c:\xmrigCC\*.*"
 artifacts:
-- path: c:\xmrigCC\xmrigCC.zip
+- path: xmrigCC.zip
