@@ -22,9 +22,15 @@ build_script:
   - msbuild xmrig.sln /p:Configuration=Release
   - dir
 
+test_script:
+  - cd c:\xmrigCC\build
+  - dir
+  - copy ..\src\config* .
+  - cd c:\xmrigCC
+
 after_build:
 - cd c:\xmrigCC
-- cmd: 7z a xmrigCC.zip "*.*"
+- cmd: 7z a xmrigCC.zip c:\xmrigCC\build\*.exe c:\xmrigCC\
 - cmd: dir
 
 artifacts:
