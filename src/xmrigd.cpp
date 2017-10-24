@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     std::string xmrigDaemon("xmrigDaemon");
     std::string xmrigMiner("xmrigMiner");
 
-    std::xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
+    std::string xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
 
     printf("xmrigMinerPath: %s\n", xmrigMinerPath.c_str());
 
