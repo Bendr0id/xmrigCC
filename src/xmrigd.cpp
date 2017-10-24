@@ -29,29 +29,13 @@
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
     #include <windows.h>
     #include <signal.h>
-    #include <direct.h>
 #endif
-
-static std::string getAppName()
-{
-#ifdef WIN32
-    char* cwd = _getcwd( 0, 0 ) ; // **** microsoft specific ****
-    std::string working_directory(cwd) ;
-    std::free(cwd) ;
-    return working_directory ;
-#else
-    return std::string(program_invocation_short_name);
-#endif
-}
-
 int main(int argc, char **argv) {
     std::string ownPath(argv[0]);
-    printf("ownPath: %s\n", ownPath.c_str());
+    std::string xmrigDaemon("xmrigDaemon");
+    std::string xmrigMiner("xmrigMiner");
 
-    std::string ownAppName = getAppName();
-    printf("ownAppName: %s\n", ownAppName.c_str());
-    
-    std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
+    std::xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
 
     printf("xmrigMinerPath: %s\n", xmrigMinerPath.c_str());
 
@@ -70,4 +54,3 @@ int main(int argc, char **argv) {
         printf("Status: %d", status);
     //} while (WEXITSTATUS(status) == EINTR);
 }
-
