@@ -46,14 +46,14 @@ static std::string getAppName()
 
 int main(int argc, char **argv) {
     std::string ownPath(argv[0]);
-    printf("ownPath: %s", ownPath.c_str());
+    printf("ownPath: %s\n", ownPath.c_str());
 
     std::string ownAppName = getAppName();
-    printf("ownAppName: %s", ownAppName.c_str());
+    printf("ownAppName: %s\n", ownAppName.c_str());
     
     std::string xmrigMinerPath = ownPath.substr(0, ownPath.find_last_of(ownAppName)-ownAppName.length()+1) + std::string("xmrigMiner");
 
-    printf("xmrigMinerPath: %s", xmrigMinerPath.c_str());
+    printf("xmrigMinerPath: %s\n", xmrigMinerPath.c_str());
 
     for (int i=1; i < argc; i++){
         xmrigMinerPath += " ";
