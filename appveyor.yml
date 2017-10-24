@@ -24,7 +24,7 @@ build_script:
 
 after_build:
 - cd c:\xmrigCC
-- cmd: 7z a xmrigCC.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*"
+- cmd: 7z a xmrigCC.zip "c:\xmrigCC\build\Release\*.*" "c:\xmrigCC\src\*config*" "C:\Tools\vcpkg\installed\x64-windows\debug\lib\*curl*"
 - cmd: dir
 
 artifacts:
