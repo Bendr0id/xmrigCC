@@ -21,9 +21,10 @@ build_script:
   - cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
   - msbuild xmrig.sln /p:Configuration=Release
   - dir
-  
+
 after_build:
-- cmd: 7z a xmrigCC.zip "c:\xmrigCC\*.*"
+- cd c:\xmrigCC
+- cmd: 7z a xmrigCC.zip "*.*"
 - cmd: dir
 
 artifacts:
