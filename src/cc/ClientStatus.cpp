@@ -210,8 +210,8 @@ bool ClientStatus::parseFromJson(const rapidjson::Document& document)
             m_hashesTotal = clientStatus["hashes_total"].GetUint64();
         }
 
-        auto time_point = std::chrono::system_clock::now();
-        m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
+        //auto time_point = std::chrono::system_clock::now();
+        //m_lastStatusUpdate = std::chrono::system_clock::to_time_t(time_point);
 
         result = true;
     } else {

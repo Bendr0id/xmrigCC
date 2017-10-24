@@ -49,7 +49,6 @@ CCClient::CCClient(const Options *options)
 {
     m_self = this;
 
-    LOG_INFO("[CC-Client] Start");
     std::string clientId;
     if (m_options->ccWorkerId()){
         clientId = m_options->ccWorkerId();
@@ -59,26 +58,16 @@ CCClient::CCClient(const Options *options)
         gethostname(hostname, sizeof(hostname)-1);
         clientId = std::string(hostname);
     }
-    LOG_INFO("[CC-Client] clientId: %s", clientId.c_str());
 
     m_clientStatus.setClientId(clientId);
     m_serverURL = std::string("http://") + options->ccUrl();
-
-    LOG_INFO("[CC-Client] serverURL: %s", m_serverURL.c_str());
 
     if (m_options->ccToken() != nullptr) {
         m_authorization = std::string("Authorization: Bearer ") + m_self->m_options->ccToken();
     }
 
-    LOG_INFO("[CC-Client] token: %s", m_authorization.c_str());
-
     uv_timer_init(uv_default_loop(), &m_timer);
-
-    LOG_INFO("[CC-Client] timer.init");
-
     uv_timer_start(&m_timer, CCClient::onReport, kTickInterval, kTickInterval);
-
-    LOG_INFO("[CC-Client] timer.start");
 }
 
 CCClient::~CCClient()
@@ -198,6 +187,8 @@ void CCClient::updateConfig()
 CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string& requestBuffer,
                                const std::string& operation, std::string& responseBuffer)
 {
+    LOG_ERR("[CC-Client] performCurl");
+
     curl_global_init(CURL_GLOBAL_ALL);
     CURL *curl = curl_easy_init();
 
@@ -229,6 +220,8 @@ CURLcode CCClient::performCurl(const std::string& requestUrl, const std::string&
 
 void CCClient::onReport(uv_timer_t *handle)
 {
+    LOG_ERR("[CC-Client] onReport");
+
     if (m_self) {
         m_self->publishClientStatusReport();
     }
@@ -236,6 +229,8 @@ void CCClient::onReport(uv_timer_t *handle)
 
 int CCClient::onResponse(char* data, size_t size, size_t nmemb, std::string* responseBuffer)
 {
+    LOG_ERR("[CC-Client] onResponse");
+
     int result = 0;
 
     if (responseBuffer != nullptr) {
