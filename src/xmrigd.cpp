@@ -31,13 +31,12 @@
     #include <signal.h>
 #endif
 int main(int argc, char **argv) {
+
     std::string ownPath(argv[0]);
     std::string xmrigDaemon("xmrigDaemon");
     std::string xmrigMiner("xmrigMiner");
 
     std::string xmrigMinerPath = ownPath.replace(ownPath.rfind(xmrigDaemon),xmrigDaemon.size(), xmrigMiner);
-
-    printf("xmrigMinerPath: %s\n", xmrigMinerPath.c_str());
 
     for (int i=1; i < argc; i++){
         xmrigMinerPath += " ";
