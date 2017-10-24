@@ -1,5 +1,5 @@
 # image
-image: Visual Studio 2015
+image: Visual Studio 2017
 
 # build platform
 platform: x64
@@ -15,12 +15,12 @@ install:
   - vcpkg install curl:x64-windows
   
 build_script:
-  - call "C:\Program Files (x86)\Microsoft Visual Studio\2015\Community\Common7\Tools\VsMSBuildCmd.bat"
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\VsMSBuildCmd.bat"
   - cd c:\xmrigCC
   - mkdir build
   - cd build
-  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2015\libuv\x64\;c:\xmrigCC-deps\msvc2015\libmicrohttpd\x64\;C:\Tools\vcpkg\installed\x64-windows\
-  - pjsuaCallId -G "Visual Studio 14 2015 Win64" -T v141,host=x64 ..
+  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;C:\Tools\vcpkg\installed\x64-windows\
+  - pjsuaCallId -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
   - msbuild xmrig.sln /p:Configuration=Release
 
 after_build:
