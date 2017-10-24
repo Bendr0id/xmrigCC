@@ -18,8 +18,8 @@ build_script:
   - cd c:\xmrigCC
   - mkdir build
   - cd build
-  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;
-  - cmake -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
+  - set CMAKE_PREFIX_PATH=c:\xmrigCC-deps\msvc2017\libuv\x64\;c:\xmrigCC-deps\msvc2017\libmicrohttpd\x64\;C:\Tools\vcpkg\installed\x64-windows\debug\lib;
+  - cmake -G "Visual Studio 15 2017 Win64" -T v141,host=x64 ..
   - msbuild xmrig.sln /p:Configuration=Release
 
 after_build:
