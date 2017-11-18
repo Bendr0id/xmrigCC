@@ -1,5 +1,5 @@
 find_path(UV_INCLUDE_DIR NAMES uv.h)
-find_library(UV_LIBRARY NAMES uv libuv)
+find_library(UV_LIBRARY NAMES libuv.a uv)
 
 set(UV_LIBRARIES ${UV_LIBRARY})
 set(UV_INCLUDE_DIRS ${UV_INCLUDE_DIR})
