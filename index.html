@@ -471,7 +471,7 @@
             tooltip += (row.client_status.hugepages_enabled ? "enabled" : "disabled");
             tooltip += '\n';
             tooltip += "Used Threads: " + row.client_status.current_threads;
-            tooltip += (row.client_status.double_hash_mode ? " [double hash mode]" :"");
+            tooltip += (row.client_status.hash_factor > 1 ? " [" + row.client_status.hash_factor + "x multi hash mode]" :"");
             tooltip += '\n';
             tooltip += "Client IP: " + row.client_status.external_ip;
             tooltip += '\n';

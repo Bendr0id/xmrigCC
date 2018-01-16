@@ -1,14 +1,16 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-#set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_BUILD_TYPE Release)
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
 
 option(WITH_LIBCPUID  "Use Libcpuid" ON)
 option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
+set(MAX_NUM_HASH_BLOCKS 8)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -36,10 +38,9 @@ set(HEADERS
     src/net/strategies/SinglePoolStrategy.h
     src/net/SubmitResult.h
     src/version.h
-    src/workers/DoubleWorker.h
+    src/workers/MultiWorker.h
     src/workers/Handle.h
     src/workers/Hashrate.h
-    src/workers/SingleWorker.h
     src/workers/Worker.h
     src/workers/Workers.h
    )
@@ -77,10 +78,9 @@ set(SOURCES
     src/net/strategies/SinglePoolStrategy.cpp
     src/net/SubmitResult.cpp
     src/Summary.cpp
-    src/workers/DoubleWorker.cpp
+    src/workers/MultiWorker.cpp
     src/workers/Handle.cpp
     src/workers/Hashrate.cpp
-    src/workers/SingleWorker.cpp
     src/workers/Worker.cpp
     src/workers/Workers.cpp
     src/xmrig.cpp
@@ -100,7 +100,7 @@ set(HEADERS_COMMON
     src/Console.h
     src/Mem.h
     src/Cpu.h
-    src/net/Url.h
+        src/net/Url.h
     src/Options.h
     src/log/ConsoleLog.h
     src/log/FileLog.h
@@ -163,6 +163,7 @@ endif()
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
 #add_definitions(/DAPP_DEBUG)
+add_definitions(/DMAX_NUM_HASH_BLOCKS=${MAX_NUM_HASH_BLOCKS})
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -257,13 +258,31 @@ include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
 
-add_executable(xmrigMiner ${HEADERS} ${SOURCES} ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${HTTPD_SOURCES} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_CLIENT} ${HEADERS_CC_CLIENT})
-target_link_libraries(xmrigMiner ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+add_library(xmrig_common STATIC ${SOURCES_COMMON})
+add_library(xmrig_os_dependencies STATIC ${SOURCES_OS})
+add_library(xmrig_cpuid STATIC ${SOURCES_CPUID})
+add_library(xmrig_syslog STATIC ${SOURCES_SYSLOG})
+if (WITH_CC_SERVER OR WITH_CC_CLIENT)
+    add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
+endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
+
+add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT})
+target_link_libraries(xmrigMiner
+        xmrig_common xmrig_cpuid xmrig_os_dependencies xmrig_syslog
+        ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+if (WITH_CC_CLIENT)
+    target_link_libraries(xmrigMiner xmrig_cc_common)
+endif (WITH_CC_CLIENT)
+
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 
 if (WITH_CC_SERVER AND MHD_FOUND)
-    add_executable(xmrigCCServer ${HEADERS_COMMON} ${SOURCES_COMMON} ${SOURCES_OS} ${SOURCES_CPUID} ${SOURCES_SYSLOG} ${SOURCES_CC_COMMON} ${HEADERS_CC_COMMON} ${SOURCES_CC_SERVER} ${HEADERS_CC_SERVER})
-    target_link_libraries(xmrigCCServer ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
+    add_executable(xmrigCCServer ${SOURCES_CC_SERVER})
+    target_link_libraries(xmrigCCServer
+            xmrig_common xmrig_cpuid xmrig_os_dependencies xmrig_syslog xmrig_cc_common
+            ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
 endif()
+
+add_subdirectory(test EXCLUDE_FROM_ALL)

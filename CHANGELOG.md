@@ -25,7 +25,7 @@
 - Added command to trigger miner to upload config to XMRigCCServer
 - Added threads to miner info tooltip on client id
 # v1.2.0
-- Added configurability for thread based doublehash mode which helps you to use more of your l3 cache
+- Added configurability for thread based multihash mode which helps you to use more of your l3 cache
 - Memory optimizations / speed improvements
 - Updated to latest XMRig (2.4.3) with ARM support
 # v1.1.1

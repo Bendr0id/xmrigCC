@@ -26,7 +26,7 @@
 #define __OPTIONS_H__
 
 
-#include <stdint.h>
+#include <cstdint>
 #include <vector>
 
 
@@ -54,12 +54,17 @@ public:
         AV_MAX
     };
 
+    enum AesNi {
+        AESNI_AUTO,
+        AESNI_ON,
+        AESNI_OFF
+    };
+
     static inline Options* i() { return m_self; }
     static Options *parse(int argc, char **argv);
 
     inline bool background() const                  { return m_background; }
     inline bool colors() const                      { return m_colors; }
-    inline bool doubleHash() const                  { return m_doubleHash; }
     inline bool hugePages() const                   { return m_hugePages; }
     inline bool syslog() const                      { return m_syslog; }
     inline bool daemonized() const                  { return m_daemonized; }
@@ -76,8 +81,10 @@ public:
     inline const char *ccClientConfigFolder() const { return m_ccClientConfigFolder; }
     inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard == nullptr ? "index.html" : m_ccCustomDashboard; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
-    inline int algo() const                         { return m_algo; }
-    inline int algoVariant() const                  { return m_algoVariant; }
+    inline Algo algo() const                        { return m_algo; }
+//    inline AlgoVariant algoVariant() const          { return m_algoVariant; }
+    inline bool aesni() const                       { return m_aesni == AESNI_ON; }
+    inline int hashFactor() const                   { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }
     inline int donateLevel() const                  { return m_donateLevel; }
     inline int printTime() const                    { return m_printTime; }
@@ -88,7 +95,7 @@ public:
     inline int ccUpdateInterval() const             { return m_ccUpdateInterval; }
     inline int ccPort() const                       { return m_ccPort; }
     inline int64_t affinity() const                 { return m_affinity; }
-    inline int64_t doubleHashThreadMask() const     { return m_doubleHashThreadMask; }
+    inline int64_t multiHashThreadMask() const     { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
 
     inline static void release()                  { delete m_self; }
@@ -118,15 +125,10 @@ private:
 
     bool setAlgo(const char *algo);
 
-    int getAlgoVariant() const;
-#   ifndef XMRIG_NO_AEON
-    int getAlgoVariantLite() const;
-#   endif
-
+    void optimizeAlgorithmConfiguration();
 
     bool m_background;
     bool m_colors;
-    bool m_doubleHash;
     bool m_hugePages;
     bool m_ready;
     bool m_safe;
@@ -144,8 +146,10 @@ private:
     char *m_ccAdminPass;
     char *m_ccClientConfigFolder;
     char *m_ccCustomDashboard;
-    int m_algo;
-    int m_algoVariant;
+    Algo m_algo;
+    AlgoVariant m_algoVariant;
+    AesNi m_aesni;
+    size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;
     int m_maxCpuUsage;
@@ -153,11 +157,11 @@ private:
     int m_priority;
     int m_retries;
     int m_retryPause;
-    int m_threads;
+    size_t m_threads;
     int m_ccUpdateInterval;
     int m_ccPort;
     int64_t m_affinity;
-    int64_t m_doubleHashThreadMask;
+    int64_t m_multiHashThreadMask;
     std::vector<Url*> m_pools;
 };
 

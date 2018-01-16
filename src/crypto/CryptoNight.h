@@ -25,9 +25,8 @@
 #define __CRYPTONIGHT_H__
 
 
-#include <stddef.h>
-#include <stdint.h>
-
+#include <cstddef>
+#include <cstdint>
 
 #include "align.h"
 
@@ -37,8 +36,7 @@
 
 
 struct cryptonight_ctx {
-    VAR_ALIGN(16, uint8_t state0[200]);
-    VAR_ALIGN(16, uint8_t state1[200]);
+    VAR_ALIGN(16, uint8_t state[MAX_NUM_HASH_BLOCKS][208]); // 208 instead of 200 to maintain aligned to 16 byte boundaries
     VAR_ALIGN(16, uint8_t* memory);
 };
 
@@ -46,16 +44,16 @@ struct cryptonight_ctx {
 class Job;
 class JobResult;
 
-
 class CryptoNight
 {
 public:
-    static void hash(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
-    static bool init(int algo, int variant);
-    static void hashDouble(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
+    static bool init(int algo, bool aesni);
+
+    static void hash(size_t factor, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx* ctx);
 
 private:
     static bool selfTest(int algo);
 };
+
 
 #endif /* __CRYPTONIGHT_H__ */

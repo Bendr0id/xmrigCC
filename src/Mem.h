@@ -25,8 +25,9 @@
 #define __MEM_H__
 
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
+#include <bitset>
 
 #include "align.h"
 #include "Options.h"
@@ -37,6 +38,7 @@ struct cryptonight_ctx;
 class Mem
 {
 public:
+    typedef std::bitset<sizeof(int64_t)> ThreadBitSet;
     enum Flags {
         HugepagesAvailable = 1,
         HugepagesEnabled   = 2,
@@ -47,18 +49,23 @@ public:
     static cryptonight_ctx *create(int threadId);
     static void release();
 
-    static inline bool isDoubleHash(int threadId) { return m_doubleHash && (m_doubleHashThreadMask == -1L || ((m_doubleHashThreadMask >> threadId) & 1)); }
+    static inline int maxHashFactor()         { return m_hashFactor; }
+    static inline int hashFactor(int threadId)
+    {
+        return (m_multiHashThreadMask.all() ||
+                m_multiHashThreadMask.test(threadId)) ? m_hashFactor : 1;
+    }
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
     static inline bool isHugepagesEnabled()   { return (m_flags & HugepagesEnabled) != 0; }
     static inline int flags()                 { return m_flags; }
     static inline int threads()               { return m_threads; }
 
 private:
-    static bool m_doubleHash;
+    static int m_hashFactor;
     static int m_algo;
     static int m_flags;
     static int m_threads;
-    static int64_t m_doubleHashThreadMask;
+    static ThreadBitSet m_multiHashThreadMask;
     static size_t m_memorySize;
     VAR_ALIGN(16, static uint8_t *m_memory);
 };

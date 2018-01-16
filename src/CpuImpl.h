@@ -5,7 +5,7 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2016-2017 XMRig       <support@xmrig.com>
- *
+ * Copyright 2018      Sebastian Stolzenberg <https://github.com/sebastianstolzenberg>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,38 +21,47 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DOUBLEWORKER_H__
-#define __DOUBLEWORKER_H__
+#ifndef __CPU_IMPL_H__
+#define __CPU_IMPL_H__
 
 
-#include "align.h"
-#include "net/Job.h"
-#include "net/JobResult.h"
-#include "workers/Worker.h"
+#include <cstdint>
+#include <vector>
 
+#include "Options.h"
 
-class Handle;
-
-
-class DoubleWorker : public Worker
+class CpuImpl
 {
 public:
-    DoubleWorker(Handle *handle);
-    ~DoubleWorker();
+    static CpuImpl& instance();
+    CpuImpl();
+    void init();
 
-    void start() override;
+    void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
+                            int maxCpuUsage, bool safeMode);
+    void setAffinity(int id, uint64_t mask);
+
+    bool hasAES();
+    bool isX64();
+    const char *brand() { return m_brand; }
+    int cores()         { return m_totalCores; }
+    int l2()            { return m_l2_cache; }
+    int l3()            { return m_l3_cache; }
+    int sockets()       { return m_sockets; }
+    int threads()       { return m_totalThreads; }
+    size_t availableCache();
 
 private:
-    bool resume(const Job &job);
-    void consumeJob();
-    void save(const Job &job);
+    void initCommon();
 
-    class State;
-
-    uint8_t m_hash[64];
-    State *m_state;
-    State *m_pausedState;
+    bool m_l2_exclusive;
+    char m_brand[64];
+    int m_flags;
+    int m_l2_cache;
+    int m_l3_cache;
+    size_t m_sockets;
+    size_t m_totalCores;
+    size_t m_totalThreads;
 };
 
-
-#endif /* __SINGLEWORKER_H__ */
+#endif /* __CPU_IMPL_H__ */
