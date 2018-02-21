@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <string>
+#include <errno.h>
 
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN  /* avoid including junk */
