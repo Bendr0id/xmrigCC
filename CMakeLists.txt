@@ -10,9 +10,6 @@ option(WITH_AEON      "CryptoNight-Lite support" ON)
 option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
-option(WITH_TLS       "TLS support" ON)
-set(MINER_EXECUTABLE_NAME "xmrigMiner" CACHE STRING "Miner executable file name")
-set(DAEMON_EXECUTABLE_NAME "xmrigDaemon" CACHE STRING "Daemon executable file name")
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
@@ -20,8 +17,6 @@ include (cmake/cpu.cmake)
 set(SOURCES
     src/api/NetworkState.cpp
     src/App.cpp
-    src/3rdparty/clib-net/deps/buffer/buffer.c
-    src/3rdparty/clib-net/src/net.c
     src/net/Client.cpp
     src/net/Job.cpp
     src/net/Network.cpp
@@ -57,7 +52,6 @@ set(SOURCES_COMMON
     src/log/Log.cpp
     src/Platform.cpp
     src/Cpu.cpp
-
    )
 
 if (WIN32)
@@ -72,7 +66,7 @@ if (WIN32)
         )
 
     add_definitions(/DWIN32)
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv crypt32)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (APPLE)
     set(SOURCES_OS
         src/App_unix.cpp
@@ -106,7 +100,6 @@ endif()
 
 add_definitions(/D__STDC_FORMAT_MACROS)
 add_definitions(/DUNICODE)
-add_definitions(/DMINER_EXECUTABLE_NAME=${MINER_EXECUTABLE_NAME})
 #add_definitions(/DAPP_DEBUG)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -114,21 +107,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
-
-if (WITH_TLS)
-    find_package(OpenSSL)
-
-    add_definitions(/DCPPHTTPLIB_OPENSSL_SUPPORT)
-
-    if (OPENSSL_FOUND)
-        include_directories(${OPENSSL_INCLUDE_DIR})
-        set(SOURCES_SSL_TLS src/3rdparty/clib-net/src/tls.c)
-    else()
-        message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
-    endif()
-else()
-    add_definitions(/DXMRIG_NO_TLS)
-endif()
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
@@ -176,7 +154,7 @@ if (WITH_CC_SERVER)
     if (MHD_FOUND)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
-        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
+        message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC=OFF` to build without CC Server support")
     endif()
 
     set(SOURCES_CC_SERVER
@@ -204,23 +182,16 @@ endif()
 include_directories(src)
 include_directories(src/3rdparty)
 include_directories(${UV_INCLUDE_DIR})
-include_directories(src/3rdparty/clib-net/include)
-include_directories(src/3rdparty/clib-net/deps)
 
 add_library(xmrig_common STATIC ${SOURCES_COMMON})
 add_library(xmrig_os_dependencies STATIC ${SOURCES_OS} ${SOURCES_SYSLOG})
 add_library(xmrig_cpuid STATIC ${SOURCES_CPUID})
-
-if (WITH_TLS)
-    add_library(xmrig_tls STATIC ${SOURCES_SSL_TLS})
-endif (WITH_TLS)
 
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     add_library(xmrig_cc_common STATIC ${SOURCES_CC_COMMON})
 endif (WITH_CC_SERVER OR WITH_CC_CLIENT)
 
 add_executable(xmrigMiner ${SOURCES} ${SOURCES_CRYPTO} ${HTTPD_SOURCES} ${SOURCES_CC_CLIENT} res/app.rc)
-set_target_properties(xmrigMiner PROPERTIES OUTPUT_NAME ${MINER_EXECUTABLE_NAME})
 
 target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid
         ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
@@ -229,12 +200,7 @@ if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)
 endif (WITH_CC_CLIENT)
 
-if (WITH_TLS)
-    target_link_libraries(xmrigMiner xmrig_tls OpenSSL::SSL OpenSSL::Crypto)
-endif (WITH_TLS)
-
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
-set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
 
 if (WITH_CC_SERVER AND MHD_FOUND)
     add_library(xmrig_common_cc STATIC ${SOURCES_COMMON})
@@ -242,11 +208,6 @@ if (WITH_CC_SERVER AND MHD_FOUND)
     target_link_libraries(xmrigCCServer
             xmrig_common_cc xmrig_os_dependencies xmrig_cpuid xmrig_cc_common
             ${UV_LIBRARIES} ${MHD_LIBRARY} ${EXTRA_LIBS} ${CPUID_LIB})
-
-    if (WITH_TLS)
-	    target_link_libraries(xmrigCCServer xmrig_tls OpenSSL::SSL OpenSSL::Crypto)
-    endif (WITH_TLS)
-
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
 endif()

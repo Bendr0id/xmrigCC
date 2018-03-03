@@ -46,7 +46,7 @@ NetworkState::NetworkState() :
 
 int NetworkState::connectionTime() const
 {
-    return m_active ? ((uv_now(uv_default_loop()) - m_connectionTime) / 1000) : 0;
+    return m_active ? (int)((uv_now(uv_default_loop()) - m_connectionTime) / 1000) : 0;
 }
 
 
@@ -56,7 +56,7 @@ uint32_t NetworkState::avgTime() const
         return 0;
     }
 
-    return (uint32_t) connectionTime() / m_latency.size();
+    return connectionTime() / (uint32_t)m_latency.size();
 }
 
 
@@ -94,7 +94,7 @@ void NetworkState::add(const SubmitResult &result, const char *error)
 }
 
 
-void NetworkState::setPool(const char *host, int port)
+void NetworkState::setPool(const char *host, int port, const char *ip)
 {
     snprintf(pool, sizeof(pool) - 1, "%s:%d", host, port);
 

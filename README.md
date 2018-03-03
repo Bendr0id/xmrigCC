@@ -15,7 +15,6 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
-* **NEW: Full SSL/TLS support**
 * Command and control server
 * CC Dashboard with:
     * statistics of all connected miners
@@ -206,6 +205,7 @@ This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, 
 
 ## Other information
 * No HTTP support, only stratum protocol support.
+* No TLS support.
 
 
 ### CPU mining performance

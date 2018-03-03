@@ -74,7 +74,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --multihash-thread-mask           for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
+      --multihash-thread-mask          for av=2/4 only, limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                    set process priority (0 idle, 2 normal to 5 highest)\n\
       --no-huge-pages                   disable huge pages support\n\
@@ -83,7 +83,6 @@ Options:\n"
       --max-cpu-usage=N                 maximum CPU usage for automatic threads mode (default 75)\n\
       --safe                            safe adjust threads and av settings for current CPU\n\
       --nicehash                        enable nicehash/xmrig-proxy support\n\
-      --use-tls                         enable tls on pool communication\n\
       --print-time=N                    print hashrate report every N seconds\n\
       --api-port=N                      port for the miner API\n\
       --api-access-token=T              access token for API\n\
@@ -91,10 +90,9 @@ Options:\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
-      --cc-use-tls                      enable tls encryption for CC communication\n\
       --cc-access-token=T               access token for CC Server\n\
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
-      --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n"
+      --cc-update-interval-s            status update interval in seconds (default: 10 min: 1)\n"
 # endif
 # endif
       
@@ -103,10 +101,7 @@ Options:\n"
       --cc-user=USERNAME                CC Server admin user\n\
       --cc-pass=PASSWORD                CC Server admin pass\n\
       --cc-access-token=T               CC Server access token for CC Client\n\
-      --cc-port=N                       CC Server port\n\
-      --cc-use-tls                      enable tls encryption for CC communication\n\
-      --cc-cert-file=FILE               when tls is turned on, use this to point to the right cert file (default: server.pem) \n\
-      --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
+      --cc-port=N                       CC Server\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif             
@@ -130,9 +125,12 @@ static char const short_options[] = "a:c:khBp:Px:r:R:s:t:T:o:u:O:v:Vl:S";
 
 static struct option const options[] = {
     { "algo",             1, nullptr, 'a'  },
+    { "api-access-token", 1, nullptr, 4001 },
+    { "api-port",         1, nullptr, 4000 },
+    { "api-worker-id",    1, nullptr, 4002 },
     { "av",               1, nullptr, 'v'  },
     { "aesni",            1, nullptr, 'A'  },
-    { "multihash-factor", 1, nullptr, 'm'  },
+    { "multihash-factor",       1, nullptr, 'm'  },
     { "background",       0, nullptr, 'B'  },
     { "config",           1, nullptr, 'c'  },
     { "cpu-affinity",     1, nullptr, 1020 },
@@ -157,7 +155,6 @@ static struct option const options[] = {
     { "user-agent",       1, nullptr, 1008 },
     { "userpass",         1, nullptr, 'O'  },
     { "version",          0, nullptr, 'V'  },
-    { "use-tls",          1, nullptr, 1015 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -170,9 +167,6 @@ static struct option const options[] = {
     { "cc-pass",          1, nullptr, 4008 },
     { "cc-client-config-folder",    1, nullptr, 4009 },
     { "cc-custom-dashboard",        1, nullptr, 4010 },
-    { "cc-cert-file",     1, nullptr, 4014 },
-    { "cc-key-file",      1, nullptr, 4015 },
-    { "cc-use-tls",       0, nullptr, 4016 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
@@ -213,7 +207,6 @@ static struct option const pool_options[] = {
     { "userpass",      1, nullptr, 'O'  },
     { "keepalive",     0, nullptr ,'k'  },
     { "nicehash",      0, nullptr, 1006 },
-    { "use-tls",       0, nullptr, 1015 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -231,7 +224,6 @@ static struct option const cc_client_options[] = {
     { "access-token",           1, nullptr, 4004 },
     { "worker-id",              1, nullptr, 4005 },
     { "update-interval-s",      1, nullptr, 4012 },
-    { "use-tls",                0, nullptr, 4016 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -242,9 +234,6 @@ static struct option const cc_server_options[] = {
     { "pass",                   1, nullptr, 4008 },
     { "client-config-folder",   1, nullptr, 4009 },
     { "custom-dashboard",       1, nullptr, 4010 },
-    { "cert-file",              1, nullptr, 4014 },
-    { "key-file",               1, nullptr, 4015 },
-    { "use-tls",                0, nullptr, 4016 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -283,7 +272,6 @@ Options::Options(int argc, char **argv) :
     m_safe(false),
     m_syslog(false),
     m_daemonized(false),
-    m_ccUseTls(false),
     m_configFile(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -296,8 +284,6 @@ Options::Options(int argc, char **argv) :
     m_ccAdminPass(nullptr),
     m_ccClientConfigFolder(nullptr),
     m_ccCustomDashboard(nullptr),
-    m_ccKeyFile(nullptr),
-    m_ccCertFile(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
@@ -497,16 +483,6 @@ bool Options::parseArg(int key, const char *arg)
         m_ccCustomDashboard = strdup(arg);
         break;
 
-    case 4014: /* --cc-cert-file */
-        free(m_ccCertFile);
-            m_ccCertFile = strdup(arg);
-        break;
-
-    case 4015: /* --cc-key-file */
-        free(m_ccKeyFile);
-            m_ccKeyFile = strdup(arg);
-        break;
-
     case 4011: /* --daemonized */
         m_daemonized = true;
         break;
@@ -532,17 +508,10 @@ bool Options::parseArg(int key, const char *arg)
     case 'S':  /* --syslog */
     case 1005: /* --safe */
     case 1006: /* --nicehash */
-        return parseBoolean(key, true);
 
     case 1002: /* --no-color */
     case 1009: /* --no-huge-pages */
         return parseBoolean(key, false);
-
-    case 1015: /* --use-tls */
-        return parseBoolean(key, true);
-
-    case 4016: /* --cc-use-tls */
-        return parseBoolean(key, true);
 
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
@@ -748,16 +717,8 @@ bool Options::parseBoolean(int key, bool enable)
         m_hugePages = enable;
         break;
 
-    case 1015: /* --use-tls */
-        m_pools.back()->setUseTls(enable);
-        break;
-
-    case 2000: /* --colors */
+    case 2000: /* colors */
         m_colors = enable;
-        break;
-
-    case 4016: /* --cc-use-tls */
-        m_ccUseTls = enable;
         break;
 
     default:
