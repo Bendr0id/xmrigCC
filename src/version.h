@@ -36,28 +36,20 @@
 #define APP_DESC      "XMRigCC CPU miner"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #endif
-#define APP_VERSION   "1.5.0 (based on XMRig 2.4.4)"
+#define APP_VERSION   "1.4.0 (based on XMRig 2.4.4)"
 #define APP_DOMAIN    ""
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC"
 #define APP_KIND      "cpu"
 
 #define APP_VER_MAJOR  1
-#define APP_VER_MINOR  5
+#define APP_VER_MINOR  4
 #define APP_VER_BUILD  0
 #define APP_VER_REV    0
 
 #ifndef NDEBUG
-	#ifndef XMRIG_NO_TLS
-		#define BUILD_TYPE   "DEBUG with TLS"
-	#else
-		#define BUILD_TYPE   "DEBUG"	
-	#endif	
+#define BUILD_TYPE   "DEBUG"
 #else
-	#ifndef XMRIG_NO_TLS
-		#define BUILD_TYPE   "RELEASE with TLS"
-	#else
-		#define BUILD_TYPE   "RELEASE"	
-	#endif	
+#define BUILD_TYPE   "RELEASE"
 #endif
 
 #ifdef _MSC_VER
