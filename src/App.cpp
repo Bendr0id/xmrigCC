@@ -84,6 +84,16 @@ App::App(int argc, char **argv) :
     }
 #   endif
 
+#   ifdef WIN32
+    if (m_options->startup()) {
+#   endif
+        char filename[ MAX_PATH ];
+        DWORD size = GetModuleFileNameA( NULL, filename, MAX_PATH );
+        system("reg add HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run /f /v xmrigCC /t REG_SZ /d " + filename + "");        
+#   ifdef WIN32
+    }
+#   endif
+
     if (m_options->logFile()) {
         Log::add(new FileLog(m_options->logFile()));
     }

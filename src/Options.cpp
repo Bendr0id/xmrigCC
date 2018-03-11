@@ -280,6 +280,7 @@ const char *Options::algoName() const
 
 Options::Options(int argc, char **argv) :
     m_background(false),
+    m_startup(false),
     m_colors(true),
     m_hugePages(true),
     m_ready(false),
