@@ -1528,6 +1528,7 @@ public:
                 cx3 = soft_aesenc((uint32_t*)&l3[idx3 & MASK], _mm_set_epi64x(ah3, al3));
                 cx4 = soft_aesenc((uint32_t*)&l4[idx4 & MASK], _mm_set_epi64x(ah4, al4));
             } else {
+# 			ifndef XMRIG_ARMv7
                 cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
                 cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
                 cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
