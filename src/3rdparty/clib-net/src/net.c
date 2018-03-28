@@ -219,14 +219,14 @@ net_connect_cb(uv_connect_t *conn, int err) {
     do {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
-        char* buf = (char *) calloc(read, 1);
+        char buf[read];
+        uv_write_t * req = malloc(sizeof(uv_write_t));
+        req->data = net;
         memset(buf, 0, read);
         memcpy(buf, net->tls->buf, read);
         uv_buf_t uvbuf = uv_buf_init(buf, read);
-        uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
-        net_resume(net);
-        free(buf);
-      }	
+        uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
+      }
     } while (read > 0);
   }
 #endif
@@ -273,13 +273,13 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       do {
         read = tls_bio_read(net->tls, 0);
         if (read > 0) {
-          char* buf2 = (char *) calloc(read, 1);
+          char buf2[read];
+          uv_write_t * req = malloc(sizeof(uv_write_t));
+          req->data = net;
           memset(buf2, 0, read);
           memcpy(buf2, net->tls->buf, read);
           uv_buf_t uvbuf = uv_buf_init(buf2, read);
-          uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
-          net_resume(net);
-          free(buf2);
+          uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
         }
       } while (read > 0);
 
@@ -344,7 +344,6 @@ net_write2(net_t * net, char * buf, unsigned int len) {
       if (read > 0) {
         uvbuf = uv_buf_init(net->tls->buf, read);
         res = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
-        net_resume(net);
       }
     } while (read > 0);
     break;
@@ -352,7 +351,6 @@ net_write2(net_t * net, char * buf, unsigned int len) {
   case NOT_SSL:
     uvbuf = uv_buf_init(buf, len);
     res = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
-    net_resume(net);
     break;
   }
 
@@ -380,4 +378,10 @@ int
 net_set_error_cb(net_t * net, void * cb) {
   net->error_cb = cb;
   return NET_OK;
+}
+
+void
+net_write_cb(uv_write_t *req, int stat) {
+  net_resume((net_t*)req->data);
+  free(req);
 }
