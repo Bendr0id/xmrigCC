@@ -220,10 +220,12 @@ net_connect_cb(uv_connect_t *conn, int err) {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
         char* buf = (char *) calloc(read, 1);
+        uv_write_t * req = malloc(sizeof(uv_write_t));
+        req->data = net;
         memset(buf, 0, read);
         memcpy(buf, net->tls->buf, read);
         uv_buf_t uvbuf = uv_buf_init(buf, read);
-        uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+        uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
         free(buf);
       }	
     } while (read > 0);
@@ -273,10 +275,12 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
         read = tls_bio_read(net->tls, 0);
         if (read > 0) {
           char* buf2 = (char *) calloc(read, 1);
+          uv_write_t * req = malloc(sizeof(uv_write_t));
+          req->data = net;
           memset(buf2, 0, read);
           memcpy(buf2, net->tls->buf, read);
           uv_buf_t uvbuf = uv_buf_init(buf2, read);
-          uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+          uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
           free(buf2);
         }
       } while (read > 0);
@@ -328,10 +332,9 @@ net_write(net_t * net, char * buf) {
 
 int
 net_write2(net_t * net, char * buf, unsigned int len) {
+  uv_write_t * req;
   uv_buf_t uvbuf;
   int read = 0;
-
-  int ret = NET_OK;
 
   switch (net->use_ssl) {
   case USE_SSL:
@@ -340,19 +343,29 @@ net_write2(net_t * net, char * buf, unsigned int len) {
     do {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
+        req = (uv_write_t *) malloc(sizeof(uv_write_t));
+        req->data = net;
         uvbuf = uv_buf_init(net->tls->buf, read);
-        ret = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+        uv_write(req, (uv_stream_t*)net->handle,
+                              &uvbuf,
+                              1,
+                              net_write_cb);
       }
     } while (read > 0);
     break;
 #endif
   case NOT_SSL:
+    req = (uv_write_t *) malloc(sizeof(uv_write_t));
+    req->data = net;
     uvbuf = uv_buf_init(buf, len);
-    ret = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+    uv_write(req, (uv_stream_t*)net->handle,
+                          &uvbuf,
+                          1,
+                          net_write_cb);
     break;
   }
 
-  return ret;
+  return NET_OK;
 }
 
 int
@@ -376,4 +389,10 @@ int
 net_set_error_cb(net_t * net, void * cb) {
   net->error_cb = cb;
   return NET_OK;
+}
+
+void
+net_write_cb(uv_write_t *req, int stat) {
+  net_resume((net_t*)req->data);
+  free(req);
 }

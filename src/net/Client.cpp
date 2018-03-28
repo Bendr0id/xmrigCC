@@ -127,8 +127,8 @@ void Client::tick(uint64_t now)
     }
 
     if (m_net) {
-        LOG_DEBUG_ERR("[%s:%u] timeout", m_url.host(), m_url.port());
-        reconnect();
+        LOG_WARN("[%s:%u] timeout", m_url.host(), m_url.port());
+        close();
     }
     else {
         LOG_WARN("Client::tick -> connect");
