@@ -336,6 +336,8 @@ net_write2(net_t * net, char * buf, unsigned int len) {
   uv_buf_t uvbuf;
   int read = 0;
 
+  int res = NET_OK;
+
   switch (net->use_ssl) {
   case USE_SSL:
 #ifndef XMRIG_NO_TLS
@@ -346,7 +348,7 @@ net_write2(net_t * net, char * buf, unsigned int len) {
         req = (uv_write_t *) malloc(sizeof(uv_write_t));
         req->data = net;
         uvbuf = uv_buf_init(net->tls->buf, read);
-        uv_write(req, (uv_stream_t*)net->handle,
+        res = uv_write(req, (uv_stream_t*)net->handle,
                               &uvbuf,
                               1,
                               net_write_cb);
@@ -358,14 +360,14 @@ net_write2(net_t * net, char * buf, unsigned int len) {
     req = (uv_write_t *) malloc(sizeof(uv_write_t));
     req->data = net;
     uvbuf = uv_buf_init(buf, len);
-    uv_write(req, (uv_stream_t*)net->handle,
+    res = uv_write(req, (uv_stream_t*)net->handle,
                           &uvbuf,
                           1,
                           net_write_cb);
     break;
   }
 
-  return NET_OK;
+  return res;
 }
 
 int
