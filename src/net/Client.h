@@ -86,6 +86,7 @@ private:
     void close();
     void login();
     void parse(char *line, size_t len);
+    void parseExtensions(const rapidjson::Value &value);
     void parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
@@ -99,6 +100,7 @@ private:
     static inline Client *getClient(void *data) { return static_cast<Client*>(data); }
 
     bool m_quiet;
+    bool m_nicehash;
     char m_buf[2048];
     char m_rpcId[64];
     char m_sendBuf[768];

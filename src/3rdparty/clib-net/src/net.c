@@ -154,6 +154,12 @@ net_resolve_cb(uv_getaddrinfo_t *rv, int err, net_ai * ai) {
    * create tcp instance.
    */
   uv_tcp_init(net->loop, net->handle);
+  uv_tcp_nodelay(net->handle, 1);
+
+#   ifndef WIN32
+  uv_tcp_keepalive(net->handle, 1, 60);
+#   endif
+
   ret = uv_tcp_connect(net->conn, net->handle, (const struct sockaddr*) &dest, net_connect_cb);
   if (ret != NET_OK) {
     if (net->error_cb) {

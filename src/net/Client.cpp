@@ -55,6 +55,7 @@ int64_t Client::m_sequence = 1;
 
 Client::Client(int id, const char *agent, IClientListener *listener) :
     m_quiet(false),
+    m_nicehash(false),
     m_agent(agent),
     m_listener(listener),
     m_id(id),
@@ -189,7 +190,7 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    Job job(m_id, m_url.isNicehash());
+    Job job(m_id, m_nicehash);
     if (!job.setId(params["job_id"].GetString())) {
         *code = 3;
         return false;
@@ -252,6 +253,14 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
         return false;
     }
 
+#   ifndef XMRIG_PROXY_PROJECT
+    m_nicehash = m_url.isNicehash();
+#   endif
+
+    if (result.HasMember("extensions")) {
+        parseExtensions(result["extensions"]);
+    }
+
     memset(m_rpcId, 0, sizeof(m_rpcId));
     memcpy(m_rpcId, id, strlen(id));
 
@@ -263,6 +272,8 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t Client::send(size_t size)
 {
+    LOG_WARN("Client::send");
+
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
     if (!m_net) {
         LOG_DEBUG_ERR("[%s:%u] send failed", m_url.host(), m_url.port());
@@ -317,6 +328,8 @@ void Client::connect()
 
 void Client::onRead(net_t *net, size_t size, char *buf)
 {
+    LOG_WARN("Client::onRead");
+
     auto client = getClient(net->data);
 
     if (size == 0) {
@@ -377,6 +390,8 @@ void Client::onError(net_t *net, int err, char *errStr)
 
 void Client::login()
 {
+    LOG_WARN("Client::login");
+
     m_results.clear();
 
     rapidjson::Document doc;
@@ -414,6 +429,8 @@ void Client::login()
 
 void Client::parse(char *line, size_t len)
 {
+    LOG_WARN("Client::parse");
+
     startTimeout();
 
     line[len - 1] = '\0';
@@ -442,6 +459,23 @@ void Client::parse(char *line, size_t len)
     }
 }
 
+
+void Client::parseExtensions(const rapidjson::Value &value)
+{
+    if (!value.IsArray()) {
+        return;
+    }
+
+    for (const rapidjson::Value &ext : value.GetArray()) {
+        if (!ext.IsString()) {
+            continue;
+        }
+
+        if (strcmp(ext.GetString(), "nicehash") == 0) {
+            m_nicehash = true;
+        }
+    }
+}
 
 void Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
