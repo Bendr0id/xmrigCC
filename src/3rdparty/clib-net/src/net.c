@@ -331,6 +331,8 @@ net_write2(net_t * net, char * buf, unsigned int len) {
   uv_buf_t uvbuf;
   int read = 0;
 
+  int ret = NET_OK;
+
   switch (net->use_ssl) {
   case USE_SSL:
 #ifndef XMRIG_NO_TLS
@@ -339,18 +341,18 @@ net_write2(net_t * net, char * buf, unsigned int len) {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
         uvbuf = uv_buf_init(net->tls->buf, read);
-        uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+        ret = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
       }
     } while (read > 0);
     break;
 #endif
   case NOT_SSL:
     uvbuf = uv_buf_init(buf, len);
-    uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+    ret = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
     break;
   }
 
-  return NET_OK;
+  return ret;
 }
 
 int
