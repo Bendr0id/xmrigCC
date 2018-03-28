@@ -95,6 +95,8 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
+    LOG_WARN("Client::disconnect");
+
 #   ifndef XMRIG_PROXY_PROJECT
     uv_timer_stop(&m_keepAliveTimer);
 #   endif
@@ -127,6 +129,7 @@ void Client::tick(uint64_t now)
         reconnect();
     }
     else {
+        LOG_WARN("Client::tick -> connect");
         connect();
     }
 }
@@ -269,6 +272,8 @@ int64_t Client::send(size_t size)
 
 void Client::close()
 {
+    LOG_WARN("Client::close");
+
     if (m_net) {
         auto client = getClient(m_net->data);
 
@@ -283,6 +288,8 @@ void Client::close()
 
 void Client::connect()
 {
+    LOG_WARN("Client::connect");
+
     m_net = net_new(const_cast<char *>(m_url.host()), m_url.port());
     m_net->data = this;
     m_net->conn_cb = Client::onConnect;
@@ -340,12 +347,15 @@ void Client::onRead(net_t *net, size_t size, char *buf)
 }
 
 void Client::onConnect(net_t *net) {
+    LOG_WARN("Client::onConnect");
     auto client = getClient(net->data);
     client->login();
 }
 
 void Client::onError(net_t *net, int err, char *errStr)
 {
+    LOG_WARN("Client::onError");
+
     if (net) {
         auto client = getClient(net->data);
         if (!client->m_quiet) {
@@ -503,11 +513,14 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
 
 void Client::ping()
 {
+    LOG_WARN("Client::ping");
     send(snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId));
 }
 
 
 void Client::reconnect() {
+
+    LOG_WARN("Client::reconnect");
 
 #   ifndef XMRIG_PROXY_PROJECT
     if (m_url.isKeepAlive()) {
@@ -516,6 +529,7 @@ void Client::reconnect() {
 #   endif
 
     if (m_failures == -1) {
+        LOG_WARN("Client::onConnect -> m_failures == -1");
         return m_listener->onClose(this, -1);
     }
 
@@ -527,6 +541,8 @@ void Client::reconnect() {
 
 void Client::startTimeout()
 {
+    LOG_WARN("Client::startTimeout");
+
     m_expire = 0;
 
 #   ifndef XMRIG_PROXY_PROJECT
