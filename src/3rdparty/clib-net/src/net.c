@@ -330,10 +330,9 @@ net_write(net_t * net, char * buf) {
 
 int
 net_write2(net_t * net, char * buf, unsigned int len) {
+  uv_write_t * req;
   uv_buf_t uvbuf;
   int read = 0;
-
-  int res = NET_OK;
 
   switch (net->use_ssl) {
   case USE_SSL:
@@ -342,19 +341,29 @@ net_write2(net_t * net, char * buf, unsigned int len) {
     do {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
+        req = (uv_write_t *) malloc(sizeof(uv_write_t));
+        req->data = net;
         uvbuf = uv_buf_init(net->tls->buf, read);
-        res = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+        uv_write(req, (uv_stream_t*)net->handle,
+                              &uvbuf,
+                              1,
+                              net_write_cb);
       }
     } while (read > 0);
     break;
 #endif
   case NOT_SSL:
+    req = (uv_write_t *) malloc(sizeof(uv_write_t));
+    req->data = net;
     uvbuf = uv_buf_init(buf, len);
-    res = uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+    uv_write(req, (uv_stream_t*)net->handle,
+                          &uvbuf,
+                          1,
+                          net_write_cb);
     break;
   }
 
-  return res;
+  return NET_OK;
 }
 
 int
