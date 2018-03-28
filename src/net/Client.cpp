@@ -61,7 +61,8 @@ Client::Client(int id, const char *agent, IClientListener *listener) :
     m_retryPause(5000),
     m_failures(0),
     m_recvBufPos(0),
-    m_expire(0)
+    m_expire(0),
+    m_jobs(0)
 {
     m_recvBuf.base = m_buf;
     m_recvBuf.len  = sizeof(m_buf);
@@ -224,17 +225,22 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         }
     }
 
-    if (m_job == job) {
-        if (!m_quiet) {
-            LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
-        }
+    if (m_job != job) {
+        m_jobs++;
+        m_job = std::move(job);
+        return true;
+    }
 
-        close();
+    if (m_jobs == 0) { // https://github.com/xmrig/xmrig/issues/459
         return false;
     }
 
-    m_job = std::move(job);
-    return true;
+    if (!m_quiet) {
+        LOG_WARN("[%s:%u] duplicate job received, reconnect", m_url.host(), m_url.port());
+    }
+
+    close();
+    return false;
 }
 
 
@@ -249,7 +255,10 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
     memset(m_rpcId, 0, sizeof(m_rpcId));
     memcpy(m_rpcId, id, strlen(id));
 
-    return parseJob(result["job"], code);
+    const bool rc = parseJob(result["job"], code);
+    m_jobs = 0;
+
+    return rc;
 }
 
 int64_t Client::send(size_t size)
