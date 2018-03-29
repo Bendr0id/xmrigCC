@@ -219,15 +219,15 @@ net_connect_cb(uv_connect_t *conn, int err) {
    * Handle TLS Partial
    */
   if (net->use_ssl == USE_SSL && tls_connect(net->tls) == NET_OK) {
-    read = 0;
     do {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
-        char buf[read];
+        char* buf = (char *) calloc(read, 1);
         memset(buf, 0, read);
         memcpy(buf, net->tls->buf, read);
         uv_buf_t uvbuf = uv_buf_init(buf, read);
         uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+        free(buf);
       }
     } while (read > 0);
   }
@@ -275,11 +275,12 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
       do {
         read = tls_bio_read(net->tls, 0);
         if (read > 0) {
-          char buf2[read];
+          char* buf2 = (char *) calloc(read, 1);
           memset(buf2, 0, read);
           memcpy(buf2, net->tls->buf, read);
           uv_buf_t uvbuf = uv_buf_init(buf2, read);
           uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
+          free(buf2);
         }
       } while (read > 0);
 
