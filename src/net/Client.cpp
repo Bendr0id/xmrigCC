@@ -381,7 +381,7 @@ void Client::onError(net_t *net, int err, char *errStr)
     if (net) {
         auto client = getClient(net->data);
         if (!client->m_quiet) {
-            LOG_ERR("[%s:%u] error: \"%s\"", client->m_url.host(), client->m_url.port(), errStr);
+            LOG_ERR("[%s:%u] error: \"%s\" -> close connection.", client->m_url.host(), client->m_url.port(), errStr);
         }
 
         client->close();
