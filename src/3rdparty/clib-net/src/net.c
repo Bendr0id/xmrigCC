@@ -220,12 +220,10 @@ net_connect_cb(uv_connect_t *conn, int err) {
       read = tls_bio_read(net->tls, 0);
       if (read > 0) {
         char buf[read];
-        uv_write_t * req = malloc(sizeof(uv_write_t));
-        req->data = net;
         memset(buf, 0, read);
         memcpy(buf, net->tls->buf, read);
         uv_buf_t uvbuf = uv_buf_init(buf, read);
-        uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
+        uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
       }
     } while (read > 0);
   }
@@ -274,12 +272,10 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
         read = tls_bio_read(net->tls, 0);
         if (read > 0) {
           char buf2[read];
-          uv_write_t * req = malloc(sizeof(uv_write_t));
-          req->data = net;
           memset(buf2, 0, read);
           memcpy(buf2, net->tls->buf, read);
           uv_buf_t uvbuf = uv_buf_init(buf2, read);
-          uv_write(req, (uv_stream_t*)net->handle, &uvbuf, 1, net_write_cb);
+          uv_try_write((uv_stream_t*)net->handle, &uvbuf, 1);
         }
       } while (read > 0);
 
@@ -315,7 +311,7 @@ net_read(uv_stream_t* handle, ssize_t nread, const uv_buf_t* buf) {
   /*
    * TCP Part, no SSL, just proxy of uv.
    */
-  uv_read_stop(handle);
+  //uv_read_stop(handle);
   buf->base[nread] = 0;
   if (net->read_cb != NULL) {
     net->read_cb(net, nread, buf->base);
@@ -330,12 +326,9 @@ net_write(net_t * net, char * buf) {
 
 int
 net_write2(net_t * net, char * buf, unsigned int len) {
-  uv_write_t * req;
   uv_buf_t uvbuf;
   int read = 0;
   int res = NET_OK;
-
-  net_resume(net);
 
   switch (net->use_ssl) {
   case USE_SSL:
@@ -380,10 +373,4 @@ int
 net_set_error_cb(net_t * net, void * cb) {
   net->error_cb = cb;
   return NET_OK;
-}
-
-void
-net_write_cb(uv_write_t *req, int stat) {
-  net_resume((net_t*)req->data);
-  free(req);
 }
