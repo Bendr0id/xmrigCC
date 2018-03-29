@@ -97,7 +97,7 @@ void Client::connect(const Url *url)
 
 void Client::disconnect()
 {
-    LOG_WARN("Client::disconnect");
+    LOG_DEBUG("Client::disconnect");
 
 #   ifndef XMRIG_PROXY_PROJECT
     uv_timer_stop(&m_keepAliveTimer);
@@ -131,7 +131,7 @@ void Client::tick(uint64_t now)
         close();
     }
     else {
-        LOG_WARN("Client::tick -> connect");
+        LOG_DEBUG("Client::tick -> connect");
         connect();
     }
 }
@@ -272,7 +272,7 @@ bool Client::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t Client::send(size_t size)
 {
-    LOG_WARN("Client::send");
+    LOG_DEBUG("Client::send");
 
     LOG_DEBUG("[%s:%u] send (%d bytes): \"%s\"", m_url.host(), m_url.port(), size, m_sendBuf);
     if (!m_net) {
@@ -292,7 +292,7 @@ int64_t Client::send(size_t size)
 
 void Client::close()
 {
-    LOG_WARN("Client::close");
+    LOG_DEBUG("Client::close");
 
     if (m_net) {
         auto client = getClient(m_net->data);
@@ -308,7 +308,7 @@ void Client::close()
 
 void Client::connect()
 {
-    LOG_WARN("Client::connect");
+    LOG_DEBUG("Client::connect");
 
     m_net = net_new(const_cast<char *>(m_url.host()), m_url.port());
     m_net->data = this;
@@ -328,7 +328,7 @@ void Client::connect()
 
 void Client::onRead(net_t *net, size_t size, char *buf)
 {
-    LOG_WARN("Client::onRead");
+    LOG_DEBUG("Client::onRead");
 
     auto client = getClient(net->data);
 
@@ -369,14 +369,14 @@ void Client::onRead(net_t *net, size_t size, char *buf)
 }
 
 void Client::onConnect(net_t *net) {
-    LOG_WARN("Client::onConnect");
+    LOG_DEBUG("Client::onConnect");
     auto client = getClient(net->data);
     client->login();
 }
 
 void Client::onError(net_t *net, int err, char *errStr)
 {
-    LOG_WARN("Client::onError");
+    LOG_DEBUG("Client::onError");
 
     if (net) {
         auto client = getClient(net->data);
@@ -390,7 +390,7 @@ void Client::onError(net_t *net, int err, char *errStr)
 
 void Client::login()
 {
-    LOG_WARN("Client::login");
+    LOG_DEBUG("Client::login");
 
     m_results.clear();
 
@@ -429,7 +429,7 @@ void Client::login()
 
 void Client::parse(char *line, size_t len)
 {
-    LOG_WARN("Client::parse");
+    LOG_DEBUG("Client::parse");
 
     startTimeout();
 
@@ -556,14 +556,14 @@ void Client::parseResponse(int64_t id, const rapidjson::Value &result, const rap
 
 void Client::ping()
 {
-    LOG_WARN("Client::ping");
+    LOG_DEBUG("Client::ping");
     send(snprintf(m_sendBuf, sizeof(m_sendBuf), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId));
 }
 
 
 void Client::reconnect() {
 
-    LOG_WARN("Client::reconnect");
+    LOG_DEBUG("Client::reconnect");
 
 #   ifndef XMRIG_PROXY_PROJECT
     if (m_url.isKeepAlive()) {
@@ -572,7 +572,7 @@ void Client::reconnect() {
 #   endif
 
     if (m_failures == -1) {
-        LOG_WARN("Client::onConnect -> m_failures == -1");
+        LOG_DEBUG("Client::onConnect -> m_failures == -1");
         return m_listener->onClose(this, -1);
     }
 
@@ -584,7 +584,7 @@ void Client::reconnect() {
 
 void Client::startTimeout()
 {
-    LOG_WARN("Client::startTimeout");
+    LOG_DEBUG("Client::startTimeout");
 
     m_expire = 0;
 
