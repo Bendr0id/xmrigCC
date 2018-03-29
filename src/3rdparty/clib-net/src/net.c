@@ -53,6 +53,10 @@ net_close(net_t * net, void (*cb)(uv_handle_t*)) {
     }
 #endif
 
+    if (uv_is_readable((uv_stream_t*)net->handle) == 1) {
+      uv_read_stop((uv_stream_t*)net->handle);
+    }
+
     uv_close((uv_handle_t*)net->handle, cb);
 
 #ifndef XMRIG_NO_TLS
