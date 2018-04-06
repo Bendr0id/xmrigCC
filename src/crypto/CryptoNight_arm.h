@@ -48,33 +48,27 @@ extern "C"
 #include "crypto/c_skein.h"
 }
 
-
-static inline void do_blake_hash(const void* input, size_t len, char* output)
-{
-    blake256_hash(reinterpret_cast<uint8_t*>(output), static_cast<const uint8_t*>(input), len);
+static inline void do_blake_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    blake256_hash(output, input, len);
 }
 
 
-static inline void do_groestl_hash(const void* input, size_t len, char* output)
-{
-    groestl(static_cast<const uint8_t*>(input), len * 8, reinterpret_cast<uint8_t*>(output));
+static inline void do_groestl_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    groestl(input, len * 8, output);
 }
 
 
-static inline void do_jh_hash(const void* input, size_t len, char* output)
-{
-    jh_hash(32 * 8, static_cast<const uint8_t*>(input), 8 * len, reinterpret_cast<uint8_t*>(output));
+static inline void do_jh_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    jh_hash(32 * 8, input, 8 * len, output);
 }
 
 
-static inline void do_skein_hash(const void* input, size_t len, char* output)
-{
-    xmr_skein(static_cast<const uint8_t*>(input), reinterpret_cast<uint8_t*>(output));
+static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    xmr_skein(input, output);
 }
 
 
-void
-(* const extra_hashes[4])(const void*, size_t, char*) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
+void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
 static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64_t a, const uint64_t b)
@@ -101,9 +95,7 @@ static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
     return (uint64_t) r;
 }
 #else
-
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t* product_hi)
-{
+static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
     // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
@@ -127,7 +119,6 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 
     return product_lo;
 }
-
 #endif
 
 
@@ -147,37 +138,21 @@ static inline __m128i sl_xor(__m128i tmp1)
 
 
 template<uint8_t rcon>
-static inline void aes_genkey_sub(__m128i* xout0, __m128i* xout2)
-{
-//    __m128i xout1 = _mm_aeskeygenassist_si128(*xout2, rcon);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
-//    *xout0 = sl_xor(*xout0);
-//    *xout0 = _mm_xor_si128(*xout0, xout1);
-//    xout1  = _mm_aeskeygenassist_si128(*xout0, 0x00);
-//    xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
-//    *xout2 = sl_xor(*xout2);
-//    *xout2 = _mm_xor_si128(*xout2, xout1);
-}
-
-
-template<uint8_t rcon>
 static inline void soft_aes_genkey_sub(__m128i* xout0, __m128i* xout2)
 {
     __m128i xout1 = soft_aeskeygenassist<rcon>(*xout2);
-    xout1 = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
+    xout1  = _mm_shuffle_epi32(xout1, 0xFF); // see PSHUFD, set all elems to 4th elem
     *xout0 = sl_xor(*xout0);
     *xout0 = _mm_xor_si128(*xout0, xout1);
-    xout1 = soft_aeskeygenassist<0x00>(*xout0);
-    xout1 = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
+    xout1  = soft_aeskeygenassist<0x00>(*xout0);
+    xout1  = _mm_shuffle_epi32(xout1, 0xAA); // see PSHUFD, set all elems to 3rd elem
     *xout2 = sl_xor(*xout2);
     *xout2 = _mm_xor_si128(*xout2, xout1);
 }
 
 
 template<bool SOFT_AES>
-static inline void
-aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5,
-           __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
+static inline void aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i* k3, __m128i* k4, __m128i* k5, __m128i* k6, __m128i* k7, __m128i* k8, __m128i* k9)
 {
     __m128i xout0 = _mm_load_si128(memory);
     __m128i xout2 = _mm_load_si128(memory + 1);
@@ -203,9 +178,7 @@ aes_genkey(const __m128i* memory, __m128i* k0, __m128i* k1, __m128i* k2, __m128i
 
 
 template<bool SOFT_AES>
-static inline void
-aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6,
-          __m128i* x7)
+static inline void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
 {
     if (SOFT_AES) {
         *x0 = soft_aesenc((uint32_t*)x0, key);
@@ -219,17 +192,18 @@ aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m12
     }
 #   ifndef XMRIG_ARMv7
     else {
-        *x0 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x0), key));
-        *x1 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x1), key));
-        *x2 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x2), key));
-        *x3 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x3), key));
-        *x4 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x4), key));
-        *x5 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x5), key));
-        *x6 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x6), key));
-        *x7 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t*) x7), key));
+        *x0 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x0), key));
+        *x1 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x1), key));
+        *x2 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x2), key));
+        *x3 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x3), key));
+        *x4 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x4), key));
+        *x5 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x5), key));
+        *x6 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x6), key));
+        *x7 = vaesmcq_u8(vaeseq_u8(*((uint8x16_t *) x7), key));
     }
 #   endif
 }
+
 
 inline void mix_and_propagate(__m128i& x0, __m128i& x1, __m128i& x2, __m128i& x3, __m128i& x4, __m128i& x5, __m128i& x6, __m128i& x7)
 {
@@ -470,7 +444,8 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
     xout6 = _mm_load_si128(output + 10);
     xout7 = _mm_load_si128(output + 11);
 
-    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
+    for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8)
+    {
         xout0 = _mm_xor_si128(_mm_load_si128(input + i + 0), xout0);
         xout1 = _mm_xor_si128(_mm_load_si128(input + i + 1), xout1);
         xout2 = _mm_xor_si128(_mm_load_si128(input + i + 2), xout2);
@@ -503,7 +478,8 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
             xout5 ^= k9;
             xout6 ^= k9;
             xout7 ^= k9;
-        } else {
+        }
+        else {
             aes_round<SOFT_AES>(k9, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         }
 
@@ -609,7 +585,6 @@ public:
         uint64_t ah[NUM_HASH_BLOCKS];
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
-        uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size,
@@ -768,7 +743,6 @@ public:
         uint64_t ah[NUM_HASH_BLOCKS];
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
-        uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size,
@@ -794,7 +768,7 @@ public:
                 if (SOFT_AES) {
                     cx = soft_aesenc((uint32_t*)&l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
-                    cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
+                    cx = _mm_load_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK]);
 #           ifndef XMRIG_ARMv7
                     cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
 #           endif
@@ -820,6 +794,7 @@ public:
                 ah[hashBlock] ^= ch;
                 al[hashBlock] ^= cl;
                 idx[hashBlock] = al[hashBlock];
+                idx0 = d ^ q;
 
                 int64_t n  = ((int64_t*)&l[hashBlock][idx[hashBlock] & MASK])[0];
                 int32_t d  = ((int32_t*)&l[hashBlock][idx[hashBlock] & MASK])[2];
