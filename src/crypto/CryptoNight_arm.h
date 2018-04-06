@@ -852,7 +852,7 @@ public:
     #           ifndef XMRIG_ARMv7
                 cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah, al);
     #           endif
-           }
+            }
 
             _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
             idx = EXTRACT64(cx);
@@ -1298,6 +1298,8 @@ public:
             int32_t d  = ((int32_t*)&l0[idx0 & MASK])[2];
             int64_t q = n / (d | 0x5);
 
+            ((int64_t*)&l0[idx0 & MASK])[0] = n ^ q;
+            idx0 = d ^ q;
 
             cl = ((uint64_t*) &l1[idx1 & MASK])[0];
             ch = ((uint64_t*) &l1[idx1 & MASK])[1];
