@@ -616,7 +616,7 @@ bool Options::parseArg(int key, uint64_t arg)
         break;
 
     case 't': /* --threads */
-        if (arg < 1 || arg > 1024) {
+        if (arg < 0 || arg > 1024) {
             showUsage(1);
             return false;
         }
@@ -978,6 +978,11 @@ void Options::optimizeAlgorithmConfiguration()
     AesNi aesniFromCpu = Cpu::hasAES() ? AESNI_ON : AESNI_OFF;
     if (m_aesni == AESNI_AUTO || m_safe) {
         m_aesni = aesniFromCpu;
+    }
+
+    if (m_algo == Options::ALGO_CRYPTONIGHT_HEAVY && m_hashFactor > 3) {
+        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy is: 3\n");
+        m_hashFactor = 3;
     }
 
     Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_maxCpuUsage, m_safe);

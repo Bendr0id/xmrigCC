@@ -178,6 +178,11 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[1](test_input, 76, output, ctx);
         resultV1Pow = resultV1Pow && memcmp(output, test_output_heavy, 64) == 0;
         #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 2
+        cryptonight_hash_ctx[2](test_input, 76, output, ctx);
+        resultV1Pow = resultV1Pow && memcmp(output, test_output_heavy, 96) == 0;
+        #endif
     }
     else {
         if (Options::i()->forcePowVersion() == Options::PowVersion::POW_AUTODETECT ||

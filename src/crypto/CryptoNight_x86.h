@@ -488,7 +488,6 @@ public:
         uint64_t ah[NUM_HASH_BLOCKS];
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
-        uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
@@ -561,7 +560,6 @@ public:
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
         uint64_t tweak1_2[NUM_HASH_BLOCKS];
-        uint64_t version[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
@@ -644,7 +642,6 @@ public:
         uint64_t ah[NUM_HASH_BLOCKS];
         __m128i bx[NUM_HASH_BLOCKS];
         uint64_t idx[NUM_HASH_BLOCKS];
-        uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
