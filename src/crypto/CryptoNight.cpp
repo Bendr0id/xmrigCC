@@ -172,16 +172,16 @@ bool CryptoNight::selfTest(int algo)
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY)
     {
         cryptonight_hash_ctx[0](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, test_output_heavy, 32) == 0;
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
         cryptonight_hash_ctx[1](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, test_output_heavy, 64) == 0;
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
         cryptonight_hash_ctx[2](test_input, 76, output, ctx);
-        resultV1Pow = resultV1Pow && memcmp(output, test_output_heavy, 96) == 0;
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy, 96) == 0;
         #endif
     }
     else {
