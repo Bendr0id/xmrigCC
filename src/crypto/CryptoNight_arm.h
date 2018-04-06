@@ -794,7 +794,6 @@ public:
                 ah[hashBlock] ^= ch;
                 al[hashBlock] ^= cl;
                 idx[hashBlock] = al[hashBlock];
-                idx0 = d ^ q;
 
                 int64_t n  = ((int64_t*)&l[hashBlock][idx[hashBlock] & MASK])[0];
                 int32_t d  = ((int32_t*)&l[hashBlock][idx[hashBlock] & MASK])[2];
