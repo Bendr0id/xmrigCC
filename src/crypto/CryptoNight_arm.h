@@ -711,8 +711,10 @@ public:
                 if (SOFT_AES) {
                     cx = soft_aesenc((uint32_t*)&l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
-                    cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
-                    cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+                    cx = _mm_load_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK]);
+#           ifndef XMRIG_ARMv7
+                    cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
+#           endif
                 }
 
                 _mm_store_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK],
@@ -793,7 +795,9 @@ public:
                     cx = soft_aesenc((uint32_t*)&l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
                     cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
-                    cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+#           ifndef XMRIG_ARMv7
+                    cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
+#           endif
                 }
 
                 _mm_store_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK],
