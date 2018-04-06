@@ -48,32 +48,27 @@ extern "C"
 #include "crypto/c_skein.h"
 }
 
-static inline void do_blake_hash(const void* input, size_t len, char* output)
-{
-    blake256_hash(reinterpret_cast<uint8_t*>(output), static_cast<const uint8_t*>(input), len);
+static inline void do_blake_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    blake256_hash(output, input, len);
 }
 
 
-static inline void do_groestl_hash(const void* input, size_t len, char* output)
-{
-    groestl(static_cast<const uint8_t*>(input), len * 8, reinterpret_cast<uint8_t*>(output));
+static inline void do_groestl_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    groestl(input, len * 8, output);
 }
 
 
-static inline void do_jh_hash(const void* input, size_t len, char* output)
-{
-    jh_hash(32 * 8, static_cast<const uint8_t*>(input), 8 * len, reinterpret_cast<uint8_t*>(output));
+static inline void do_jh_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    jh_hash(32 * 8, input, 8 * len, output);
 }
 
 
-static inline void do_skein_hash(const void* input, size_t len, char* output)
-{
-    xmr_skein(static_cast<const uint8_t*>(input), reinterpret_cast<uint8_t*>(output));
+static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *output) {
+    xmr_skein(input, output);
 }
 
 
-void (* const extra_hashes[4])(const void*, size_t, char*) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
-
+void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 #if defined(__x86_64__) || defined(_M_AMD64)
 #   define EXTRACT64(X) _mm_cvtsi128_si64(X)
@@ -477,9 +472,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_H
 class CryptoNightMultiHash
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -544,13 +539,13 @@ public:
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 
-    inline static void hashPowV2(const void* __restrict__ input,
+    inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -627,13 +622,13 @@ public:
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                                  size_t size,
-                                 void* __restrict__ output,
+                                 uint8_t* __restrict__ output,
                                  cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -704,7 +699,7 @@ public:
             cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 };
@@ -714,9 +709,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 1>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l;
@@ -770,12 +765,12 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
     }
 
-    inline static void hashPowV2(const void* __restrict__ input,
+    inline static void hashPowV2(const uint8_t* __restrict__ input,
                                  size_t size,
-                                 void* __restrict__ output,
+                                 uint8_t* __restrict__ output,
                                  cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l;
@@ -837,12 +832,12 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
     }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l;
@@ -903,7 +898,7 @@ public:
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
     }
 };
 
@@ -911,9 +906,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 2>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t* __restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -998,13 +993,13 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 
-    inline static void hashPowV2(const void* __restrict__ input,
+    inline static void hashPowV2(const uint8_t* __restrict__ input,
                               size_t size,
-                              void* __restrict__ output,
+                              uint8_t* __restrict__ output,
                               cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1106,13 +1101,13 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1212,8 +1207,8 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 };
 
@@ -1221,9 +1216,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 3>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1342,14 +1337,14 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t* __restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
       keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1492,14 +1487,14 @@ public:
       keccakf(h1, 24);
       keccakf(h2, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1639,9 +1634,9 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
 };
 
@@ -1649,9 +1644,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 4>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1802,15 +1797,15 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
   {
       keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1992,15 +1987,15 @@ public:
       keccakf(h2, 24);
       keccakf(h3, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2179,10 +2174,10 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
     }
 };
 
@@ -2190,9 +2185,9 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 5>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2374,16 +2369,16 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
   {
       keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2604,16 +2599,16 @@ public:
       keccakf(h3, 24);
       keccakf(h4, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-      extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+      extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t* __restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2830,11 +2825,11 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
     }
 
 };

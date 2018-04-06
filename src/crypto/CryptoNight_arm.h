@@ -571,10 +571,10 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
 
 // n-Loop version. Seems to be little bit slower then the hardcoded one.
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_HASH_BLOCKS>
-class CryptoNightMultiHash 
+class CryptoNightMultiHash
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -647,7 +647,7 @@ public:
         }
     }
 
-    inline static void hashPowV2(const void* __restrict__ input,
+    inline static void hashPowV2(const uint8_t* __restrict__ input,
                               size_t size,
                               uint8_t *__restrict__ output,
                               cryptonight_ctx* __restrict__ ctx)
@@ -662,7 +662,7 @@ public:
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
-            tweak1_2[hashBlock] = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + hashBlock * size) ^
+            tweak1_2[hashBlock] = (*reinterpret_cast<const uint64_t*>(input + 35 + hashBlock * size) ^
                                    *(reinterpret_cast<const uint64_t*>(ctx->state[hashBlock]) + 24));
         }
 
@@ -732,7 +732,7 @@ public:
         }
     }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -818,7 +818,7 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 1>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -880,7 +880,7 @@ public:
         extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
   }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
@@ -894,7 +894,7 @@ public:
 
     keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
 
-    uint64_t tweak1_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+    uint64_t tweak1_2 = (*reinterpret_cast<const uint64_t*>(input + 35) ^
                         *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
     l = ctx->memory;
     h = reinterpret_cast<uint64_t*>(ctx->state[0]);
@@ -950,7 +950,7 @@ public:
     extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
@@ -1024,13 +1024,13 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 2>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -1117,17 +1117,17 @@ public:
         extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
-    keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-    keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+    keccak(input, (int) size, ctx->state[0], 200);
+    keccak(input + size, (int) size, ctx->state[1], 200);
 
-        uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+        uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(input + 35) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-        uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
+        uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(input + 35 + size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
 
     const uint8_t* l0 = ctx->memory;
@@ -1227,13 +1227,13 @@ public:
     extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -1337,14 +1337,14 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 3>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -1465,20 +1465,20 @@ public:
         extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
-    keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-    keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-    keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+    keccak(input, (int) size, ctx->state[0], 200);
+    keccak(input + size, (int) size, ctx->state[1], 200);
+    keccak(input + 2 * size, (int) size, ctx->state[2], 200);
 
-      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(input + 35) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
+      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(input + 35 + size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
-      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
+      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(input + 35 + 2 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
 
     const uint8_t* l0 = ctx->memory;
@@ -1617,14 +1617,14 @@ public:
     extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -1771,15 +1771,15 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 4>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -1932,23 +1932,23 @@ public:
         extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
-    keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-    keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-    keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-    keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+    keccak(input, (int) size, ctx->state[0], 200);
+    keccak(input + size, (int) size, ctx->state[1], 200);
+    keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+    keccak(input + 3 * size, (int) size, ctx->state[3], 200);
 
-      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(input + 35) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
+      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(input + 35 + size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
-      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
+      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(input + 35 + 2 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
-      uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
+      uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(input + 35 + 3 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
 
     const uint8_t* l0 = ctx->memory;
@@ -2124,15 +2124,15 @@ public:
     extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -2318,16 +2318,16 @@ template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 5>
 {
 public:
-    inline static void hash(const void* __restrict__ input,
+    inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-        keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak(input + 4 * size, (int) size, ctx->state[4], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
@@ -2511,26 +2511,26 @@ public:
         extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
     }
 
-  inline static void hashPowV2(const void* __restrict__ input,
+  inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
-    keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-    keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-    keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-    keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-    keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+    keccak(input, (int) size, ctx->state[0], 200);
+    keccak(input + size, (int) size, ctx->state[1], 200);
+    keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+    keccak(input + 3 * size, (int) size, ctx->state[3], 200);
+    keccak(input + 4 * size, (int) size, ctx->state[4], 200);
 
-      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+      uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(input + 35) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
+      uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(input + 35 + size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
-      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
+      uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(input + 35 + 2 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
-      uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
+      uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(input + 35 + 3 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
-      uint64_t tweak1_2_4 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 4 * size) ^
+      uint64_t tweak1_2_4 = (*reinterpret_cast<const uint64_t*>(input + 35 + 4 * size) ^
                              *(reinterpret_cast<const uint64_t*>(ctx->state[4]) + 24));
 
 
@@ -2743,16 +2743,16 @@ public:
     extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
   }
 
-    inline static void hashHeavy(const void* __restrict__ input,
+    inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-        keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+        keccak(input, (int) size, ctx->state[0], 200);
+        keccak(input + size, (int) size, ctx->state[1], 200);
+        keccak(input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak(input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak(input + 4 * size, (int) size, ctx->state[4], 200);
 
         const uint8_t* l0 = ctx->memory;
         const uint8_t* l1 = ctx->memory + MEM;
