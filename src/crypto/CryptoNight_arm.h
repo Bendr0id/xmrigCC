@@ -643,7 +643,7 @@ public:
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 
@@ -728,7 +728,7 @@ public:
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 
@@ -809,7 +809,7 @@ public:
             cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
-                                                       static_cast<char*>(output) + hashBlock * 32);
+                                                       output + hashBlock * 32);
         }
     }
 };
@@ -877,7 +877,7 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
   }
 
   inline static void hashPowV2(const void* __restrict__ input,
@@ -947,7 +947,7 @@ public:
 
     cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
     keccakf(h, 24);
-    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
   }
 
     inline static void hashHeavy(const void* __restrict__ input,
@@ -1016,7 +1016,7 @@ public:
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
     }
 };
 
@@ -1113,8 +1113,8 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 
   inline static void hashPowV2(const void* __restrict__ input,
@@ -1223,8 +1223,8 @@ public:
     keccakf(h0, 24);
     keccakf(h1, 24);
 
-    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
   }
 
     inline static void hashHeavy(const void* __restrict__ input,
@@ -1328,8 +1328,8 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
     }
 };
 
@@ -1460,9 +1460,9 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
 
   inline static void hashPowV2(const void* __restrict__ input,
@@ -1612,9 +1612,9 @@ public:
     keccakf(h1, 24);
     keccakf(h2, 24);
 
-    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
   }
 
     inline static void hashHeavy(const void* __restrict__ input,
@@ -1761,9 +1761,9 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
     }
 };
 
@@ -1926,10 +1926,10 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
     }
 
   inline static void hashPowV2(const void* __restrict__ input,
@@ -2118,10 +2118,10 @@ public:
     keccakf(h2, 24);
     keccakf(h3, 24);
 
-    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-    extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+    extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
   }
 
     inline static void hashHeavy(const void* __restrict__ input,
@@ -2307,10 +2307,10 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
     }
 };
 
@@ -2504,11 +2504,11 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
     }
 
   inline static void hashPowV2(const void* __restrict__ input,
@@ -2736,11 +2736,11 @@ public:
     keccakf(h3, 24);
     keccakf(h4, 24);
 
-    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-    extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-    extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+    extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+    extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+    extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+    extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+    extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
   }
 
     inline static void hashHeavy(const void* __restrict__ input,
@@ -2964,11 +2964,11 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, static_cast<char*>(output));
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, static_cast<char*>(output) + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, static_cast<char*>(output) + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, static_cast<char*>(output) + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, static_cast<char*>(output) + 128);
+        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
     }
 };
 
