@@ -571,12 +571,12 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
 
 // n-Loop version. Seems to be little bit slower then the hardcoded one.
 template<size_t ITERATIONS, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_HASH_BLOCKS>
-class CryptoNightMultiHash
+class CryptoNightMultiHash 
 {
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -649,7 +649,7 @@ public:
 
     inline static void hashPowV2(const void* __restrict__ input,
                               size_t size,
-                              void* __restrict__ output,
+                              uint8_t *__restrict__ output,
                               cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -734,7 +734,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
@@ -820,7 +820,7 @@ class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 1>
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l;
@@ -882,7 +882,7 @@ public:
 
   inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
     const uint8_t* l;
@@ -952,7 +952,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         const uint8_t* l;
@@ -1026,7 +1026,7 @@ class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 2>
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1119,7 +1119,7 @@ public:
 
   inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
     keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1229,7 +1229,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1339,7 +1339,7 @@ class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 3>
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1467,7 +1467,7 @@ public:
 
   inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
     keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1619,7 +1619,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1773,7 +1773,7 @@ class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 4>
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -1934,7 +1934,7 @@ public:
 
   inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
     keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2126,7 +2126,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2320,7 +2320,7 @@ class CryptoNightMultiHash<ITERATIONS, MEM, MASK, SOFT_AES, 5>
 public:
     inline static void hash(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2513,7 +2513,7 @@ public:
 
   inline static void hashPowV2(const void* __restrict__ input,
                           size_t size,
-                          void* __restrict__ output,
+                          uint8_t *__restrict__ output,
                           cryptonight_ctx* __restrict__ ctx)
   {
     keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
@@ -2745,7 +2745,7 @@ public:
 
     inline static void hashHeavy(const void* __restrict__ input,
                             size_t size,
-                            void* __restrict__ output,
+                            uint8_t *__restrict__ output,
                             cryptonight_ctx* __restrict__ ctx)
     {
         keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
