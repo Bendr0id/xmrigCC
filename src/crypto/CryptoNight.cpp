@@ -77,6 +77,17 @@ static void cryptonight_lite_softaes(Options::PowVersion powVersion, const uint8
     }
 }
 
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_ipbc_aesni(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+#   if !defined(XMRIG_ARMv7)
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, ctx);
+#   endif
+}
+
+template <size_t NUM_HASH_BLOCKS>
+static void cryptonight_lite_ipbc_softaes(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
+    CryptoNightMultiHash<0x40000, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, ctx);
+}
 
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_aesni(Options::PowVersion powVersion, const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx *ctx) {
@@ -109,6 +120,14 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_aesni<HASH_FACTOR>;
             } else {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_softaes<HASH_FACTOR>;
+            }
+            break;
+
+        case Options::ALGO_CRYPTONIGHT_LITE_IPBC:
+            if (aesni) {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_ipbc_aesni<HASH_FACTOR>;
+            } else {
+                cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_lite_ipbc_softaes<HASH_FACTOR>;
             }
             break;
 
