@@ -259,7 +259,7 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
-    "cryptonight-lite-ipbc"
+    "cryptonight-lite-ipbc",
     "cryptonight-heavy"
 };
 
