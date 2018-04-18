@@ -3375,7 +3375,7 @@ public:
     extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
   }
 
-    inline static void hashPowV2(const uint8_t* __restrict__ input,
+    inline static void hashLiteIpbc (const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
                                  cryptonight_ctx* __restrict__ ctx)
