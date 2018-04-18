@@ -44,7 +44,7 @@
 #define APP_VER_MAJOR  1
 #define APP_VER_MINOR  6
 #define APP_VER_BUILD  1
-#define APP_VER_REV
+#define APP_VER_REV    0
 
 #ifndef NDEBUG
 	#ifndef XMRIG_NO_TLS
