@@ -50,14 +50,14 @@ public:
     inline const uint8_t *blob() const     { return m_blob; }
     inline int poolId() const              { return m_poolId; }
     inline int threadId() const            { return m_threadId; }
-    inline Options::PowVersion powVersion() const { return m_powVersion; }
+    inline Options::PowVariant powVersion() const { return m_powVersion; }
     inline size_t size() const             { return m_size; }
     inline uint32_t *nonce()               { return reinterpret_cast<uint32_t*>(m_blob + 39); }
     inline uint32_t diff() const           { return (uint32_t) m_diff; }
     inline uint64_t target() const         { return m_target; }
     inline void setNicehash(bool nicehash) { m_nicehash = nicehash; }
     inline void setThreadId(int threadId)  { m_threadId = threadId; }
-    inline void setPowVersion(Options::PowVersion powVersion) { m_powVersion = powVersion; }
+    inline void setPowVersion(Options::PowVariant powVersion) { m_powVersion = powVersion; }
 
     static bool fromHex(const char* in, unsigned int len, unsigned char* out);
     static inline uint32_t *nonce(uint8_t *blob)   { return reinterpret_cast<uint32_t*>(blob + 39); }
@@ -77,7 +77,7 @@ private:
     size_t m_size;
     uint64_t m_diff;
     uint64_t m_target;
-    Options::PowVersion m_powVersion;
+    Options::PowVariant m_powVersion;
 };
 
 #endif /* __JOB_H__ */

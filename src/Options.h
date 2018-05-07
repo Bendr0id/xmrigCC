@@ -44,7 +44,6 @@ public:
     enum Algo {
         ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
         ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
-        ALGO_CRYPTONIGHT_LITE_IPBC, /* CryptoNight-Lite-IPBC (IPBC) */
         ALGO_CRYPTONIGHT_HEAVY /* CryptoNight-Heavy (SUMO) */
     };
 
@@ -63,10 +62,12 @@ public:
         AESNI_OFF
     };
 
-    enum PowVersion {
+    enum PowVariant {
         POW_AUTODETECT,     /* Default, automatic detect by block version */
-        POW_V1,             /* Force to use PoW algo before 28.03.2018 */
-        POW_V2,             /* Force to use PoW algo used by Monero V7 (after 28.03.2018) and AEON */
+        POW_V0,             /* Force to use PoW algo before 28.03.2018 */
+        POW_MONERO_V7,             /* Force to use PoW algo used by Monero V7 (after 28.03.2018) and AEON */
+        POW_IPBC,
+        POW_ALLOY
     };
 
     static inline Options* i() { return m_self; }
@@ -94,7 +95,7 @@ public:
     inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
-    inline PowVersion forcePowVersion() const       { return m_forcePowVersion; }
+    inline PowVariant forcePowVariant() const       { return m_forcePowVariant; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
     inline size_t hashFactor() const                { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }
@@ -133,9 +134,11 @@ private:
     void parseConfig(const char *fileName);
     void parseJSON(const struct option *option, const rapidjson::Value &object);
     void showUsage(int status) const;
+    void showDeprecateWarning(const char* deprecated, const char* newParam) const;
     void showVersion(void);
 
     bool setAlgo(const char *algo);
+    bool setPowVariant(const char *powVariant);
 
     void optimizeAlgorithmConfiguration();
 
@@ -164,7 +167,7 @@ private:
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
-    PowVersion m_forcePowVersion;
+    PowVariant m_forcePowVariant;
     size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;

@@ -229,19 +229,21 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
 
         switch (variantFromProxy) {
             case -1:
+
+
                 job.setPowVersion(Options::POW_AUTODETECT);
                 break;
             case 0:
-                job.setPowVersion(Options::POW_V1);
+                job.setPowVersion(Options::POW_V0);
                 break;
             case 1:
-                job.setPowVersion(Options::POW_V2);
+                job.setPowVersion(Options::POW_MONERO_V7);
                 break;
             default:
                 break;
         }
     } else {
-        job.setPowVersion(Options::i()->forcePowVersion());
+        job.setPowVersion(Options::i()->forcePowVariant());
     }
 
     if (m_job != job) {
