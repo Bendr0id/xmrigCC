@@ -71,6 +71,7 @@ public:
     {
         if (isConnected()) {
             LOG_DEBUG("[%s:%d] Disconnecting", getConnectedIp().c_str(), getConnectedPort());
+            socket_.get().lowest_layer().shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
             socket_.get().lowest_layer().close();
         }
 
