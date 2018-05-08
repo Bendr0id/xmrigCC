@@ -33,6 +33,7 @@
 #include <vector>
 
 #include "rapidjson/fwd.h"
+#include "PowVariant.h"
 
 class Url;
 struct option;
@@ -42,9 +43,9 @@ class Options
 {
 public:
     enum Algo {
-        ALGO_CRYPTONIGHT,      /* CryptoNight (Monero) */
-        ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (AEON) */
-        ALGO_CRYPTONIGHT_HEAVY /* CryptoNight-Heavy (SUMO) */
+        ALGO_CRYPTONIGHT,      /* CryptoNight (2MB ScratchPad) */
+        ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (1MB ScratchPad) */
+        ALGO_CRYPTONIGHT_HEAVY /* CryptoNight-Heavy (4MB ScratchPad) */
     };
 
     enum AlgoVariant {
@@ -60,14 +61,6 @@ public:
         AESNI_AUTO,
         AESNI_ON,
         AESNI_OFF
-    };
-
-    enum PowVariant {
-        POW_AUTODETECT,     /* Default, automatic detect by block version */
-        POW_V0,             /* Force to use PoW algo before 28.03.2018 */
-        POW_MONERO_V7,             /* Force to use PoW algo used by Monero V7 (after 28.03.2018) and AEON */
-        POW_IPBC,
-        POW_ALLOY
     };
 
     static inline Options* i() { return m_self; }
@@ -95,7 +88,7 @@ public:
     inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
-    inline PowVariant forcePowVariant() const       { return m_forcePowVariant; }
+    inline PowVariant powVariant() const            { return m_powVariant; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
     inline size_t hashFactor() const                { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }
@@ -111,7 +104,7 @@ public:
     inline int64_t multiHashThreadMask() const      { return m_multiHashThreadMask; }
     inline void setColors(bool colors)              { m_colors = colors; }
 
-    inline static void release()                  { delete m_self; }
+    inline static void release()                    { delete m_self; }
 
     const char *algoName() const;
 
@@ -138,7 +131,7 @@ private:
     void showVersion(void);
 
     bool setAlgo(const char *algo);
-    bool setPowVariant(const char *powVariant);
+    bool parsePowVariant(const char *powVariant);
 
     void optimizeAlgorithmConfiguration();
 
@@ -167,7 +160,7 @@ private:
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
-    PowVariant m_forcePowVariant;
+    PowVariant m_powVariant;
     size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;

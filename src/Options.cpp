@@ -58,13 +58,12 @@
 
 Options *Options::m_self = nullptr;
 
-
 static char const usage[] = "\
 Usage: " APP_ID " [OPTIONS]\n\
 Options:\n"
 # ifndef XMRIG_CC_SERVER
 "\
-  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite, cryptonight-lite-ipbc or cryptonight-heavy\n\
+  -a, --algo=ALGO                       cryptonight (default), cryptonight-lite or cryptonight-heavy\n\
   -o, --url=URL                         URL of mining server\n\
   -O, --userpass=U:P                    username:password pair for mining server\n\
   -u, --user=USERNAME                   username for mining server\n\
@@ -264,6 +263,14 @@ static const char *algo_names[] = {
     "cryptonight-heavy"
 };
 
+constexpr static const char *pow_variant_names[] = {
+        "auto",
+        "0",
+        "1",
+        "ipbc",
+        "alloy",
+        "xtl"
+};
 
 Options *Options::parse(int argc, char **argv)
 {
@@ -310,7 +317,7 @@ Options::Options(int argc, char **argv) :
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
-    m_forcePowVariant(POW_AUTODETECT),
+    m_powVariant(POW_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
@@ -550,10 +557,7 @@ bool Options::parseArg(int key, const char *arg)
         return parseBoolean(key, true);
 
     case 1017: /* --pow-variant */
-        if (!setPowVariant(arg)) {
-            return false;
-        }
-        break;
+        return parsePowVariant(arg);
 
     case 4016: /* --cc-use-tls */
         return parseBoolean(key, true);
@@ -686,12 +690,12 @@ bool Options::parseArg(int key, uint64_t arg)
 
     case 1016: /* --force-pow-version */
         showDeprecateWarning("force-pow-version", "pow-variant");
-        if (arg < POW_AUTODETECT || arg > POW_MONERO_V7) {
+        if (arg != POW_AUTODETECT && arg != POW_V0 && arg != POW_V1) {
             showUsage(1);
             return false;
         }
 
-        m_forcePowVariant = static_cast<PowVariant>(arg);
+        m_powVariant = static_cast<PowVariant>(arg);
         break;
 
     case 1020: /* --cpu-affinity */
@@ -933,18 +937,19 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-lite") || !strcmp(algo, "cryptonight-light"))) {
             m_algo = ALGO_CRYPTONIGHT_LITE;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-light-ipbc")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-lite-ipbc") || !strcmp(algo, "cryptonight-light-ipbc") || !strcmp(algo, "cn-lite-ipbc"))) {
+            showDeprecateWarning("cryptonight-light-ipbc", "cryptonight-light (with variant \"ipbc\")");
             m_algo = ALGO_CRYPTONIGHT_LITE;
-            m_forcePowVariant = POW_IPBC;
+            m_powVariant = POW_IPBC;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && !strcmp(algo, "cryptonight-heavy")) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-heavy") || !strcmp(algo, "cn-heavy"))) {
             m_algo = ALGO_CRYPTONIGHT_HEAVY;
             break;
         }
@@ -958,9 +963,36 @@ bool Options::setAlgo(const char *algo)
     return true;
 }
 
-bool Options::setPowVariant(const char *powVariant)
+bool Options::parsePowVariant(const char *powVariant)
 {
+    for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
+        if (pow_variant_names[i] && !strcmp(powVariant, pow_variant_names[i])) {
+            m_powVariant = static_cast<PowVariant>(i);
+            break;
+        }
 
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "auto")) {
+            m_powVariant = POW_AUTODETECT;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "monerov7") || !strcmp(powVariant, "aeonv7") || !strcmp(powVariant, "v7"))) {
+            m_powVariant = POW_V1;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "stellite")) {
+            m_powVariant = POW_XTL;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1) {
+            showUsage(1);
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void Options::optimizeAlgorithmConfiguration()

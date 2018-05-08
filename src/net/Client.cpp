@@ -30,6 +30,8 @@
 #include <uv.h>
 #include <Options.h>
 
+#include "PowVariant.h"
+
 #include "interfaces/IClientListener.h"
 #include "log/Log.h"
 #include "net/Client.h"
@@ -224,26 +226,24 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (params.HasMember("variant")) {
-        int variantFromProxy = params["variant"].GetInt();
+    job.setPowVariant(Options::i()->powVariant());
 
-        switch (variantFromProxy) {
-            case -1:
+    if (params.HasMember("algo")) {
+        std::string algo = params["algo"].GetString();
 
-
-                job.setPowVersion(Options::POW_AUTODETECT);
-                break;
-            case 0:
-                job.setPowVersion(Options::POW_V0);
-                break;
-            case 1:
-                job.setPowVersion(Options::POW_MONERO_V7);
-                break;
-            default:
-                break;
+        if (algo.find("/") != std::string::npos) {
+            job.setPowVariant(parseVariant(algo.substr(algo.find("/")+1)));
         }
-    } else {
-        job.setPowVersion(Options::i()->forcePowVariant());
+    }
+
+    if (params.HasMember("variant")) {
+        const rapidjson::Value &variant = params["variant"];
+
+        if (variant.IsInt()) {
+            job.setPowVariant(parseVariant(variant.GetInt()));
+        } else if (variant.IsString()) {
+            job.setPowVariant(parseVariant(variant.GetString()));
+        }
     }
 
     if (m_job != job) {
