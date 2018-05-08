@@ -226,25 +226,33 @@ bool Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    job.setPowVariant(Options::i()->powVariant());
+    PowVariant powVariant = Options::i()->powVariant();
 
     if (params.HasMember("algo")) {
         std::string algo = params["algo"].GetString();
 
         if (algo.find("/") != std::string::npos) {
-            job.setPowVariant(parseVariant(algo.substr(algo.find("/")+1)));
+            powVariant = parseVariant(algo.substr(algo.find("/")+1));
         }
     }
 
     if (params.HasMember("variant")) {
         const rapidjson::Value &variant = params["variant"];
 
+        PowVariant parsedVariant = powVariant;
+
         if (variant.IsInt()) {
-            job.setPowVariant(parseVariant(variant.GetInt()));
+            parsedVariant = parseVariant(variant.GetInt());
         } else if (variant.IsString()) {
-            job.setPowVariant(parseVariant(variant.GetString()));
+            parsedVariant = parseVariant(variant.GetString());
+        }
+
+        if (parsedVariant != POW_AUTODETECT) {
+            powVariant = parsedVariant;
         }
     }
+
+    job.setPowVariant(powVariant);
 
     if (m_job != job) {
         m_jobs++;
