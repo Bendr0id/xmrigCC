@@ -360,6 +360,15 @@ void Client::login()
     params.AddMember("pass",  rapidjson::StringRef(m_url.password()), allocator);
     params.AddMember("agent", rapidjson::StringRef(m_agent),          allocator);
 
+    params.AddMember("algo", rapidjson::StringRef(Options::i()->algoShortName()), allocator);
+
+    rapidjson::Value supportedPowVariantsList(rapidjson::kArrayType);
+    for (auto& supportedPowVariant : getSupportedPowVariants()) {
+        supportedPowVariantsList.PushBack(rapidjson::StringRef(supportedPowVariant.c_str()), allocator);
+    }
+
+    params.AddMember("supported-variants", supportedPowVariantsList, allocator);
+
     doc.AddMember("params", params, allocator);
 
     rapidjson::StringBuffer buffer(0, 512);

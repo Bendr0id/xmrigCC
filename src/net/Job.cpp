@@ -142,6 +142,10 @@ PowVariant Job::powVariant() const
     {
         return (m_blob[0] > 6 ? PowVariant::POW_V1 : PowVariant::POW_V0);
     }
+    else if (m_powVariant == PowVariant::POW_XTL && m_blob[0] < 4)
+    {
+        return POW_V1;
+    }
     else
     {
         return m_powVariant;

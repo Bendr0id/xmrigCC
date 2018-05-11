@@ -263,6 +263,12 @@ static const char *algo_names[] = {
     "cryptonight-heavy"
 };
 
+static const char *algo_short_names[] = {
+        "cn",
+        "cn-lite",
+        "cn-heavy"
+};
+
 constexpr static const char *pow_variant_names[] = {
         "auto",
         "0",
@@ -290,6 +296,10 @@ const char *Options::algoName() const
     return algo_names[m_algo];
 }
 
+const char *Options::algoShortName() const
+{
+    return algo_short_names[m_algo];
+}
 
 Options::Options(int argc, char **argv) :
     m_background(false),

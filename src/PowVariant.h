@@ -20,7 +20,7 @@
 #define __POW_VARIANT_H__
 
 #include <string>
-
+#include <list>
 
 enum PowVariant
 {
@@ -29,7 +29,8 @@ enum PowVariant
     POW_V1,
     POW_IPBC,
     POW_ALLOY,
-    POW_XTL
+    POW_XTL,
+    LAST_ITEM
 };
 
 inline std::string getPowVariantName(PowVariant powVariant)
@@ -48,8 +49,20 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "xtl";
         case POW_AUTODETECT:
         default:
-            return "auto";
+            return "-1";
     }
+}
+
+inline std::list<std::string> getSupportedPowVariants()
+{
+    std::list<std::string> supportedPowVariants;
+
+    for (int variant = 0; variant != LAST_ITEM; variant++)
+    {
+        supportedPowVariants.push_back(getPowVariantName(static_cast<PowVariant >(variant)));
+    }
+
+    return supportedPowVariants;
 }
 
 inline PowVariant parseVariant(int variant)

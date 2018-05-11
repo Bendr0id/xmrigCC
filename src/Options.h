@@ -107,6 +107,7 @@ public:
     inline static void release()                    { delete m_self; }
 
     const char *algoName() const;
+    const char *algoShortName() const;
 
 private:
     constexpr static uint16_t kDefaultCCPort        = 3344;
