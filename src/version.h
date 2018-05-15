@@ -36,7 +36,7 @@
 #define APP_DESC      "XMRigCC CPU miner"
 #define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
 #endif
-#define APP_VERSION   "1.6.3_alloy_and_xtl_algo_changes (based on XMRig 2.5.2)"
+#define APP_VERSION   "1.6.3_alloy_and_xtl_algo_changes_beta (based on XMRig)"
 #define APP_DOMAIN    ""
 #define APP_SITE      "https://github.com/Bendr0id/xmrigCC"
 #define APP_KIND      "cpu"
