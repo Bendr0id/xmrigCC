@@ -1,6 +1,6 @@
 # XMRigCC 
 
-:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations  ) guide.**
+:warning: **Confused by all the forks? Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide.**
 
 
 [![Windows Build status](https://ci.appveyor.com/api/projects/status/l8v7cuuy320a4tpd?svg=true)](https://ci.appveyor.com/project/Bendr0id/xmrigcc)
@@ -21,9 +21,12 @@ The modified version can also handle commands like "update config", "start/stop 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
 ## Additional features of XMRigCC (on top of XMRig)
+
+Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+
 * **NEW: Support of Crytptonight Stellite (XTL) v4 variant**
 * **NEW: Support of Crytptonight Alloy (XAO) variant**
-* **NEW: Support of Crytptonight-Lite IPBC variant**
+* **NEW: Support of Crytptonight-Lite IPBC/TUBE variant**
 * **NEW: Support of Crytptonight-Heavy (Sumokoin, Haven, ...)**
 * **Support of Crytptonight v7 PoW changes**
 * **Support of Crytptonight-Lite v7 PoW changes**
