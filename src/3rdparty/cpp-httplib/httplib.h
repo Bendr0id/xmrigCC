@@ -575,6 +575,14 @@ namespace httplib
                 int yes = 1;
                 setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&yes, sizeof(yes));
 
+                // Make socket also having a timeout
+                struct timeval timeout;
+                timeout.tv_sec = CPPHTTPLIB_KEEPALIVE_TIMEOUT_SECOND;
+                timeout.tv_usec = CPPHTTPLIB_KEEPALIVE_TIMEOUT_USECOND;
+
+                setsockopt (sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+                setsockopt (sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+
                 // bind or connect
                 if (fn(sock, *rp)) {
                     freeaddrinfo(result);
