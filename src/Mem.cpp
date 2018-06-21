@@ -27,13 +27,6 @@
 #include "crypto/CryptoNight.h"
 #include "Mem.h"
 
-#if defined(XMRIG_ARM) && !defined(__clang__)
-#   include "aligned_malloc.h"
-#else
-#   include <mm_malloc.h>
-#endif
-
-
 bool Mem::m_useHugePages = true;
 size_t Mem::m_hashFactor = 1;
 int Mem::m_flags         = 0;
