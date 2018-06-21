@@ -42,6 +42,7 @@ struct ScratchPadMem
     size_t hugePages;
     size_t pages;
     size_t size;
+    size_t realSize;
 };
 
 

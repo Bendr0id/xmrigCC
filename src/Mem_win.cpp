@@ -154,64 +154,33 @@ void Mem::init(bool hugePagesEnabled)
     }
 }
 
-
-bool Mem::allocate(const Options* options)
+void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
 {
-    m_algo       = options->algo();
-    m_threads    = options->threads();
-    m_hashFactor = options->hashFactor();
-    m_multiHashThreadMask = Mem::ThreadBitSet(options->multiHashThreadMask());
-    m_memorySize = 0;
+    scratchPadMem.hugePages = 0;
 
-    size_t scratchPadSize;
-    switch (m_algo)
-    {
-        case Options::ALGO_CRYPTONIGHT_LITE:
-            scratchPadSize = MEMORY_LITE;
-            break;
-        case Options::ALGO_CRYPTONIGHT_HEAVY:
-            scratchPadSize = MEMORY_HEAVY;
-            break;
-        case Options::ALGO_CRYPTONIGHT:
-        default:
-            scratchPadSize = MEMORY;
-            break;
+    if (!useHugePages) {
+        scratchPadMem.memory = static_cast<uint8_t*>(_mm_malloc(scratchPadMem.size, 4096));
+
+        return;
     }
 
-    for (size_t i=0; i < m_threads; i++) {
-        m_memorySize += sizeof(ScratchPad);
-        m_memorySize += scratchPadSize * getThreadHashFactor(i);
+    scratchPadMem.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, scratchPadMem.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
+    if (scratchPadMem.memory) {
+        scratchPadMem.hugePages = info.pages;
+
+        return;
     }
 
-    m_memorySize = m_memorySize - (m_memorySize % MEMORY) + MEMORY;
-
-    if (!options->hugePages()) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
-        return true;
-    }
-
-    if (TrySetLockPagesPrivilege()) {
-        m_flags |= HugepagesAvailable;
-    }
-
-    m_memory = static_cast<uint8_t*>(VirtualAlloc(NULL, m_memorySize, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
-    if (!m_memory) {
-        m_memory = static_cast<uint8_t*>(_mm_malloc(m_memorySize, 16));
-    }
-    else {
-        m_flags |= HugepagesEnabled;
-    }
-
-    return true;
+    allocate(info, false);
 }
 
 
-void Mem::release()
+void Mem::release(ScratchPadMem &scratchPadMem)
 {
-    if (m_flags & HugepagesEnabled) {
-        VirtualFree(m_memory, 0, MEM_RELEASE);
+    if (scratchPadMem.hugePages) {
+        VirtualFree(scratchPadMem.memory, 0, MEM_RELEASE);
     }
     else {
-        _mm_free(m_memory);
+        _mm_free(scratchPadMem.memory);
     }
 }

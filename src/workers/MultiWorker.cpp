@@ -102,7 +102,18 @@ MultiWorker::~MultiWorker()
 
 void MultiWorker::start()
 {
-    LOG_INFO("Starting worker: %d pages: %d hugepages: %d", m_id, scratchPadMem.pages, scratchPadMem.hugePages);
+    const size_t memory  = scratchPadMem.realSize / 1048576;
+
+    if (Options::i()->colors()) {
+        LOG_INFO(YELLOW_BOLD("Starting thread #%zu/%zu") WHITE_BOLD(" -> huge pages:") " %s%zu/%zu " WHITE_BOLD("scratchpad: %zu.0 MB"),
+            m_id+1, Options::i()->threads(),
+                 (scratchPadMem.hugePages == scratchPadMem.pages ? "\x1B[1;32m" : (scratchPadMem.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
+                  scratchPadMem.hugePages, scratchPadMem.pages, memory);
+    }
+    else {
+        LOG_INFO("Starting thread #%zu/%zu -> huge pages: %zu/%zu scratchpad: %zu.0 MB",
+                         m_id+1, Options::i()->threads(), scratchPadMem.hugePages, scratchPadMem.pages, memory);
+    }
 
     while (Workers::sequence() > 0) {
         if (Workers::isPaused()) {

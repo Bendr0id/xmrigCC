@@ -58,6 +58,7 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     }
 
     ScratchPadMem scratchPadMem;
+    scratchPadMem.realSize = scratchPadSize * getThreadHashFactor(threadId);
     scratchPadMem.size = scratchPadSize * getThreadHashFactor(threadId);
     scratchPadMem.size += scratchPadMem.size % MEMORY;
     scratchPadMem.pages = scratchPadMem.size / MEMORY;
