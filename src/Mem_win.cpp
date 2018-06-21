@@ -138,13 +138,15 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-
-void Mem::init(bool hugePagesEnabled)
+void Mem::init(const Options* options)
 {
-    m_hugePagesEnabled = hugePagesEnabled;
+    m_hashFactor = options->hashFactor();
+    m_useHugePages = options->hugePages();
+    m_algo = options->algo();
+    m_multiHashThreadMask = Mem::ThreadBitSet(static_cast<unsigned long long int>(options->multiHashThreadMask()));
 
-    if (hugePagesEnabled && TrySetLockPagesPrivilege()) {
-        m_flags |= HugepagesAvailable;
+    if (m_useHugePages && TrySetLockPagesPrivilege()) {
+	    m_flags |= HugepagesAvailable;
     }
 }
 
@@ -154,18 +156,17 @@ void Mem::allocate(ScratchPadMem& scratchPadMem, bool useHugePages)
 
     if (!useHugePages) {
         scratchPadMem.memory = static_cast<uint8_t*>(_mm_malloc(scratchPadMem.size, 4096));
-
         return;
     }
 
     scratchPadMem.memory = static_cast<uint8_t*>(VirtualAlloc(nullptr, scratchPadMem.size, MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_READWRITE));
     if (scratchPadMem.memory) {
-        scratchPadMem.hugePages = info.pages;
+        scratchPadMem.hugePages = scratchPadMem.pages;
 
         return;
     }
 
-    allocate(info, false);
+    allocate(scratchPadMem, false);
 }
 
 
