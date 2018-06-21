@@ -33,22 +33,32 @@
 
 #include "Options.h"
 
-struct cryptonight_ctx;
+struct ScratchPad;
+
+struct ScratchPadMem
+{
+    alignas(16) uint8_t *memory;
+
+    size_t hugePages;
+    size_t pages;
+    size_t size;
+};
 
 
 class Mem
 {
 public:
     typedef std::bitset<128> ThreadBitSet;
+
     enum Flags {
         HugepagesAvailable = 1,
         HugepagesEnabled   = 2,
         Lock               = 4
     };
 
-    static bool allocate(const Options* options);
-    static cryptonight_ctx *create(int threadId);
-    static void release();
+    static void init(const Options* option);
+    static ScratchPadMem create(ScratchPad** scratchPads, int threadId);
+    static void release(ScratchPad** scratchPads, ScratchPadMem& scratchPadMem, int threadId);
 
     static inline size_t hashFactor()         { return m_hashFactor; }
     static inline size_t getThreadHashFactor(int threadId)
@@ -56,19 +66,19 @@ public:
         return (m_multiHashThreadMask.all() ||
                 m_multiHashThreadMask.test(threadId)) ? m_hashFactor : 1;
     }
+
     static inline bool isHugepagesAvailable() { return (m_flags & HugepagesAvailable) != 0; }
-    static inline bool isHugepagesEnabled()   { return (m_flags & HugepagesEnabled) != 0; }
-    static inline int flags()                 { return m_flags; }
-    static inline size_t threads()            { return m_threads; }
 
 private:
+    static void allocate(ScratchPadMem& scratchPadMem, bool useHugePages);
+    static void release(ScratchPadMem& scratchPadMem);
+
+private:
+    static bool m_useHugePages;
     static size_t m_hashFactor;
-    static size_t m_threads;
-    static int m_algo;
     static int m_flags;
+    static Options::Algo m_algo;
     static ThreadBitSet m_multiHashThreadMask;
-    static size_t m_memorySize;
-    alignas(16) static uint8_t *m_memory;
 };
 
 

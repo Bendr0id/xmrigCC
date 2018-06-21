@@ -144,6 +144,17 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
+
+void Mem::init(bool hugePagesEnabled)
+{
+    m_hugePagesEnabled = hugePagesEnabled;
+
+    if (hugePagesEnabled && TrySetLockPagesPrivilege()) {
+        m_flags |= HugepagesAvailable;
+    }
+}
+
+
 bool Mem::allocate(const Options* options)
 {
     m_algo       = options->algo();
@@ -168,7 +179,7 @@ bool Mem::allocate(const Options* options)
     }
 
     for (size_t i=0; i < m_threads; i++) {
-        m_memorySize += sizeof(cryptonight_ctx);
+        m_memorySize += sizeof(ScratchPad);
         m_memorySize += scratchPadSize * getThreadHashFactor(i);
     }
 

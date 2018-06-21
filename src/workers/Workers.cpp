@@ -100,9 +100,8 @@ void Workers::setJob(const Job &job)
 }
 
 
-void Workers::start(int64_t affinity, int priority)
+void Workers::start(size_t threads, int64_t affinity, int priority)
 {
-    const int threads = Mem::threads();
     m_hashrate = new Hashrate(threads);
 
     uv_mutex_init(&m_mutex);
@@ -151,7 +150,7 @@ void Workers::submit(const JobResult &result, int threadId)
 void Workers::onReady(void *arg)
 {
     auto handle = static_cast<Handle*>(arg);
-    handle->setWorker(createMultiWorker(Mem::getThreadHashFactor(handle->threadId()), handle));
+    handle->setWorker(createMultiWorker(handle, Mem::getThreadHashFactor(handle->threadId())));
     handle->worker()->start();
 }
 

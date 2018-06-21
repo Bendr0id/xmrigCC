@@ -113,7 +113,6 @@ App::~App()
     delete m_network;
 
     Options::release();
-    Mem::release();
     Platform::release();
 
     uv_tty_reset_mode();
@@ -147,7 +146,7 @@ int App::start()
         return EINVAL;
     }
 
-    Mem::allocate(m_options);
+    Mem::init(m_options);
 
     Summary::print();
 
@@ -174,7 +173,7 @@ int App::start()
     }
 #   endif
 
-    Workers::start(m_options->affinity(), m_options->priority());
+    Workers::start(m_options->threads(), m_options->affinity(), m_options->priority());
 
     if (m_options->pools().front()->isValid()) {
         m_network->connect();

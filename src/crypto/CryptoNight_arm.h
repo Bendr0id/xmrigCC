@@ -577,7 +577,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -650,7 +650,7 @@ public:
     inline static void hashPowV2(const uint8_t* __restrict__ input,
                               size_t size,
                               uint8_t *__restrict__ output,
-                              cryptonight_ctx* __restrict__ ctx)
+                              ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -735,7 +735,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -822,7 +822,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -902,7 +902,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -987,7 +987,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1049,7 +1049,7 @@ public:
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad* __restrict__ ctx)
   {
     const uint8_t* l;
     uint64_t* h;
@@ -1119,7 +1119,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1191,7 +1191,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1260,7 +1260,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1334,7 +1334,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1427,7 +1427,7 @@ public:
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad* __restrict__ ctx)
   {
     keccak(input, (int) size, ctx->state[0], 200);
     keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1537,7 +1537,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1651,7 +1651,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1758,7 +1758,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1870,7 +1870,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -1998,7 +1998,7 @@ public:
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad* __restrict__ ctx)
   {
     keccak(input, (int) size, ctx->state[0], 200);
     keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2150,7 +2150,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2308,7 +2308,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2457,7 +2457,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2611,7 +2611,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2772,7 +2772,7 @@ public:
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad* __restrict__ ctx)
   {
     keccak(input, (int) size, ctx->state[0], 200);
     keccak(input + size, (int) size, ctx->state[1], 200);
@@ -2964,7 +2964,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -3164,7 +3164,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         // not supported
     }
@@ -3172,7 +3172,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         // not supported
     }
@@ -3185,7 +3185,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t *__restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -3378,7 +3378,7 @@ public:
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t *__restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad* __restrict__ ctx)
   {
     keccak(input, (int) size, ctx->state[0], 200);
     keccak(input + size, (int) size, ctx->state[1], 200);
@@ -3610,7 +3610,7 @@ public:
     inline static void hashLiteIpbc (const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         keccak(input, (int) size, ctx->state[0], 200);
         keccak(input + size, (int) size, ctx->state[1], 200);
@@ -3852,7 +3852,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t *__restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad* __restrict__ ctx)
     {
         // not supported
     }
@@ -3860,7 +3860,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                       size_t size,
                                       uint8_t *__restrict__ output,
-                                      cryptonight_ctx* __restrict__ ctx)
+                                      ScratchPad* __restrict__ ctx)
     {
         // not supported
     }

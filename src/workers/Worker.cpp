@@ -44,7 +44,6 @@ Worker::Worker(Handle *handle) :
     }
 
     Platform::setThreadPriority(handle->priority());
-    m_ctx = Mem::create(m_id);
 }
 
 

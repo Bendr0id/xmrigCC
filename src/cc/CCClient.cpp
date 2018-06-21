@@ -79,7 +79,6 @@ CCClient::CCClient(Options* options, uv_async_t* async)
         m_clientStatus.setCurrentAlgoName(m_options->algoName());
     }
 
-    m_clientStatus.setHugepagesEnabled(Mem::isHugepagesEnabled());
     m_clientStatus.setHugepages(Mem::isHugepagesAvailable());
     m_clientStatus.setHashFactor(Mem::hashFactor());
 
