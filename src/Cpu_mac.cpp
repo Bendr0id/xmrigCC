@@ -43,10 +43,12 @@ void CpuImpl::init()
 
 int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
 {
-    size_t cpuId = threadId;
+    int cpuId = -1;
 
     if (affinityMask != -1L) {
         cpuId = getAssignedCpuId(affinityMask);
+    } else {
+        cpuId = static_cast<int>(threadId);
     }
 
     if (cpuId > -1) {

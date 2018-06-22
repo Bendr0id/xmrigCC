@@ -59,6 +59,8 @@ int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 
     if (affinityMask != -1L) {
         cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
+    } else {
+        cpuId = static_cast<int>(threadId);
     }
 
     if (cpuId > -1) {

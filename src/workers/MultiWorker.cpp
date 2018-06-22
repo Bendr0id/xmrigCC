@@ -105,7 +105,7 @@ void MultiWorker::start()
     const size_t memory  = scratchPadMem.realSize / 1048576;
 
     if (Options::i()->colors()) {
-        LOG_INFO(YELLOW_BOLD("Starting thread %zu/%zu affined to core: #%zu") WHITE_BOLD(" -> huge pages:") " %s%zu/%zu " WHITE_BOLD("scratchpad: %zu.0 MB"),
+        LOG_INFO(WHITE_BOLD("Starting thread ") GREEN_BOLD("%zu/%zu") " affined to core: " GREEN_BOLD("#%zu") " -> huge pages:" GREEN_BOLD(" %s%zu/%zu") " scratchpad: " CYAN_BOLD("%zu.0 MB"),
             m_id+1, Options::i()->threads(), m_affinedCpu,
                  (scratchPadMem.hugePages == scratchPadMem.pages ? "\x1B[1;32m" : (scratchPadMem.hugePages == 0 ? "\x1B[1;31m" : "\x1B[1;33m")),
                   scratchPadMem.hugePages, scratchPadMem.pages, memory);
