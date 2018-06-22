@@ -42,12 +42,18 @@ void CpuImpl::init()
 }
 
 
-bool CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
+int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
 {
-    size_t cpuId = threadId;
+    int cpuId = -1;
 
     if (affinityMask != -1L) {
         cpuId = getAssignedCpuId(affinityMask);
+    } else {
+        if (threadId+1 > Cpu::threads()/2) {
+            cpuId = (threadId - Cpu::threads()/2) + (threadId+1 - Cpu::threads()/2);
+        } else {
+            cpuId = threadId * 2;
+        }
     }
 
     if (cpuId >= 64) {
@@ -55,6 +61,8 @@ bool CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
     }
 
     if (cpuId > -1) {
-        return SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) != 0;
+        SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) != 0;
     }
+
+    return cpuId;
 }

@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "CpuImpl.h"
+#include "Cpu.h"
 
 #ifdef __FreeBSD__
 typedef cpuset_t cpu_set_t;
@@ -52,12 +53,12 @@ void CpuImpl::init()
 }
 
 
-void CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    size_t cpuId = threadId;
+    int cpuId = -1;
 
     if (affinityMask != -1L) {
-        cpuId = getAssignedCpuId(affinityMask);
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
     }
 
     if (cpuId > -1) {
@@ -71,4 +72,6 @@ void CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
         sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn);
 #   endif
     }
+
+    return cpuId;
 }

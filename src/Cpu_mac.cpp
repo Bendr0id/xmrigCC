@@ -41,11 +41,21 @@ void CpuImpl::init()
     initCommon();
 }
 
-void CpuImpl::setAffinity(int threadId, uint64_t affinityMask)
+int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
 {
-    thread_port_t mach_thread;
-    thread_affinity_policy_data_t policy = { static_cast<integer_t>(cpuId) };
-    mach_thread = pthread_mach_thread_np(pthread_self());
+    size_t cpuId = threadId;
 
-    return thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS;
+    if (affinityMask != -1L) {
+        cpuId = getAssignedCpuId(affinityMask);
+    }
+
+    if (cpuId > -1) {
+        thread_port_t mach_thread;
+        thread_affinity_policy_data_t policy = {static_cast<integer_t>(cpuId)};
+        mach_thread = pthread_mach_thread_np(pthread_self());
+
+        thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t) & policy, 1);
+    }
+
+    return cpuId;
 }
