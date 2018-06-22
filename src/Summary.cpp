@@ -113,7 +113,7 @@ static void print_threads()
         snprintf(affBuf, 32, ", affinity=0x%" PRIX64, Options::i()->affinity());
     }
     else {
-        affBuf[0] = '\0';
+        snprintf(affBuf, 32, ", affinity=auto");
     }
 
     Log::i()->text(Options::i()->colors() ?

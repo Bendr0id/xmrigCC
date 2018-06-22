@@ -28,6 +28,7 @@
 
 #include "CpuImpl.h"
 #include "Mem.h"
+#include "Cpu.h"
 
 void CpuImpl::init()
 {
@@ -42,12 +43,12 @@ void CpuImpl::init()
 }
 
 
-int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
     int cpuId = -1;
 
     if (affinityMask != -1L) {
-        cpuId = getAssignedCpuId(affinityMask);
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
     } else {
         if (threadId+1 > Cpu::threads()/2) {
             cpuId = (threadId - Cpu::threads()/2) + (threadId+1 - Cpu::threads()/2);
@@ -57,7 +58,7 @@ int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
     }
 
     if (cpuId >= 64) {
-        LOG_ERR("Unable to set affinity. Windows supports only affinity up to 63 cores.");
+        cpuId = -1;
     }
 
     if (cpuId > -1) {

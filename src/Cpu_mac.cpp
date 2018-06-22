@@ -29,8 +29,8 @@
 #include <unistd.h>
 
 
-#include "Cpu.h"
 #include "CpuImpl.h"
+#include "Cpu.h"
 
 void CpuImpl::init()
 {
@@ -46,7 +46,7 @@ int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
     int cpuId = -1;
 
     if (affinityMask != -1L) {
-        cpuId = getAssignedCpuId(affinityMask);
+        cpuId = Cpu::getAssignedCpuId(threadId, affinityMask);
     } else {
         cpuId = static_cast<int>(threadId);
     }
