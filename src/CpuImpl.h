@@ -39,7 +39,7 @@ public:
 
     void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
                             size_t maxCpuUsage, bool safeMode);
-    void setAffinity(int id, uint64_t mask);
+    void setThreadAffinity(size_t threadId, int64_t affinityMask);
 
     bool hasAES();
     bool isX64();
@@ -50,6 +50,27 @@ public:
     size_t sockets()       { return m_sockets; }
     size_t threads()       { return m_totalThreads; }
     size_t availableCache();
+
+    static inline size_t getAssignedCpuId(int64_t affinityMask)
+    {
+        size_t cpuId = -1;
+
+        Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(affinityMask);
+        size_t threadCount = 0;
+
+        for (size_t i = 0; i < m_totalThreads; i++) {
+            if (threadAffinityMask.test(i)) {
+                if (threadCount == threadId) {
+                    cpuId = i;
+                    break;
+                }
+
+                threadCount++;
+            }
+        }
+
+        return cpuId;
+    }
 
 private:
     void initCommon();

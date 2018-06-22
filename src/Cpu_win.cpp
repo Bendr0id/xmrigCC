@@ -42,24 +42,19 @@ void CpuImpl::init()
 }
 
 
-void CpuImpl::setAffinity(int id, uint64_t mask)
+bool CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
 {
-    if (id == -1) {
-        SetProcessAffinityMask(GetCurrentProcess(), mask);
-    } else {
-        Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(mask);
+    size_t cpuId = threadId;
 
-        int threadCount = 0;
+    if (affinityMask != -1L) {
+        cpuId = getAssignedCpuId(affinityMask);
+    }
 
-        for (size_t i = 0; i < m_totalThreads; i++) {
-            if (threadAffinityMask.test(i)) {
-                if (threadCount == id) {
-                    SetThreadAffinityMask(GetCurrentThread(), 1ULL << i);
-                    break;
-                }
+    if (cpuId >= 64) {
+        LOG_ERR("Unable to set affinity. Windows supports only affinity up to 63 cores.");
+    }
 
-                threadCount++;
-            }
-        }
+    if (cpuId > -1) {
+        return SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) != 0;
     }
 }

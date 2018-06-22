@@ -145,9 +145,9 @@ void Cpu::optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::
     CpuImpl::instance().optimizeParameters(threadsCount, hashFactor, algo, maxCpuUsage, safeMode);
 }
 
-void Cpu::setAffinity(int id, uint64_t mask)
+void Cpu::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    CpuImpl::instance().setAffinity(id, mask);
+    return CpuImpl::instance().setThreadAffinity(threadId, affinityMask);
 }
 
 bool Cpu::hasAES()

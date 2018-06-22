@@ -42,7 +42,7 @@ public:
     static void optimizeParameters(size_t& threadsCount, size_t& hashFactor, Options::Algo algo,
                                     size_t maxCpuUsage, bool safeMode);
 
-    static void setAffinity(int id, uint64_t mask);
+    static void setThreadAffinity(size_t threadId, int64_t affinityMask);
 
     static bool hasAES();
     static bool isX64();

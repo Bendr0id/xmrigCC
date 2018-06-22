@@ -100,7 +100,7 @@ void Workers::setJob(const Job &job)
 }
 
 
-void Workers::start(size_t threads, int64_t affinity, int priority)
+void Workers::start(size_t threads, int64_t affinityMask, int priority)
 {
     m_hashrate = new Hashrate(threads);
 
@@ -114,8 +114,8 @@ void Workers::start(size_t threads, int64_t affinity, int priority)
     uv_timer_init(uv_default_loop(), &m_timer);
     uv_timer_start(&m_timer, Workers::onTick, 500, 500);
 
-    for (int i = 0; i < threads; ++i) {
-        auto handle = new Handle(i, threads, affinity, priority);
+    for (size_t i = 0; i < threads; ++i) {
+        auto handle = new Handle(i, threads, affinityMask, priority);
         m_workers.push_back(handle);
         handle->start(Workers::onReady);
     }

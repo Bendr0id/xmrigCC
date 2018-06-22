@@ -35,9 +35,7 @@
 #include <unistd.h>
 #include <string.h>
 
-
 #include "CpuImpl.h"
-
 
 #ifdef __FreeBSD__
 typedef cpuset_t cpu_set_t;
@@ -54,26 +52,23 @@ void CpuImpl::init()
 }
 
 
-void CpuImpl::setAffinity(int id, uint64_t mask)
+void CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
-    cpu_set_t set;
-    CPU_ZERO(&set);
+    size_t cpuId = threadId;
 
-    for (size_t i = 0; i < threads(); i++) {
-        if (mask & (1UL << i)) {
-            CPU_SET(i, &set);
-        }
+    if (affinityMask != -1L) {
+        cpuId = getAssignedCpuId(affinityMask);
     }
 
-    if (id == -1) {
-#       ifndef __FreeBSD__
-        sched_setaffinity(0, sizeof(&set), &set);
-#       endif
-    } else {
-#       ifndef __ANDROID__
-        pthread_setaffinity_np(pthread_self(), sizeof(&set), &set);
-#       else
-        sched_setaffinity(gettid(), sizeof(&set), &set);
-#       endif
+    if (cpuId > -1) {
+        cpu_set_t mn;
+        CPU_ZERO(&mn);
+        CPU_SET(cpuId, &mn);
+
+#   ifndef __ANDROID__
+        pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn);
+#   else
+        sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn);
+#   endif
     }
 }

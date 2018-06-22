@@ -22,6 +22,8 @@
  */
 
 
+#include <mach/thread_act.h>
+#include <mach/thread_policy.h>
 #include <pthread.h>
 #include <sched.h>
 #include <unistd.h>
@@ -39,7 +41,11 @@ void CpuImpl::init()
     initCommon();
 }
 
-
-void CpuImpl::setAffinity(int id, uint64_t mask)
+void CpuImpl::setAffinity(int threadId, uint64_t affinityMask)
 {
+    thread_port_t mach_thread;
+    thread_affinity_policy_data_t policy = { static_cast<integer_t>(cpuId) };
+    mach_thread = pthread_mach_thread_np(pthread_self());
+
+    return thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS;
 }
