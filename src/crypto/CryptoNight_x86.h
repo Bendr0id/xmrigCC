@@ -475,7 +475,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -485,19 +485,18 @@ public:
         uint64_t idx[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = ctx->memory + hashBlock * MEM;
-            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
 
             al[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
             ah[hashBlock] = h[hashBlock][1] ^ h[hashBlock][5];
-            bx[hashBlock] =
-                    _mm_set_epi64x(h[hashBlock][3] ^ h[hashBlock][7], h[hashBlock][2] ^ h[hashBlock][6]);
+            bx[hashBlock] = _mm_set_epi64x(h[hashBlock][3] ^ h[hashBlock][7], h[hashBlock][2] ^ h[hashBlock][6]);
             idx[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
         }
 
@@ -538,7 +537,7 @@ public:
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
-            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
                                                        output + hashBlock * 32);
         }
     }
@@ -546,7 +545,7 @@ public:
     inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -557,14 +556,14 @@ public:
         uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
             tweak1_2[hashBlock] = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + hashBlock * size) ^
-                    *(reinterpret_cast<const uint64_t*>(ctx->state[hashBlock]) + 24));
+                    *(reinterpret_cast<const uint64_t*>(scratchPad[hashBlock]->state) + 24));
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = ctx->memory + hashBlock * MEM;
-            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
 
@@ -619,7 +618,7 @@ public:
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
-            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
                                                        output + hashBlock * 32);
         }
     }
@@ -627,7 +626,7 @@ public:
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -638,14 +637,14 @@ public:
         uint64_t tweak1_2[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
             tweak1_2[hashBlock] = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + hashBlock * size) ^
-                                   *(reinterpret_cast<const uint64_t*>(ctx->state[hashBlock]) + 24));
+                                   *(reinterpret_cast<const uint64_t*>(scratchPad[hashBlock]->state) + 24));
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = ctx->memory + hashBlock * MEM;
-            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
 
@@ -704,7 +703,7 @@ public:
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
-            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
                                                        output + hashBlock * 32);
         }
     }
@@ -712,7 +711,7 @@ public:
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -722,12 +721,12 @@ public:
         uint64_t idx[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = ctx->memory + hashBlock * MEM;
-            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
 
             cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
 
@@ -781,7 +780,7 @@ public:
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
-            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
                                                        output + hashBlock * 32);
         }
     }
@@ -789,7 +788,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l[NUM_HASH_BLOCKS];
         uint64_t* h[NUM_HASH_BLOCKS];
@@ -799,12 +798,12 @@ public:
         uint64_t idx[NUM_HASH_BLOCKS];
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, ctx->state[hashBlock], 200);
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = ctx->memory + hashBlock * MEM;
-            h[hashBlock] = reinterpret_cast<uint64_t*>(ctx->state[hashBlock]);
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
 
             cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
 
@@ -858,12 +857,11 @@ public:
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
             cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
-            extra_hashes[ctx->state[hashBlock][0] & 3](ctx->state[hashBlock], 200,
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
                                                        output + hashBlock * 32);
         }
     }
 };
-
 
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 1>
@@ -872,7 +870,7 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -881,10 +879,10 @@ public:
         __m128i bx;
         uint64_t idx;
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
-        l = ctx->memory;
-        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
@@ -925,13 +923,13 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
     inline static void hashPowV2(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -940,12 +938,12 @@ public:
         __m128i bx;
         uint64_t idx;
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
         uint64_t tweak1_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-        l = ctx->memory;
-        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
@@ -992,13 +990,13 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1007,12 +1005,12 @@ public:
         __m128i bx;
         uint64_t idx;
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
         uint64_t tweak1_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
-        l = ctx->memory;
-        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
@@ -1061,13 +1059,13 @@ public:
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1076,10 +1074,10 @@ public:
         __m128i bx;
         uint64_t idx;
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
-        l = ctx->memory;
-        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
@@ -1127,13 +1125,13 @@ public:
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         const uint8_t* l;
         uint64_t* h;
@@ -1142,10 +1140,10 @@ public:
         __m128i bx;
         uint64_t idx;
 
-        keccak(static_cast<const uint8_t*>(input), (int) size, ctx->state[0], 200);
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
-        l = ctx->memory;
-        h = reinterpret_cast<uint64_t*>(ctx->state[0]);
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
@@ -1193,7 +1191,7 @@ public:
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 };
 
@@ -1204,15 +1202,15 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t* __restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1288,27 +1286,27 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
     }
 
     inline static void hashPowV2(const uint8_t* __restrict__ input,
                               size_t size,
                               uint8_t* __restrict__ output,
-                              cryptonight_ctx* __restrict__ ctx)
+                              ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
 
         uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
         uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1396,27 +1394,27 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
     }
 
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
 
         uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
         uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1508,22 +1506,22 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1614,22 +1612,22 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
     }
 
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1720,8 +1718,8 @@ public:
         keccakf(h0, 24);
         keccakf(h1, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
     }
 };
 
@@ -1732,18 +1730,18 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -1850,33 +1848,33 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
     }
 
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                           size_t size,
                           uint8_t* __restrict__ output,
-                          cryptonight_ctx* __restrict__ ctx)
+                          ScratchPad** __restrict__ scratchPad)
   {
-      keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-      keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-      keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+      keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+      keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+      keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
 
       uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
       uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
       uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
 
-      const uint8_t* l0 = ctx->memory;
-      const uint8_t* l1 = ctx->memory + MEM;
-      const uint8_t* l2 = ctx->memory + 2 * MEM;
-      uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-      uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-      uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+      const uint8_t* l0 = scratchPad[0]->memory;
+      const uint8_t* l1 = scratchPad[1]->memory;
+      const uint8_t* l2 = scratchPad[2]->memory;
+      uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+      uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+      uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
 
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2000,33 +1998,33 @@ public:
       keccakf(h1, 24);
       keccakf(h2, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+      extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+      extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+      extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
   }
 
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
 
         uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
         uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
         uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2156,26 +2154,26 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2303,26 +2301,26 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
     }
 
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
 
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2450,9 +2448,9 @@ public:
         keccakf(h1, 24);
         keccakf(h2, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
     }
 };
 
@@ -2463,21 +2461,21 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+        keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        const uint8_t* l3 = scratchPad[3]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+        uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2613,39 +2611,39 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+        extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
     }
 
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
   {
-      keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-      keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-      keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-      keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+      keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+      keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+      keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+      keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
 
       uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
       uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
       uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
       uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[3]->state) + 24));
 
-      const uint8_t* l0 = ctx->memory;
-      const uint8_t* l1 = ctx->memory + MEM;
-      const uint8_t* l2 = ctx->memory + 2 * MEM;
-      const uint8_t* l3 = ctx->memory + 3 * MEM;
-      uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-      uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-      uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-      uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
+      const uint8_t* l0 = scratchPad[0]->memory;
+      const uint8_t* l1 = scratchPad[1]->memory;
+      const uint8_t* l2 = scratchPad[2]->memory;
+      const uint8_t* l3 = scratchPad[3]->memory;
+      uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+      uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+      uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+      uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
 
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -2803,39 +2801,39 @@ public:
       keccakf(h2, 24);
       keccakf(h3, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+      extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+      extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+      extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+      extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
   }
 
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+        keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
 
         uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
         uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
         uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
         uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[3]->state) + 24));
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        const uint8_t* l3 = scratchPad[3]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+        uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -3001,16 +2999,16 @@ public:
         keccakf(h2, 24);
         keccakf(h3, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+        extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         // not supported
     }
@@ -3018,7 +3016,7 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         // not supported
     }
@@ -3031,24 +3029,24 @@ public:
     inline static void hash(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-        keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+        keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
+        keccak((const uint8_t*) input + 4 * size, (int) size, scratchPad[4]->state, 200);
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        const uint8_t* l4 = ctx->memory + 4 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
-        uint64_t* h4 = reinterpret_cast<uint64_t*>(ctx->state[4]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        const uint8_t* l3 = scratchPad[3]->memory;
+        const uint8_t* l4 = scratchPad[4]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+        uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
+        uint64_t* h4 = reinterpret_cast<uint64_t*>(scratchPad[4]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -3212,46 +3210,46 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+        extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
+        extra_hashes[scratchPad[4]->state[0] & 3](scratchPad[4]->state, 200, output + 128);
     }
 
   inline static void hashPowV2(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
   {
-      keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-      keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-      keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-      keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-      keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+      keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+      keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+      keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+      keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
+      keccak((const uint8_t*) input + 4 * size, (int) size, scratchPad[4]->state, 200);
 
       uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
       uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
       uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
       uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[3]->state) + 24));
       uint64_t tweak1_2_4 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 4 * size) ^
-                             *(reinterpret_cast<const uint64_t*>(ctx->state[4]) + 24));
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[4]->state) + 24));
 
 
-      const uint8_t* l0 = ctx->memory;
-      const uint8_t* l1 = ctx->memory + MEM;
-      const uint8_t* l2 = ctx->memory + 2 * MEM;
-      const uint8_t* l3 = ctx->memory + 3 * MEM;
-      const uint8_t* l4 = ctx->memory + 4 * MEM;
-      uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-      uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-      uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-      uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
-      uint64_t* h4 = reinterpret_cast<uint64_t*>(ctx->state[4]);
+      const uint8_t* l0 = scratchPad[0]->memory;
+      const uint8_t* l1 = scratchPad[1]->memory;
+      const uint8_t* l2 = scratchPad[2]->memory;
+      const uint8_t* l3 = scratchPad[3]->memory;
+      const uint8_t* l4 = scratchPad[4]->memory;
+      uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+      uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+      uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+      uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
+      uint64_t* h4 = reinterpret_cast<uint64_t*>(scratchPad[4]->state);
 
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
       cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -3442,46 +3440,46 @@ public:
       keccakf(h3, 24);
       keccakf(h4, 24);
 
-      extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-      extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-      extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-      extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
-      extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
+      extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+      extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+      extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+      extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
+      extra_hashes[scratchPad[4]->state[0] & 3](scratchPad[4]->state, 200, output + 128);
   }
 
     inline static void hashLiteIpbc(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
-        keccak((const uint8_t*) input, (int) size, ctx->state[0], 200);
-        keccak((const uint8_t*) input + size, (int) size, ctx->state[1], 200);
-        keccak((const uint8_t*) input + 2 * size, (int) size, ctx->state[2], 200);
-        keccak((const uint8_t*) input + 3 * size, (int) size, ctx->state[3], 200);
-        keccak((const uint8_t*) input + 4 * size, (int) size, ctx->state[4], 200);
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+        keccak((const uint8_t*) input + 2 * size, (int) size, scratchPad[2]->state, 200);
+        keccak((const uint8_t*) input + 3 * size, (int) size, scratchPad[3]->state, 200);
+        keccak((const uint8_t*) input + 4 * size, (int) size, scratchPad[4]->state, 200);
 
         uint64_t tweak1_2_0 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[0]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
         uint64_t tweak1_2_1 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[1]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[1]->state) + 24));
         uint64_t tweak1_2_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 2 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[2]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[2]->state) + 24));
         uint64_t tweak1_2_3 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 3 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[3]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[3]->state) + 24));
         uint64_t tweak1_2_4 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35 + 4 * size) ^
-                               *(reinterpret_cast<const uint64_t*>(ctx->state[4]) + 24));
+                               *(reinterpret_cast<const uint64_t*>(scratchPad[4]->state) + 24));
 
 
-        const uint8_t* l0 = ctx->memory;
-        const uint8_t* l1 = ctx->memory + MEM;
-        const uint8_t* l2 = ctx->memory + 2 * MEM;
-        const uint8_t* l3 = ctx->memory + 3 * MEM;
-        const uint8_t* l4 = ctx->memory + 4 * MEM;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(ctx->state[0]);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(ctx->state[1]);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(ctx->state[2]);
-        uint64_t* h3 = reinterpret_cast<uint64_t*>(ctx->state[3]);
-        uint64_t* h4 = reinterpret_cast<uint64_t*>(ctx->state[4]);
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        const uint8_t* l2 = scratchPad[2]->memory;
+        const uint8_t* l3 = scratchPad[3]->memory;
+        const uint8_t* l4 = scratchPad[4]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
+        uint64_t* h3 = reinterpret_cast<uint64_t*>(scratchPad[3]->state);
+        uint64_t* h4 = reinterpret_cast<uint64_t*>(scratchPad[4]->state);
 
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
@@ -3682,17 +3680,17 @@ public:
         keccakf(h3, 24);
         keccakf(h4, 24);
 
-        extra_hashes[ctx->state[0][0] & 3](ctx->state[0], 200, output);
-        extra_hashes[ctx->state[1][0] & 3](ctx->state[1], 200, output + 32);
-        extra_hashes[ctx->state[2][0] & 3](ctx->state[2], 200, output + 64);
-        extra_hashes[ctx->state[3][0] & 3](ctx->state[3], 200, output + 96);
-        extra_hashes[ctx->state[4][0] & 3](ctx->state[4], 200, output + 128);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+        extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
+        extra_hashes[scratchPad[4]->state[0] & 3](scratchPad[4]->state, 200, output + 128);
     }
 
     inline static void hashHeavy(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            cryptonight_ctx* __restrict__ ctx)
+                            ScratchPad** __restrict__ scratchPad)
     {
         // not supported
     }
@@ -3700,9 +3698,10 @@ public:
     inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 cryptonight_ctx* __restrict__ ctx)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         // not supported
     }
 };
+
 #endif /* __CRYPTONIGHT_X86_H__ */
