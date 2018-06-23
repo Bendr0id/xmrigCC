@@ -202,7 +202,7 @@ int Cpu::getAssignedCpuId(size_t threadId, int64_t affinityMask)
     Mem::ThreadBitSet threadAffinityMask = Mem::ThreadBitSet(affinityMask);
     size_t threadCount = 0;
 
-    for (int i = 0; i < CpuImpl::instance().threads(); i++) {
+    for (size_t i = 0; i < CpuImpl::instance().threads(); i++) {
         if (threadAffinityMask.test(i)) {
             if (threadCount == threadId) {
                 cpuId = i;
