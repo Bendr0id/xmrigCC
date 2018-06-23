@@ -592,7 +592,7 @@ public:
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = scratchpad->memory + hashBlock * MEM;
+            l[hashBlock] = scratchpad[0]->memory + hashBlock * MEM;
             h[hashBlock] = reinterpret_cast<uint64_t*>(scratchpad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
@@ -667,7 +667,7 @@ public:
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = scratchpad->memory + hashBlock * MEM;
+            l[hashBlock] = scratchpad[0]->memory + hashBlock * MEM;
             h[hashBlock] = reinterpret_cast<uint64_t*>(scratchpad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
@@ -752,7 +752,7 @@ public:
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = scratchpad->memory + hashBlock * MEM;
+            l[hashBlock] = scratchpad[0]->memory + hashBlock * MEM;
             h[hashBlock] = reinterpret_cast<uint64_t*>(scratchpad[hashBlock]->state);
 
             cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
@@ -837,7 +837,7 @@ public:
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = scratchpad->memory + hashBlock * MEM;
+            l[hashBlock] = scratchpad[0]->memory + hashBlock * MEM;
             h[hashBlock] = reinterpret_cast<uint64_t*>(scratchpad[hashBlock]->state);
 
             cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
@@ -917,7 +917,7 @@ public:
         }
 
         for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
-            l[hashBlock] = scratchpad->memory + hashBlock * MEM;
+            l[hashBlock] = scratchpad[0]->memory + hashBlock * MEM;
             h[hashBlock] = reinterpret_cast<uint64_t*>(scratchpad[hashBlock]->state);
 
             cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
