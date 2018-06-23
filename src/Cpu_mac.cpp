@@ -41,7 +41,7 @@ void CpuImpl::init()
     initCommon();
 }
 
-int CpuImpl::setAffinity(size_t threadId, int64_t affinityMask)
+int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
 {
     int cpuId = -1;
 
