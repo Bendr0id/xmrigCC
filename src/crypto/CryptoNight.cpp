@@ -74,7 +74,7 @@ static void cryptonight_lite_aesni(PowVariant powVersion, const uint8_t* input, 
 #   if !defined(XMRIG_ARMv7)
     if (powVersion == PowVariant::POW_V1) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
-    } else if (powVersion == PowVariant::POW_IPBC) {
+    } else if (powVersion == PowVariant::POW_TUBE) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
@@ -86,7 +86,7 @@ template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_lite_softaes(PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
     if (powVersion == PowVariant::POW_V1) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
-    } else if (powVersion == PowVariant::POW_IPBC) {
+    } else if (powVersion == PowVariant::POW_TUBE) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
@@ -99,6 +99,9 @@ static void cryptonight_heavy_aesni(PowVariant powVersion, const uint8_t* input,
     if (powVersion == PowVariant::POW_XHV) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
     }
+    else if (powVersion == PowVariant::POW_TUBE) {
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavyIpbc(input, size, output, scratchPad);
+    }
     else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
     }
@@ -109,6 +112,9 @@ template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_softaes(PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
     if (powVersion == PowVariant::POW_XHV) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
+    }
+    else if (powVersion == PowVariant::POW_TUBE) {
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavyIpbc(input, size, output, scratchPad);
     }
     else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
@@ -284,26 +290,26 @@ bool CryptoNight::selfTest(int algo)
 
         // cn-lite ibpc tests
 
-        cryptonight_hash_ctx[0](PowVariant::POW_IPBC, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[0](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 32) == 0;
 
         #if MAX_NUM_HASH_BLOCKS > 1
-        cryptonight_hash_ctx[1](PowVariant::POW_IPBC, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[1](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 64) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 2
-        cryptonight_hash_ctx[2](PowVariant::POW_IPBC, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[2](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 96) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 3
-        cryptonight_hash_ctx[3](PowVariant::POW_IPBC, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[3](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 128) == 0;
         #endif
 
         #if MAX_NUM_HASH_BLOCKS > 4
-        cryptonight_hash_ctx[4](PowVariant::POW_IPBC, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[4](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output, test_output_ipbc_lite, 160) == 0;
         #endif
 

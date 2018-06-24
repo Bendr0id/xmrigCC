@@ -984,7 +984,7 @@ bool Options::setAlgo(const char *algo)
         if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cryptonight-lite-ipbc") || !strcmp(algo, "cryptonight-light-ipbc") || !strcmp(algo, "cn-lite-ipbc"))) {
             showDeprecateWarning("cryptonight-light-ipbc", "cryptonight-light (with variant \"ipbc\")");
             m_algo = ALGO_CRYPTONIGHT_LITE;
-            m_powVariant = POW_IPBC;
+            m_powVariant = POW_TUBE;
             break;
         }
 
@@ -1026,7 +1026,7 @@ bool Options::parsePowVariant(const char *powVariant)
         }
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "tube")) {
-            m_powVariant = POW_IPBC;
+            m_powVariant = POW_TUBE;
             break;
         }
 
