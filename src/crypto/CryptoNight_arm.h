@@ -292,10 +292,6 @@ static inline void cn_explode_scratchpad_heavy(const __m128i* input, __m128i* ou
     xin7 = _mm_load_si128(input + 11);
 
     for (size_t i = 0; i < 16; i++) {
-        if (!SOFT_AES) {
-            aes_round<SOFT_AES>(_mm_setzero_si128(), &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
-
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -305,29 +301,12 @@ static inline void cn_explode_scratchpad_heavy(const __m128i* input, __m128i* ou
         aes_round<SOFT_AES>(k6, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k7, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-
-        if (!SOFT_AES) {
-            xin0 ^= k9;
-            xin1 ^= k9;
-            xin2 ^= k9;
-            xin3 ^= k9;
-            xin4 ^= k9;
-            xin5 ^= k9;
-            xin6 ^= k9;
-            xin7 ^= k9;
-        }
-        else {
-            aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
+        aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
 
         mix_and_propagate(xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7);
     }
 
     for (size_t i = 0; i < MEM / sizeof(__m128i); i += 8) {
-        if (!SOFT_AES) {
-            aes_round<SOFT_AES>(_mm_setzero_si128(), &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
-
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -337,19 +316,7 @@ static inline void cn_explode_scratchpad_heavy(const __m128i* input, __m128i* ou
         aes_round<SOFT_AES>(k6, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k7, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-
-        if (!SOFT_AES) {
-            xin0 ^= k9;
-            xin1 ^= k9;
-            xin2 ^= k9;
-            xin3 ^= k9;
-            xin4 ^= k9;
-            xin5 ^= k9;
-            xin6 ^= k9;
-            xin7 ^= k9;
-        } else {
-            aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        }
+        aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
 
         _mm_store_si128(output + i + 0, xin0);
         _mm_store_si128(output + i + 1, xin1);
@@ -852,10 +819,12 @@ public:
                 __m128i cx;
 
                 if (SOFT_AES) {
-                    cx = soft_aesenc((uint32_t*) &l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+                    cx = soft_aesenc((uint32_t*)&l[hashBlock][idx[hashBlock] & MASK], _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
                 } else {
-                    cx = _mm_load_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK]);
-                    cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah[hashBlock], al[hashBlock]));
+                    cx = _mm_load_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK]);
+#           ifndef XMRIG_ARMv7
+                    cx = vreinterpretq_m128i_u8(vaesmcq_u8(vaeseq_u8(cx, vdupq_n_u8(0)))) ^ _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
+#           endif
                 }
 
                 _mm_store_si128((__m128i*) &l[hashBlock][idx[hashBlock] & MASK],
