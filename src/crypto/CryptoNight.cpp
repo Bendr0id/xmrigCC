@@ -45,7 +45,7 @@ static void cryptonight_aesni(PowVariant powVersion, const uint8_t* input, size_
     } else if (powVersion == PowVariant::POW_MSR) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
     } else if (powVersion == PowVariant::POW_RTO) {
-        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashLiteTube(input, size, output, scratchPad);
     }else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -63,7 +63,7 @@ static void cryptonight_softaes(PowVariant powVersion, const uint8_t* input, siz
     } else if (powVersion == PowVariant::POW_MSR) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
     } else if (powVersion == PowVariant::POW_RTO) {
-        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashLiteTube(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -75,7 +75,7 @@ static void cryptonight_lite_aesni(PowVariant powVersion, const uint8_t* input, 
     if (powVersion == PowVariant::POW_V1) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
     } else if (powVersion == PowVariant::POW_TUBE) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hashLiteTube(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, false, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -87,7 +87,7 @@ static void cryptonight_lite_softaes(PowVariant powVersion, const uint8_t* input
     if (powVersion == PowVariant::POW_V1) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashPowV2(input, size, output, scratchPad);
     } else if (powVersion == PowVariant::POW_TUBE) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteTube(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -100,7 +100,7 @@ static void cryptonight_heavy_aesni(PowVariant powVersion, const uint8_t* input,
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
     }
     else if (powVersion == PowVariant::POW_TUBE) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavyIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavyTube(input, size, output, scratchPad);
     }
     else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
@@ -114,7 +114,7 @@ static void cryptonight_heavy_softaes(PowVariant powVersion, const uint8_t* inpu
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
     }
     else if (powVersion == PowVariant::POW_TUBE) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavyIpbc(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavyTube(input, size, output, scratchPad);
     }
     else {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
@@ -235,6 +235,21 @@ bool CryptoNight::selfTest(int algo)
         #if MAX_NUM_HASH_BLOCKS > 2
         cryptonight_hash_ctx[2](PowVariant::POW_XHV, test_input, 76, output, scratchPads);
         resultHeavy = resultHeavy && memcmp(output, test_output_heavy_haven, 96) == 0;
+        #endif
+
+        // cn-heavy bittube
+
+        cryptonight_hash_ctx[0](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 64) == 0;
+        #endif
+
+        #if MAX_NUM_HASH_BLOCKS > 2
+        cryptonight_hash_ctx[2](PowVariant::POW_TUBE, test_input, 76, output, scratchPads);
+        resultHeavy = resultHeavy && memcmp(output, test_output_heavy_tube, 96) == 0;
         #endif
     } else if (algo == Options::ALGO_CRYPTONIGHT_LITE) {
         // cn-lite v0

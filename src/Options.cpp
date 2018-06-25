@@ -279,7 +279,7 @@ constexpr static const char *pow_variant_names[] = {
         "auto",
         "0",
         "1",
-        "ipbc",
+        "tube",
         "alloy",
         "xtl",
         "msr",
@@ -1025,7 +1025,7 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "tube")) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "ipbc") || !strcmp(powVariant, "bittube"))) {
             m_powVariant = POW_TUBE;
             break;
         }
