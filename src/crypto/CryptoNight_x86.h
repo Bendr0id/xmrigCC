@@ -974,7 +974,6 @@ public:
     }
 };
 
-/*
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 1>
 {
@@ -4301,5 +4300,5 @@ public:
         // not supported
     }
 };
- /*
+
 #endif /* __CRYPTONIGHT_X86_H__ */
