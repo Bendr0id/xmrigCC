@@ -141,9 +141,23 @@ int App::start()
 
     background();
 
+    if (Options::i()->colors()) {
+        LOG_INFO(WHITE_BOLD("%s hash self-test"), m_options->algoName());
+    }
+    else {
+        LOG_INFO("%s hash self-test", m_options->algoName());
+    }
+
     if (!CryptoNight::init(m_options->algo(), m_options->aesni())) {
-        LOG_ERR("\"%s\" hash self-test failed.", m_options->algoName());
+        LOG_ERR("%s hash self-test... failed.", m_options->algoName());
         return EINVAL;
+    } else {
+        if (Options::i()->colors()) {
+            LOG_INFO(WHITE_BOLD("%s hash self-test... ") GREEN_BOLD("successful") ".", m_options->algoName());
+        }
+        else {
+            LOG_INFO("%s hash self-test... successful.", m_options->algoName());
+        }
     }
 
     Mem::init(m_options);

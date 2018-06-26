@@ -69,9 +69,13 @@ int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
         CPU_SET(cpuId, &mn);
 
 #   ifndef __ANDROID__
-        pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn);
+        if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t), &mn) != 0) {
+            cpuId = -1;
+        }
 #   else
-        sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn);
+        if (sched_setaffinity(gettid(), sizeof(cpu_set_t), &mn) == -1) {
+            cpuId = -1;
+        }
 #   endif
     }
 

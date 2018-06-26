@@ -62,7 +62,9 @@ int CpuImpl::setThreadAffinity(size_t threadId, int64_t affinityMask)
     }
 
     if (cpuId > -1) {
-        SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) != 0;
+        if (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpuId) == 0) {
+            cpuId = -1;
+        }
     }
 
     return cpuId;
