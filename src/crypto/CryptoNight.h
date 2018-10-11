@@ -38,10 +38,18 @@
 #define POW_XLT_V4_INDEX_SHIFT 4
 
 struct ScratchPad {
-    alignas(16) uint8_t state[224]; // 208 instead of 200 to maintain aligned to 16 byte boundaries
+    alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
     alignas(16) uint8_t* memory;
 };
 
+struct ScratchPad_asm {
+    alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
+    alignas(16) uint8_t* memory;
+    uint8_t ctx_info[24]; //Use some of the extra memory for flags
+    const void* input;
+    uint8_t* variant1_table;
+    const uint32_t* t_fn;
+};
 
 class Job;
 class JobResult;

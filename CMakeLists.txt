@@ -222,7 +222,7 @@ endif(WITH_CC_SERVER OR WITH_CC_CLIENT)
 
 if (WITH_ASM)
     enable_language(ASM)
-    add_library(xmrig_asm "src/crypto/asm/cryptonight_v8_main_loop.S")
+    add_library(xmrig_asm "src/crypto/asm/cn_main_loop.S")
     set_property(TARGET xmrig_asm PROPERTY LINKER_LANGUAGE C)
 else()
     add_definitions(/DXMRIG_NO_ASM)

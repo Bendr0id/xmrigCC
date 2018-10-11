@@ -39,7 +39,7 @@
 
 #include "crypto/CryptoNight.h"
 #include "crypto/soft_aes.h"
-
+#include "AsmOptimization.h"
 
 extern "C"
 {
@@ -55,7 +55,7 @@ void cnv2_mainloop_ivybridge_asm(ScratchPad* ctx0);
 void cnv2_mainloop_ryzen_asm(ScratchPad* ctx0);
 void cnv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
 void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
-void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad_asm* ctx0);
 #endif
 }
 
@@ -1452,12 +1452,13 @@ public:
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
-    ALIGN(64) uint8_t variant1_table[256];
 
+    // single asm
     inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
-                                     ScratchPad** __restrict__ scratchPad)
+                                     ScratchPad** __restrict__ scratchPad,
+                                     AsmOptimization asmOptimization)
     {
         const uint8_t* l = scratchPad[0]->memory;
         uint64_t* h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
@@ -1465,13 +1466,26 @@ public:
         keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
 
-        cnv1_mainloop_sandybridge_asm(scratchPad);
+        if (asmOptimization == AsmOptimization::ASM_INTEL) {
+            if (SOFT_AES) {
+                cnv2_mainloop_ivybridge_asm(scratchPad[0]);
+            } else {
+                ScratchPad_asm* scratchPad_asm;
+                scratchPad_asm->memory = scratchPad[0]->memory;
+                scratchPad_asm->state = scratchPad[0]->state;
+                scratchPad_asm->input = input;
+                scratchPad_asm->t_fn = (const uint32_t*)saes_table;
+
+                cnv2_mainloop_soft_aes_sandybridge_asm(scratchPad_asm);
+            }
+        } else {
+            cnv2_mainloop_ryzen_asm(scratchPad[0]);
+        }
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
-
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,
                                  size_t size,
@@ -2124,6 +2138,36 @@ public:
             bx11 = bx01;
             bx01 = cx1;
         }
+
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
+
+        keccakf(h0, 24);
+        keccakf(h1, 24);
+
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+    }
+
+    // double asm
+    inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     AsmOptimization asmOptimization)
+    {
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
+
+        cnv2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
@@ -3062,6 +3106,14 @@ public:
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
         extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
         extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+    }
+
+    inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad)
+    {
+        // not supported
     }
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,
@@ -4301,6 +4353,14 @@ public:
         extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
     }
 
+    inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad)
+    {
+        // not supported
+    }
+
     inline static void hashLiteTube(const uint8_t* __restrict__ input,
                                     size_t size,
                                     uint8_t* __restrict__ output,
@@ -5206,6 +5266,14 @@ public:
         extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
         extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
         extra_hashes[scratchPad[4]->state[0] & 3](scratchPad[4]->state, 200, output + 128);
+    }
+
+    inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad)
+    {
+        // not supported
     }
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,

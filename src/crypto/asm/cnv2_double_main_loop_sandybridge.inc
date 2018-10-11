@@ -94,7 +94,7 @@
 	lea	r9, QWORD PTR [rdx+r13]
 	movdqu	xmm15, XMMWORD PTR [r9]
 
-ALIGN 16
+	ALIGN 64
 main_loop_double_sandybridge:
 	movdqu	xmm9, xmm15
 	mov eax, edx
@@ -316,7 +316,7 @@ sqrt_fix_2_ret_sandybridge:
 	and	ecx, 2097136
 	lea	r8, QWORD PTR [rcx+rsi]
 
-	mov rdx, QWORD PTR [r13+8]
+	mov rdx, QWORD PTR [r13+8]	
 	add	rbp, rax
 	mov	QWORD PTR [r13+8], rbp
 	movdqu xmm11, XMMWORD PTR [rcx+rsi]
