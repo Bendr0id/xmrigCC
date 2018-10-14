@@ -54,7 +54,7 @@ void cnv1_mainloop_sandybridge_asm(ScratchPad* ctx0);
 void cnv2_mainloop_ivybridge_asm(ScratchPad* ctx0);
 void cnv2_mainloop_ryzen_asm(ScratchPad* ctx0);
 void cnv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
-void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad_asm* ctx0);
 void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad_asm* ctx0);
 #endif
 }
@@ -850,7 +850,8 @@ public:
     inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 ScratchPad** __restrict__ scratchPad)
+                                 ScratchPad** __restrict__ scratchPad,
+                                 AsmOptimization asmOptimization)
     {
         // not supported
     }
@@ -1380,6 +1381,74 @@ public:
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
 
+    inline static void hashPowV2_asm(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t* __restrict__ output,
+                                 ScratchPad** __restrict__ scratchPad)
+    {
+        const uint8_t* l;
+        uint64_t* h;
+        uint64_t al;
+        uint64_t ah;
+        __m128i bx;
+        uint64_t idx;
+
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
+
+        uint64_t tweak1_2 = (*reinterpret_cast<const uint64_t*>(reinterpret_cast<const uint8_t*>(input) + 35) ^
+                             *(reinterpret_cast<const uint64_t*>(scratchPad[0]->state) + 24));
+        l = scratchPad[0]->memory;
+        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
+
+        al = h[0] ^ h[4];
+        ah = h[1] ^ h[5];
+        bx = _mm_set_epi64x(h[3] ^ h[7], h[2] ^ h[6]);
+        idx = h[0] ^ h[4];
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            __m128i cx;
+
+            if (SOFT_AES) {
+                cx = soft_aesenc((uint32_t*)&l[idx & MASK], _mm_set_epi64x(ah, al));
+            } else {
+                cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
+                cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah, al));
+            }
+
+            _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
+            const uint8_t tmp = reinterpret_cast<const uint8_t*>(&l[idx & MASK])[11];
+            static const uint32_t table = 0x75310;
+            const uint8_t index = (((tmp >> INDEX_SHIFT) & 6) | (tmp & 1)) << 1;
+            ((uint8_t*)(&l[idx & MASK]))[11] = tmp ^ ((table >> index) & 0x30);
+
+            idx = EXTRACT64(cx);
+            bx = cx;
+
+            uint64_t hi, lo, cl, ch;
+            cl = ((uint64_t*) &l[idx & MASK])[0];
+            ch = ((uint64_t*) &l[idx & MASK])[1];
+            lo = __umul128(idx, cl, &hi);
+
+            al += hi;
+            ah += lo;
+
+            ah ^= tweak1_2;
+            ((uint64_t*) &l[idx & MASK])[0] = al;
+            ((uint64_t*) &l[idx & MASK])[1] = ah;
+            ah ^= tweak1_2;
+
+            ah ^= ch;
+            al ^= cl;
+            idx = al;
+        }
+
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
+        keccakf(h, 24);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+    }
+
     // single
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                                  size_t size,
@@ -1468,17 +1537,18 @@ public:
 
         if (asmOptimization == AsmOptimization::ASM_INTEL) {
             if (SOFT_AES) {
-                cnv2_mainloop_ivybridge_asm(scratchPad[0]);
-            } else {
-                ScratchPad_asm* scratchPad_asm;
-                scratchPad_asm->memory = scratchPad[0]->memory;
-                scratchPad_asm->state = scratchPad[0]->state;
-                scratchPad_asm->input = input;
-                scratchPad_asm->t_fn = (const uint32_t*)saes_table;
+                ScratchPad_asm scratchPad_asm;
+                scratchPad_asm.memory = scratchPad[0]->memory;
+                scratchPad_asm.input = input;
+                scratchPad_asm.t_fn = (const uint32_t*)saes_table;
 
-                cnv2_mainloop_soft_aes_sandybridge_asm(scratchPad_asm);
+                memcpy(scratchPad_asm.state, scratchPad[0]->state, sizeof(scratchPad[0]->state));
+                cnv2_mainloop_soft_aes_sandybridge_asm(&scratchPad_asm);
+                memcpy(scratchPad[0]->state, scratchPad_asm.state, sizeof(scratchPad[0]->state));
+            } else {
+                cnv2_mainloop_ivybridge_asm(scratchPad[0]);
             }
-        } else {
+        } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
             cnv2_mainloop_ryzen_asm(scratchPad[0]);
         }
 
@@ -3111,7 +3181,8 @@ public:
     inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
-                                     ScratchPad** __restrict__ scratchPad)
+                                     ScratchPad** __restrict__ scratchPad,
+                                     AsmOptimization asmOptimization)
     {
         // not supported
     }
@@ -4356,7 +4427,8 @@ public:
     inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
-                                     ScratchPad** __restrict__ scratchPad)
+                                     ScratchPad** __restrict__ scratchPad,
+                                     AsmOptimization asmOptimization)
     {
         // not supported
     }
@@ -5271,7 +5343,8 @@ public:
     inline static void hashPowV3_asm(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
-                                     ScratchPad** __restrict__ scratchPad)
+                                     ScratchPad** __restrict__ scratchPad,
+                                     AsmOptimization asmOptimization)
     {
         // not supported
     }

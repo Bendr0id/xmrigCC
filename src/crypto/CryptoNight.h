@@ -28,6 +28,7 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "AsmOptimization.h"
 #include "Options.h"
 
 #define MEMORY       2097152 /* 2 MiB */
@@ -59,7 +60,7 @@ class CryptoNight
 public:
     static bool init(int algo, bool aesni);
 
-    static void hash(size_t factor, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
+    static void hash(size_t factor, AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
 
 private:
     static bool selfTest(int algo);

@@ -34,6 +34,7 @@
 
 #include "rapidjson/fwd.h"
 #include "PowVariant.h"
+#include "AsmOptimization.h"
 
 class Url;
 struct option;
@@ -136,6 +137,7 @@ private:
 
     bool setAlgo(const char *algo);
     bool parsePowVariant(const char *powVariant);
+    bool parseAsmOptimization(const char *arg);
 
     void optimizeAlgorithmConfiguration();
 
@@ -167,6 +169,7 @@ private:
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
     PowVariant m_powVariant;
+    AsmOptimization m_asmOptimization;
     size_t m_hashFactor;
     int m_apiPort;
     int m_donateLevel;

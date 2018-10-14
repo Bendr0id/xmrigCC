@@ -20,6 +20,7 @@
 #define __ASM_OPTIMIZATION_H__
 
 #include <string>
+#include <algorithm>
 
 enum AsmOptimization
 {
@@ -72,8 +73,6 @@ inline AsmOptimization parseAsmOptimization(int optimization)
 inline AsmOptimization parseAsmOptimization(const std::string optimization)
 {
     AsmOptimization asmOptimization = AsmOptimization::ASM_AUTODETECT;
-
-    std::transform(optimization.begin(), optimization.end(), optimization.begin(), ::tolower);
 
     if (optimization == "0" || optimization == "none" || optimization == "off") {
         asmOptimization = AsmOptimization::ASM_NONE;
