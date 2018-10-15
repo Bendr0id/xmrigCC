@@ -59,7 +59,11 @@
 	movq xmm13, rcx
 	mov r12d, 524288
 
-	ALIGN 64
+        #ifdef __APPLE__
+        ALIGN 16
+        #else
+        ALIGN 64
+        #endif
 cnv2_mainloop_soft_aes_sandybridge:
 	movd xmm11, r12d
 	mov	r12, QWORD PTR [r10+272]
