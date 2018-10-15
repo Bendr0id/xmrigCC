@@ -49,7 +49,7 @@ struct ScratchPad {
     const uint32_t* t_fn;
 };
 
-static alignas(64) uint8_t variant1_table[256];
+alignas(64) static uint8_t variant1_table[256];
 
 class Job;
 class JobResult;
