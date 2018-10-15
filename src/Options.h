@@ -92,6 +92,7 @@ public:
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline PowVariant powVariant() const            { return m_powVariant; }
+    inline AsmOptimization asmOptimization() const  { return m_asmOptimization; }
     inline bool aesni() const                       { return m_aesni == AESNI_ON; }
     inline size_t hashFactor() const                { return m_hashFactor; }
     inline int apiPort() const                      { return m_apiPort; }

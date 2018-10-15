@@ -163,6 +163,7 @@ else()
 
     if (XMRIG_ARM)
         set(SOURCES_CPUID src/Cpu_arm.cpp)
+        add_definitions(/DXMRIG_NO_ASM)
     else()
         set(SOURCES_CPUID src/Cpu_stub.cpp)
     endif(XMRIG_ARM)

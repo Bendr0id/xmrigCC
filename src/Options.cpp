@@ -73,8 +73,9 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka monerov7, aeonv7), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> auto (default), 0 (v0), 1 (v1, aka cnv7), 2(v2, aka cnv8), ipbc (tube), alloy, xtl (including autodetect for v5)\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
+      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'none' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
       --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -293,13 +294,11 @@ constexpr static const char *pow_variant_names[] = {
         "rto"
 };
 
-constexpr static const char *pow_variant_names[] = {
+constexpr static const char *asm_optimization_names[] = {
     "auto",
-    "0",
-    "1",
-    "2",
-    "xhv",
-    "rto"
+    "intel",
+    "ryzen",
+    "none"
 };
 
 Options *Options::parse(int argc, char **argv)
@@ -354,6 +353,7 @@ Options::Options(int argc, char **argv) :
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
     m_powVariant(POW_AUTODETECT),
+    m_asmOptimization(ASM_AUTODETECT),
     m_hashFactor(0),
     m_apiPort(0),
     m_donateLevel(kDonateLevel),
@@ -411,6 +411,10 @@ Options::Options(int argc, char **argv) :
 #endif
 
     optimizeAlgorithmConfiguration();
+
+    if (m_asmOptimization == AsmOptimization::ASM_AUTODETECT) {
+        m_asmOptimization = Cpu::asmOptimization();
+    }
 
     for (Url *url : m_pools) {
         url->applyExceptions();
@@ -1070,11 +1074,11 @@ bool Options::parsePowVariant(const char *powVariant)
 }
 
 
-bool Options::parseAsmOptimization(const char *arg)
+bool Options::parseAsmOptimization(const char *asmOptimization)
 {
     for (size_t i = 0; i < ARRAY_SIZE(pow_variant_names); i++) {
-        if (pow_variant_names[i] && !strcmp(powVariant, pow_variant_names[i])) {
-            m_powVariant = static_cast<PowVariant>(i);
+        if (pow_variant_names[i] && !strcmp(asmOptimization, asm_optimization_names[i])) {
+            m_asmOptimization = static_cast<AsmOptimization>(i);
             break;
         }
 

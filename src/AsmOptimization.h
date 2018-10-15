@@ -35,11 +35,11 @@ inline std::string getAsmOptimizationName(AsmOptimization asmOptimization)
     switch (asmOptimization)
     {
         case ASM_INTEL:
-            return "Intel";
+            return "INTEL";
         case ASM_RYZEN:
-            return "Ryzen";
+            return "RYZEN";
         case ASM_NONE:
-            return "None";
+            return "OFF";
         case ASM_AUTODETECT:
         default:
             return "-1";

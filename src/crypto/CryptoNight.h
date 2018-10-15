@@ -41,16 +41,15 @@
 struct ScratchPad {
     alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
     alignas(16) uint8_t* memory;
-};
 
-struct ScratchPad_asm {
-    alignas(16) uint8_t state[224]; // 224 instead of 200 to maintain aligned to 16 byte boundaries
-    alignas(16) uint8_t* memory;
-    uint8_t ctx_info[24]; //Use some of the extra memory for flags
+    // Additional stuff for asm impl
+    uint8_t ctx_info[24];
     const void* input;
     uint8_t* variant1_table;
     const uint32_t* t_fn;
 };
+
+static alignas(64) uint8_t variant1_table[256];
 
 class Job;
 class JobResult;
@@ -59,8 +58,9 @@ class CryptoNight
 {
 public:
     static bool init(int algo, bool aesni);
-
     static void hash(size_t factor, AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
+
+public:
 
 private:
     static bool selfTest(int algo);
