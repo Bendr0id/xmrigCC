@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
@@ -10,6 +12,7 @@ option(WITH_HTTPD     "HTTP REST API" OFF)
 option(WITH_CC_CLIENT "CC Client" ON)
 option(WITH_CC_SERVER "CC Server" ON)
 option(WITH_TLS       "TLS support" ON)
+option(WITH_ASM       "ASM optimizations" ON)
 option(BUILD_STATIC   "Build static binary" OFF)
 set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_STATIC_LIBS ON)
@@ -128,7 +131,7 @@ find_package(UV REQUIRED)
 
 if (WIN32)
     add_definitions(-DBOOST_ALL_NO_LIB)
-endif()
+endif(WIN32)
 
 find_package(Boost 1.63.0 COMPONENTS system REQUIRED)
 
@@ -144,10 +147,10 @@ if (WITH_TLS)
         set(SOURCES_SSL_TLS src/net/BoostTlsConnection.cpp)
     else()
         message(FATAL_ERROR "OpenSSL NOT found: use `-DWITH_TLS=OFF` to build without TLS support")
-    endif()
+    endif(OPENSSL_FOUND)
 else()
     add_definitions(/DXMRIG_NO_TLS)
-endif()
+endif(WITH_TLS)
 
 if (WITH_LIBCPUID)
     add_subdirectory(src/3rdparty/libcpuid)
@@ -160,10 +163,11 @@ else()
 
     if (XMRIG_ARM)
         set(SOURCES_CPUID src/Cpu_arm.cpp)
+        add_definitions(/DXMRIG_NO_ASM)
     else()
         set(SOURCES_CPUID src/Cpu_stub.cpp)
-    endif()
-endif()
+    endif(XMRIG_ARM)
+endif(WITH_LIBCPUID)
 
 CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
 if (HAVE_SYSLOG_H)
@@ -179,11 +183,11 @@ if (WITH_HTTPD)
         set(HTTPD_SOURCES src/api/Httpd.h src/api/Httpd.cpp)
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_HTTPD=OFF` to build without http deamon support")
-    endif()
+    endif(MHD_FOUND)
 else()
     add_definitions(/DXMRIG_NO_HTTPD)
     add_definitions(/DXMRIG_NO_API)
-endif()
+endif(WITH_HTTPD)
 
 if (WITH_CC_SERVER)
     find_package(MHD)
@@ -192,7 +196,7 @@ if (WITH_CC_SERVER)
         include_directories(${MHD_INCLUDE_DIRS})
     else()
         message(FATAL_ERROR "microhttpd NOT found: use `-DWITH_CC_SERVER=OFF` to build without CC Server support")
-    endif()
+    endif(MHD_FOUND)
 
     set(SOURCES_CC_SERVER
             src/cc/CCServer.cpp
@@ -201,12 +205,12 @@ if (WITH_CC_SERVER)
             src/cc/Httpd.cpp
             src/cc/XMRigCC.cpp
             )
-endif()
+endif(WITH_CC_SERVER)
 
 if (WITH_CC_CLIENT)
     set(SOURCES_CC_CLIENT
             src/cc/CCClient.cpp)
-endif()
+endif(WITH_CC_CLIENT)
 
 if (WITH_CC_SERVER OR WITH_CC_CLIENT)
     set(SOURCES_CC_COMMON
@@ -215,11 +219,19 @@ if (WITH_CC_SERVER OR WITH_CC_CLIENT)
             src/cc/GPUInfo.cpp)
 else()
     add_definitions(/DXMRIG_NO_CC)
-endif()
+endif(WITH_CC_SERVER OR WITH_CC_CLIENT)
+
+if (WITH_ASM)
+    enable_language(ASM)
+    add_library(xmrig_asm "src/crypto/asm/cn_main_loop.S")
+    set_property(TARGET xmrig_asm PROPERTY LINKER_LANGUAGE C)
+else()
+    add_definitions(/DXMRIG_NO_ASM)
+endif(WITH_ASM)
 
 if (BUILD_STATIC)
     set(CMAKE_EXE_LINKER_FLAGS " -static")
-endif()
+endif(BUILD_STATIC)
 
 include_directories(src)
 include_directories(src/3rdparty)
@@ -246,12 +258,16 @@ target_link_libraries(xmrigMiner xmrig_common xmrig_os_dependencies xmrig_cpuid 
 
 if (WITH_CC_CLIENT)
     target_link_libraries(xmrigMiner xmrig_cc_common)
-endif (WITH_CC_CLIENT)
+endif(WITH_CC_CLIENT)
 
 if (WITH_TLS)
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
     target_link_libraries(xmrigMiner xmrig_tls ${OPENSSL_LIBRARIES} ${EXTRA_LIBS})
-endif (WITH_TLS)
+endif(WITH_TLS)
+
+if (WITH_ASM)
+    target_link_libraries(xmrigMiner xmrig_asm)
+endif(WITH_ASM)
 
 add_executable(xmrigDaemon src/cc/XMRigd.cpp res/app.rc)
 set_target_properties(xmrigDaemon PROPERTIES OUTPUT_NAME ${DAEMON_EXECUTABLE_NAME})
@@ -269,6 +285,6 @@ if (WITH_CC_SERVER AND MHD_FOUND)
 
     set_target_properties(xmrig_common_cc PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
     set_target_properties(xmrigCCServer PROPERTIES COMPILE_FLAGS "-DXMRIG_CC_SERVER ${SHARED_FLAGS}")
-endif()
+endif(WITH_CC_SERVER AND MHD_FOUND)
 
 add_subdirectory(test EXCLUDE_FROM_ALL)

@@ -48,6 +48,7 @@ CpuImpl::CpuImpl()
     , m_sockets(1)
     , m_totalCores(0)
     , m_totalThreads(0)
+    , m_asmOptimization(AsmOptimization::ASM_NONE)
 {
 }
 
@@ -215,4 +216,9 @@ int Cpu::getAssignedCpuId(size_t threadId, int64_t affinityMask)
     }
 
     return cpuId;
+}
+
+AsmOptimization Cpu::asmOptimization()
+{
+    return CpuImpl::instance().asmOptimization();
 }
