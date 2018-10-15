@@ -45,7 +45,11 @@
 	movq	xmm0, rcx
 	punpcklqdq xmm4, xmm0
 
-	ALIGN 64
+        #ifdef __APPLE__
+        ALIGN 16
+        #else
+        ALIGN 64
+        #endif
 $main_loop_ryzen:
 	movdqa	xmm5, XMMWORD PTR [r10+rbx]
 	movq	xmm0, r11

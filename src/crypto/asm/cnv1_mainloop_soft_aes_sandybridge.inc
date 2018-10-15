@@ -40,7 +40,11 @@
 
 	mov eax, 524288
 
+	#ifdef __APPLE__
+	ALIGN 16
+	#else
 	ALIGN 64
+	#endif
 cnv1_mainloop_soft_aes_sandybridge:
 	movq xmm9, rax
 	mov	r12, QWORD PTR [rcx+272]

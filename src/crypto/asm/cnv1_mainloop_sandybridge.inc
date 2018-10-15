@@ -25,7 +25,11 @@
 	punpcklqdq xmm3, xmm0
 	movdqu	xmm2, XMMWORD PTR [rdx+rsi]
 
+	#ifdef __APPLE__
+	ALIGN 16
+	#else
 	ALIGN 64
+	#endif
 cnv1_mainloop_sandybridge:
 	movq	xmm0, rdi
 	movq	xmm1, r8

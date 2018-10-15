@@ -25,8 +25,8 @@
 #define __CRYPTONIGHT_H__
 
 
-#include <cstddef>
-#include <cstdint>
+#include <stddef.h>
+#include <stdint.h>
 
 #include "AsmOptimization.h"
 #include "Options.h"
