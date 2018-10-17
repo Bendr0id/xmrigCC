@@ -15,7 +15,8 @@ before_install:
       brew update
 
 script:
-  - brew install gcc cmake libuv openssl libmicrohttpd boost
+  - brew install gcc libuv libmicrohttpd
+  - brev upgrade boost
   - cmake ${XMRIGCC_CMAKE_FLAGS} .
   - make
   - ./xmrigDaemon --version
