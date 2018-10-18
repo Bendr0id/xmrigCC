@@ -367,7 +367,8 @@ void Client::login()
 
     rapidjson::Value supportedPowVariantsList(rapidjson::kArrayType);
     for (auto& supportedPowVariant : getSupportedPowVariants()) {
-        supportedPowVariantsList.PushBack(rapidjson::StringRef(supportedPowVariant.c_str()), allocator);
+        rapidjson::Value val(supportedPowVariant.c_str(), allocator);
+        supportedPowVariantsList.PushBack(val, allocator);
     }
 
     params.AddMember("supported-variants", supportedPowVariantsList, allocator);
