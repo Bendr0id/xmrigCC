@@ -99,7 +99,8 @@ Options:\n"
       --cc-worker-id=ID                 custom worker-id for CC Server\n\
       --cc-update-interval-s=N          status update interval in seconds (default: 10 min: 1)\n\
       --cc-use-remote-logging           enable remote logging on CC Server\n\
-      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n"
+      --cc-upload-config-on-startup     upload current miner config to CC Server on startup\n\
+      --cc-reboot-cmd                   command/bat to execute to Reboot miner\n"
 # endif
 # endif
 
@@ -187,6 +188,7 @@ static struct option const options[] = {
     { "cc-use-remote-logging",          0, nullptr, 4017 },
     { "cc-client-log-lines-history",    1, nullptr, 4018 },
     { "cc-upload-config-on-startup",    0, nullptr, 4019 },
+    { "cc-reboot-cmd",    0, nullptr, 4021 },
     { "daemonized",       0, nullptr, 4011 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",      1, nullptr, 4013 },
@@ -252,6 +254,7 @@ static struct option const cc_client_options[] = {
     { "use-tls",                0, nullptr, 4016 },
     { "use-remote-logging",     0, nullptr, 4017 },
     { "upload-config-on-startup",  0, nullptr, 4019 },
+    { "reboot-cmd",             1, nullptr, 4021 },
     { nullptr, 0, nullptr, 0 }
 };
 
@@ -351,6 +354,7 @@ Options::Options(int argc, char **argv) :
     m_ccCustomDashboard(nullptr),
     m_ccKeyFile(nullptr),
     m_ccCertFile(nullptr),
+    m_ccRebootCmd(nullptr),
     m_algo(ALGO_CRYPTONIGHT),
     m_algoVariant(AV0_AUTO),
     m_aesni(AESNI_AUTO),
@@ -608,6 +612,9 @@ bool Options::parseArg(int key, const char *arg)
 
     case 4020: /* --asm-optimization */
         return parseAsmOptimization(arg);
+
+    case 4021: /* --cc-reboot-cmd */
+        m_ccRebootCmd = strdup(arg);
 
     case 't':  /* --threads */
         if (strncmp(arg, "all", 3) == 0) {
@@ -1151,12 +1158,12 @@ void Options::optimizeAlgorithmConfiguration()
         m_aesni = aesniFromCpu;
     }
 
-    if (m_algo == Options::ALGO_CRYPTONIGHT_HEAVY && m_hashFactor > 3) {
-        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy is: 3\n");
+    if ((m_algo == Options::ALGO_CRYPTONIGHT_HEAVY || m_powVariant ==  PowVariant::POW_XFH) && m_hashFactor > 3) {
+        fprintf(stderr, "Maximum supported hashfactor for cryptonight-heavy and XFH is: 3\n");
         m_hashFactor = 3;
     }
 
-    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_maxCpuUsage, m_safe);
+    Cpu::optimizeParameters(m_threads, m_hashFactor, m_algo, m_powVariant, m_maxCpuUsage, m_safe);
 }
 
 bool Options::parseCCUrl(const char* url)

@@ -26,6 +26,7 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <3rdparty/cpp-httplib/httplib.h>
 #include <3rdparty/rapidjson/document.h>
 #include <3rdparty/rapidjson/stringbuffer.h>
 #include <3rdparty/rapidjson/writer.h>
@@ -38,15 +39,24 @@
 #include "Service.h"
 
 uv_mutex_t Service::m_mutex;
+uv_timer_t Service::m_timer;
+
 std::map<std::string, ControlCommand> Service::m_clientCommand;
 std::map<std::string, ClientStatus> Service::m_clientStatus;
 std::map<std::string, std::list<std::string>> Service::m_clientLog;
 
-int Service::m_currentServerTime = 0;
+uint64_t Service::m_currentServerTime = 0;
+uint64_t Service::m_lastOfflineCheckTime = 0;
 
 bool Service::start()
 {
     uv_mutex_init(&m_mutex);
+
+    uv_timer_init(uv_default_loop(), &m_timer);
+    uv_timer_start(&m_timer, Service::onOfflineCheckTimer,
+                   static_cast<uint64_t>(OFFLINE_CHECK_INTERVAL),
+                   static_cast<uint64_t>(OFFLINE_CHECK_INTERVAL));
+
 
     return true;
 }
@@ -54,6 +64,8 @@ bool Service::start()
 void Service::release()
 {
     uv_mutex_lock(&m_mutex);
+
+    uv_timer_stop(&m_timer);
 
     m_clientCommand.clear();
     m_clientStatus.clear();
@@ -230,7 +242,7 @@ unsigned Service::getClientStatusList(std::string& resp)
     }
 
     auto time_point = std::chrono::system_clock::now();
-    m_currentServerTime = std::chrono::system_clock::to_time_t(time_point);
+    m_currentServerTime = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point));
 
     document.AddMember("current_server_time", m_currentServerTime, allocator);
     document.AddMember("current_version", rapidjson::StringRef(Version::string().c_str()), allocator);
@@ -419,4 +431,41 @@ std::string Service::getClientConfigFileName(const Options* options, const std::
     clientConfigFileName += clientId + std::string("_config.json");
 
     return clientConfigFileName;
+}
+
+void Service::onOfflineCheckTimer(uv_timer_t* handle)
+{
+    auto time_point = std::chrono::system_clock::now();
+    auto now = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point) * 1000);
+
+    for (auto clientStatus : m_clientStatus) {
+        uint64_t threshold = now - OFFLINE_TRESHOLD_IN_MS;
+        uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
+
+        if (lastStatus < threshold) {
+            threshold = now - (OFFLINE_TRESHOLD_IN_MS + (now-m_lastOfflineCheckTime));
+            if (lastStatus > threshold) {
+                LOG_ERR("MINER %s just went offline!", clientStatus.first.c_str());
+                sendPushNotification("XMRigCCServer", "Miner offline!");
+            }
+        }
+    }
+
+    m_lastOfflineCheckTime = now;
+}
+
+void Service::sendPushNotification(const std::string& title, const std::string& message)
+{
+    std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
+
+    httplib::Params params;
+    params.emplace("token", "TOKEN");
+    params.emplace("user", "USER");
+    params.emplace("title", title);
+    params.emplace("message", message);
+
+    auto res = cli->Post("/1/messages.json", params);
+    if (res) {
+        LOG_ERR("Response: %s", res->body.c_str());
+    }
 }

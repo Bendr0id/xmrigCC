@@ -89,6 +89,7 @@ public:
     inline const char *ccCustomDashboard() const    { return m_ccCustomDashboard == nullptr ? "index.html" : m_ccCustomDashboard; }
     inline const char *ccKeyFile() const            { return m_ccKeyFile == nullptr ? "server.key" : m_ccKeyFile; }
     inline const char *ccCertFile() const           { return m_ccCertFile == nullptr ? "server.pem" : m_ccCertFile; }
+    inline const char *ccRebootCmd() const          { return m_ccRebootCmd; }
     inline const std::vector<Url*> &pools() const   { return m_pools; }
     inline Algo algo() const                        { return m_algo; }
     inline PowVariant powVariant() const            { return m_powVariant; }
@@ -166,6 +167,7 @@ private:
     char *m_ccCustomDashboard;
     char *m_ccKeyFile;
     char *m_ccCertFile;
+    char *m_ccRebootCmd;
     Algo m_algo;
     AlgoVariant m_algoVariant;
     AesNi m_aesni;
