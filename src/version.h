@@ -29,12 +29,12 @@
 #define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC Command'n'Control Server"
-#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
+#define APP_COPYRIGHT "Copyright (C) 2017-  BenDr0id"
 # else
 #define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC CPU miner"
-#define APP_COPYRIGHT "Copyright (C) 2017- BenDr0id"
+#define APP_COPYRIGHT "Copyright (C) 2017-  BenDr0id"
 #endif
 #define APP_VERSION   "1.8.5-beta1 (based on XMRig)"
 #define APP_DOMAIN    ""
