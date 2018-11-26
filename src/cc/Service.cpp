@@ -26,6 +26,9 @@
 #include <cstring>
 #include <sstream>
 #include <fstream>
+#include <iostream>
+
+#include "log/Log.h"
 #include <3rdparty/cpp-httplib/httplib.h>
 #include <3rdparty/rapidjson/document.h>
 #include <3rdparty/rapidjson/stringbuffer.h>
@@ -34,8 +37,7 @@
 #include <3rdparty/rapidjson/filereadstream.h>
 #include <3rdparty/rapidjson/error/en.h>
 #include <3rdparty/rapidjson/prettywriter.h>
-#include <version.h>
-#include "log/Log.h"
+#include "version.h"
 #include "Service.h"
 
 uv_mutex_t Service::m_mutex;
@@ -47,16 +49,21 @@ std::map<std::string, std::list<std::string>> Service::m_clientLog;
 
 uint64_t Service::m_currentServerTime = 0;
 uint64_t Service::m_lastOfflineCheckTime = 0;
+uint64_t Service::m_lastStatusUpdateTime = 0;
 
 bool Service::start()
 {
     uv_mutex_init(&m_mutex);
 
-    uv_timer_init(uv_default_loop(), &m_timer);
-    uv_timer_start(&m_timer, Service::onOfflineCheckTimer,
-                   static_cast<uint64_t>(OFFLINE_CHECK_INTERVAL),
-                   static_cast<uint64_t>(OFFLINE_CHECK_INTERVAL));
-
+#ifndef XMRIG_NO_TLS
+    if (Options::i()->ccPushoverToken() && Options::i()->ccPushoverUser())
+    {
+        uv_timer_init(uv_default_loop(), &m_timer);
+        uv_timer_start(&m_timer, Service::onPushTimer,
+                       static_cast<uint64_t>(TIMER_INTERVAL),
+                       static_cast<uint64_t>(TIMER_INTERVAL));
+    }
+#endif
 
     return true;
 }
@@ -433,39 +440,99 @@ std::string Service::getClientConfigFileName(const Options* options, const std::
     return clientConfigFileName;
 }
 
-void Service::onOfflineCheckTimer(uv_timer_t* handle)
+void Service::onPushTimer(uv_timer_t* handle)
 {
     auto time_point = std::chrono::system_clock::now();
     auto now = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point) * 1000);
 
-    for (auto clientStatus : m_clientStatus) {
-        uint64_t threshold = now - OFFLINE_TRESHOLD_IN_MS;
-        uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
+    if (Options::i()->ccPushOfflineMiners()) {
+        sendMinerOfflinePush(now);
+        m_lastOfflineCheckTime = now;
+    }
 
-        if (lastStatus < threshold) {
-            threshold = now - (OFFLINE_TRESHOLD_IN_MS + (now-m_lastOfflineCheckTime));
-            if (lastStatus > threshold) {
-                LOG_ERR("MINER %s just went offline!", clientStatus.first.c_str());
-                sendPushNotification("XMRigCCServer", "Miner offline!");
+    if (Options::i()->ccPushPeriodicStatus()) {
+        if (now > (m_lastStatusUpdateTime + STATUS_UPDATE_INTERVAL)) {
+            sendServerStatusPush(now);
+            m_lastStatusUpdateTime = now;
+        }
+    }
+}
+
+void Service::sendMinerOfflinePush(uint64_t now)
+{
+    for (auto clientStatus : m_clientStatus) {
+        uint64_t lastStatus = clientStatus.second.getLastStatusUpdate() * 1000;
+        uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+        if (lastStatus < offlineThreshold) {
+            offlineThreshold = now - (OFFLINE_TRESHOLD_IN_MS + (now - m_lastOfflineCheckTime));
+            if (lastStatus > offlineThreshold) {
+                std::stringstream message;
+                message << "Miner: " << clientStatus.first << " just went offline!";
+
+                LOG_WARN("Send miner went offline push", clientStatus.first.c_str());
+                triggerPush(APP_NAME " Offline Monitor", message.str());
             }
         }
     }
-
-    m_lastOfflineCheckTime = now;
 }
 
-void Service::sendPushNotification(const std::string& title, const std::string& message)
+void Service::sendServerStatusPush(uint64_t now)
 {
+    size_t onlineMiner = 0;
+    size_t offlineMiner = 0;
+
+    double hashrateMedium = 0;
+    double hashrateLong = 0;
+    double avgTime = 0;
+
+    uint64_t sharesGood = 0;
+    uint64_t sharesTotal = 0;
+    uint64_t offlineThreshold = now - OFFLINE_TRESHOLD_IN_MS;
+
+    for (auto clientStatus : m_clientStatus) {
+        if (offlineThreshold < clientStatus.second.getLastStatusUpdate() * 1000) {
+            onlineMiner++;
+        } else {
+            offlineMiner++;
+        }
+
+        hashrateMedium += clientStatus.second.getHashrateMedium();
+        hashrateLong += clientStatus.second.getHashrateLong();
+
+        sharesGood += clientStatus.second.getSharesGood();
+        sharesTotal += clientStatus.second.getSharesTotal();
+        avgTime += clientStatus.second.getAvgTime();
+    }
+
+    if (!m_clientStatus.empty()) {
+        avgTime = avgTime / m_clientStatus.size();
+    }
+
+    std::stringstream message;
+    message << "Miners: " << onlineMiner << " (Online), " << offlineMiner << " (Offline)\n"
+            << "Shares: " << sharesGood << " (Good), " << sharesTotal - sharesGood << " (Bad)\n"
+            << "Hashrates: " << hashrateMedium << "h/s (1min), " << hashrateLong << "h/s (15min)\n"
+            << "Avg. Time: " << avgTime << "s";
+
+    LOG_WARN("Send Server status push");
+    triggerPush(APP_NAME " Status", message.str());
+}
+
+void Service::triggerPush(const std::string& title, const std::string& message)
+{
+#ifndef XMRIG_NO_TLS
     std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
 
     httplib::Params params;
-    params.emplace("token", "TOKEN");
-    params.emplace("user", "USER");
+    params.emplace("token", Options::i()->ccPushoverToken());
+    params.emplace("user", Options::i()->ccPushoverUser());
     params.emplace("title", title);
-    params.emplace("message", message);
+    params.emplace("message", httplib::detail::encode_url(message));
 
     auto res = cli->Post("/1/messages.json", params);
     if (res) {
-        LOG_ERR("Response: %s", res->body.c_str());
+        LOG_WARN("Push response: %s", res->body.c_str());
     }
+#endif
 }
