@@ -175,7 +175,7 @@ unsigned Service::getClientConfig(const Options* options, const std::string& cli
         data << clientConfig.rdbuf();
         clientConfig.close();
     } else {
-        std::ifstream defaultConfig("default_config.json");
+        std::ifstream defaultConfig("default_miner_config.json");
         if (defaultConfig) {
             data << defaultConfig.rdbuf();
             defaultConfig.close();
