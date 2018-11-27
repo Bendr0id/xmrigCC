@@ -73,9 +73,9 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'alloy', 'xtl' (including autodetect for v5)\n\
+      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for v5), 'rto', 'xfh'\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
-      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'off' \n\
+      --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
       --multihash-thread-mask=MASK      limits multihash to given threads (mask), (default: all threads)\n\
       --cpu-affinity                    set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
@@ -287,17 +287,19 @@ constexpr static const char *pow_variant_names[] = {
         "1",
         "2",
         "tube",
-        "alloy",
+        "xao",
         "xtl",
         "msr",
         "xhv",
-        "rto"
+        "rto",
+        "xfh"
 };
 
 constexpr static const char *asm_optimization_names[] = {
     "auto",
     "intel",
     "ryzen",
+    "bulldozer",
     "off"
 };
 
@@ -1049,6 +1051,11 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xao") || !strcmp(powVariant, "alloy"))) {
+            m_powVariant = POW_ALLOY;
+            break;
+        }
+
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "ipbc") || !strcmp(powVariant, "bittube"))) {
             m_powVariant = POW_TUBE;
             break;
@@ -1061,6 +1068,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "arto")) {
             m_powVariant = POW_RTO;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "freehaven") || !strcmp(powVariant, "faven"))) {
+            m_powVariant = POW_XFH;
             break;
         }
 
