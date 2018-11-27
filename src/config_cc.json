@@ -14,8 +14,8 @@
         "client-config-folder" : null,              // folder which contains the client-config files (null=current)
         "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
         "custom-dashboard" : "index.html",          // dashboard html file
-        "pushover-user" : "",                       // username to use for pushover notifications
-        "pushover-token" : "",                      // token to use for pushover notifications
+        "pushover-user-key" : "",                   // your user key for pushover notifications
+        "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
         "push-miner-offline-info" : true,           // push notification for offline miners
         "push-periodic-mining-status" : true        // push periodic status notification (every hour)
     }

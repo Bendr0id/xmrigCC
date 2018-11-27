@@ -115,9 +115,9 @@ Options:\n"
       --cc-key-file=FILE                when tls is turned on, use this to point to the right key file (default: server.key) \n\
       --cc-client-log-lines-history=N   maximum lines of log history kept per miner (default: 100)\n\
       --cc-client-config-folder=FOLDER  Folder contains the client config files\n\
-      --cc-pushover-user                pushover user for push messages\n\
-      --cc-pushover-token               pushover token for push messages\n\
-      --cc-push-miner-offline-info      send miner went offline push\n\
+      --cc-pushover-user-key            pushover user for push messages\n\
+      --cc-pushover-api-token           your user key for pushover notifications\n\
+      --cc-push-miner-offline-info      api token/keytoken of the application for pushover notifications\n\
       --cc-push-periodic-mining-status  send periodic mining status push\n\
       --cc-custom-dashboard=FILE        loads a custom dashboard and serve it to '/'\n"
 # endif
@@ -193,8 +193,8 @@ static struct option const options[] = {
     { "cc-client-log-lines-history",    1, nullptr, 4018 },
     { "cc-upload-config-on-startup",    0, nullptr, 4019 },
     { "cc-reboot-cmd",       1, nullptr, 4021 },
-    { "cc-pushover-user",    1, nullptr, 4022 },
-    { "cc-pushover-token",   1, nullptr, 4023 },
+    { "cc-pushover-user-key",    1, nullptr, 4022 },
+    { "cc-pushover-api-token",   1, nullptr, 4023 },
     { "cc-push-miner-offline-info",        0, nullptr, 4024 },
     { "cc-push-periodic-mining-status",    0, nullptr, 4025 },
     { "daemonized",       0, nullptr, 4011 },
@@ -277,8 +277,8 @@ static struct option const cc_server_options[] = {
     { "key-file",               1, nullptr, 4015 },
     { "use-tls",                0, nullptr, 4016 },
     { "client-log-lines-history",   1, nullptr, 4018 },
-    { "pushover-user",          1, nullptr, 4022 },
-    { "pushover-token",         1, nullptr, 4023 },
+    { "pushover-user-key",          1, nullptr, 4022 },
+    { "pushover-api-token",         1, nullptr, 4023 },
     { "push-miner-offline-info",        0, nullptr, 4024 },
     { "push-periodic-mining-status",    0, nullptr, 4025 },
     { nullptr, 0, nullptr, 0 }
@@ -632,10 +632,10 @@ bool Options::parseArg(int key, const char *arg)
     case 4021: /* --cc-reboot-cmd */
         m_ccRebootCmd = strdup(arg);
 
-    case 4022: /* --cc-pushover-user */
+    case 4022: /* --cc-pushover-user-key */
         m_ccPushoverUser = strdup(arg);
 
-    case 4023: /* --cc-pushover-token */
+    case 4023: /* --cc-pushover-api-token */
         m_ccPushoverToken = strdup(arg);
 
     case 4024: /* --cc-push-miner-offline-info */
