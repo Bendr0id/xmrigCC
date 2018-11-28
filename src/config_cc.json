@@ -14,7 +14,7 @@
         "client-config-folder" : null,              // folder which contains the client-config files (null=current)
         "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
         "custom-dashboard" : "index.html",          // dashboard html file
-        // Below Push settings find help @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover
+        // Pushnotification Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover
         "pushover-user-key" : "",                   // your user key for pushover notifications
         "pushover-api-token" : "",                  // api token/keytoken of the application for pushover notifications
         "push-miner-offline-info" : true,           // push notification for offline miners
