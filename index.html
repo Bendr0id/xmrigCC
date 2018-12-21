@@ -579,13 +579,11 @@
                     table.rows({ selected: true }).eq(0).each(function (index) {
                         var row = table.row(index);
                         var data = row.data();
-
                         var clientId = data['client_status']['client_id'];
 
                         jsonClientConfig['cc-client']['worker-id'] = clientId
-                        jsonClientConfig = JSON.stringify(jsonClientConfig,undefined, 2);
 
-                        setClientConfig(clientId, jsonClientConfig);
+                        setClientConfig(clientId, JSON.stringify(jsonClientConfig,undefined, 2));
                     });
                 },
                 error: function (data) {
