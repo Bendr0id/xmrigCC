@@ -379,7 +379,10 @@ unsigned Service::getClientConfigTemplates(const Options* options, std::string& 
                 std::string ending = "_config.json";
 
                 if (filename.rfind(starting, 0) == 0 && filename.find(ending, (filename.length() - ending.length())) != std::string::npos) {
-                    templateFiles.push_back(filename.erase(0, starting.length()).erase(filename.length()-ending.length()));
+                    filename.erase(0, starting.length());
+                    filename.erase(filename.length()-ending.length());
+
+                    templateFiles.push_back(filename);
                 }
             }
         }
