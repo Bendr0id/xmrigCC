@@ -61,11 +61,13 @@ extern "C"
     void cn_fastv2_mainloop_ryzen_asm(ScratchPad* ctx0);
     void cn_fastv2_mainloop_bulldozer_asm(ScratchPad* ctx0);
     void cn_fastv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
+    void cn_liteupx_mainloop_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_fast_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_litev1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_fastv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cn_liteupx_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
 #endif
 }
 
@@ -773,7 +775,8 @@ public:
         uint64_t* h[NUM_HASH_BLOCKS];
         uint64_t al[NUM_HASH_BLOCKS];
         uint64_t ah[NUM_HASH_BLOCKS];
-        uint64_t idx[NUM_HASH_BLOCKS];
+        uint64_t idx[NUM_HASH_BLOCKS];CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteTube(
+            input, size, output, scratchPad);
         uint64_t sqrt_result[NUM_HASH_BLOCKS];
         __m128i bx0[NUM_HASH_BLOCKS];
         __m128i bx1[NUM_HASH_BLOCKS];
@@ -1447,6 +1450,8 @@ public:
                 } else {
                     cn_litev1_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
                 }
+            } else {
+                cn_liteupx_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
             }
         } else {
             if (ITERATIONS == 0x80000) {
@@ -1457,6 +1462,8 @@ public:
                 } else {
                     cn_litev1_mainloop_sandybridge_asm(scratchPad[0]);
                 }
+            } else {
+                cn_liteupx_mainloop_sandybridge_asm(scratchPad[0]);
             }
         }
 #endif

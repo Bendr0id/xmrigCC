@@ -10,12 +10,14 @@ PUBLIC cn_fast2_mainloop_ivybridge_asm
 PUBLIC cn_fast2_mainloop_ryzen_asm
 PUBLIC cn_fast2_mainloop_bulldozer_asm
 PUBLIC cn_fast2_double_mainloop_sandybridge_asm
+PUBLIC cn_liteupx_mainloop_sandybridge_asm
 
 PUBLIC cnv1_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_litev1_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_fast_mainloop_soft_aes_sandybridge_asm
 PUBLIC cnv2_mainloop_soft_aes_sandybridge_asm
 PUBLIC cn_fast2_mainloop_soft_aes_sandybridge_asm
+PUBLIC cn_liteupx_mainloop_soft_aes_sandybridge_asm
 
 ALIGN 64
 cnv1_mainloop_sandybridge_asm PROC
@@ -84,6 +86,12 @@ cn_fast2_double_mainloop_sandybridge_asm PROC
 cn_fast2_double_mainloop_sandybridge_asm ENDP
 
 ALIGN 64
+cn_liteupx_mainloop_sandybridge_asm PROC
+	INCLUDE cn_liteupx_mainloop_sandybridge.inc
+	ret 0
+cn_liteupx_mainloop_sandybridge_asm ENDP
+
+ALIGN 64
 cnv1_mainloop_soft_aes_sandybridge_asm PROC
 	INCLUDE cnv1_mainloop_soft_aes_sandybridge.inc
 	ret 0
@@ -115,3 +123,9 @@ cn_fast2_mainloop_soft_aes_sandybridge_asm ENDP
 
 _TEXT_CN_MAINLOOP ENDS
 END
+
+ALIGN 64
+cn_liteupx_mainloop_soft_aes_sandybridge_asm PROC
+	INCLUDE cn_liteupx_mainloop_soft_aes_sandybridge.inc
+	ret 0
+cn_liteupx_mainloop_soft_aes_sandybridge_asm ENDP
