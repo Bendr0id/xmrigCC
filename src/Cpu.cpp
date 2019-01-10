@@ -87,8 +87,13 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     size_t maximumReasonableFactor = std::max(cache / algoBlockSize, static_cast<size_t>(1ul));
     size_t maximumReasonableThreadCount = std::min(maximumReasonableFactor, m_totalThreads);
-    size_t maximumReasonableHashFactor = std::min(maximumReasonableFactor, (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) ? 3 : static_cast<size_t>(MAX_NUM_HASH_BLOCKS));
+    size_t maximumReasonableHashFactor = static_cast<size_t>(MAX_NUM_HASH_BLOCKS);
 
+    if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
+        maximumReasonableHashFactor = 3;
+    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
+        maximumReasonableHashFactor = 2;
+    }
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {
             threadsCount = maximumReasonableThreadCount;
