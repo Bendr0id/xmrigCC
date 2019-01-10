@@ -46,7 +46,9 @@ public:
     enum Algo {
         ALGO_CRYPTONIGHT,      /* CryptoNight (2MB ScratchPad) */
         ALGO_CRYPTONIGHT_LITE, /* CryptoNight-Lite (1MB ScratchPad) */
-        ALGO_CRYPTONIGHT_HEAVY /* CryptoNight-Heavy (4MB ScratchPad) */
+        ALGO_CRYPTONIGHT_SUPER_LITE, /* CryptoNight-Super-Lite (512KB ScratchPad) */
+        ALGO_CRYPTONIGHT_ULTRA_LITE, /* CryptoNight-Ultra-Lite (256KB ScratchPad) */
+        ALGO_CRYPTONIGHT_HEAVY, /* CryptoNight-Heavy (4MB ScratchPad) */
     };
 
     enum AlgoVariant {

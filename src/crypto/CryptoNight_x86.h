@@ -62,6 +62,8 @@ extern "C"
     void cn_fastv2_mainloop_bulldozer_asm(ScratchPad* ctx0);
     void cn_fastv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
     void cn_liteupx_mainloop_sandybridge_asm(ScratchPad* ctx0);
+    void cn_ultralitev2_mainloop_ivybridge_asm(ScratchPad* ctx0);
+    void cn_ultralitev2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
     void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_fast_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_litev1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
@@ -775,8 +777,7 @@ public:
         uint64_t* h[NUM_HASH_BLOCKS];
         uint64_t al[NUM_HASH_BLOCKS];
         uint64_t ah[NUM_HASH_BLOCKS];
-        uint64_t idx[NUM_HASH_BLOCKS];CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_LITE, 0xFFFF0, true, NUM_HASH_BLOCKS>::hashLiteTube(
-            input, size, output, scratchPad);
+        uint64_t idx[NUM_HASH_BLOCKS];
         uint64_t sqrt_result[NUM_HASH_BLOCKS];
         __m128i bx0[NUM_HASH_BLOCKS];
         __m128i bx1[NUM_HASH_BLOCKS];
@@ -1566,7 +1567,11 @@ public:
                 scratchPad[0]->t_fn = (const uint32_t*)saes_table;
                 cnv2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
             } else {
-                cnv2_mainloop_ivybridge_asm(scratchPad[0]);
+                if (ITERATIONS == 0x10000 && MASK == 0x1FFF0) {
+                    cn_ultralitev2_mainloop_ivybridge_asm(scratchPad[0]);
+                } else {
+                    cnv2_mainloop_ivybridge_asm(scratchPad[0]);
+                }
             }
         } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
             cnv2_mainloop_ryzen_asm(scratchPad[0]);
@@ -2320,7 +2325,11 @@ public:
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
 
 #ifndef XMRIG_NO_ASM
-        cnv2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        if (ITERATIONS == 0x10000 && MASK == 0x1FFF0) {
+            cn_ultralitev2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        } else {
+            cnv2_double_mainloop_sandybridge_asm(scratchPad[0], scratchPad[1]);
+        }
 #endif
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);

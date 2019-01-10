@@ -67,6 +67,12 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     size_t cache = availableCache();
     size_t algoBlockSize;
     switch (algo) {
+        case Options::ALGO_CRYPTONIGHT_ULTRA_LITE:
+            algoBlockSize = 256;
+            break;
+        case Options::ALGO_CRYPTONIGHT_SUPER_LITE:
+            algoBlockSize = 512;
+            break;
         case Options::ALGO_CRYPTONIGHT_LITE:
             algoBlockSize = 1024;
             break;

@@ -303,12 +303,16 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
+    "cryptonight-super-lite",
+    "cryptonight-ultra-lite",
     "cryptonight-heavy"
 };
 
 static const char *algo_short_names[] = {
         "cn",
         "cn-lite",
+        "cn-super-lite",
+        "cn-ultra-lite",
         "cn-heavy"
 };
 
@@ -1083,6 +1087,18 @@ bool Options::setAlgo(const char *algo)
 
         if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-lite") || !strcmp(algo, "cryptonight-light"))) {
             m_algo = ALGO_CRYPTONIGHT_LITE;
+            break;
+        }
+
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-superlite") || !strcmp(algo, "cn-super-lite") || !strcmp(algo, "cryptonight-superlight"))) {
+            m_algo = ALGO_CRYPTONIGHT_SUPER_LITE;
+            break;
+        }
+
+
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultralite") || !strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultralight"))) {
+            m_algo = ALGO_CRYPTONIGHT_ULTRA_LITE;
             break;
         }
 
