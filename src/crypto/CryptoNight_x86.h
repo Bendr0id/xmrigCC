@@ -63,6 +63,8 @@ extern "C"
     void cn_fastv2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
     void cn_liteupx_mainloop_sandybridge_asm(ScratchPad* ctx0);
     void cn_ultralitev2_mainloop_ivybridge_asm(ScratchPad* ctx0);
+    void cn_ultralitev2_mainloop_ryzen_asm(ScratchPad* ctx0);
+    void cn_ultralitev2_mainloop_bulldozer_asm(ScratchPad* ctx0);
     void cn_ultralitev2_double_mainloop_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
     void cnv1_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_fast_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
@@ -70,6 +72,7 @@ extern "C"
     void cnv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_fastv2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cn_liteupx_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
+    void cn_ultralitev2_mainloop_soft_aes_sandybridge_asm(ScratchPad* ctx);
 #endif
 }
 
@@ -1558,6 +1561,8 @@ public:
                 scratchPad[0]->t_fn = (const uint32_t*)saes_table;
                 if (ITERATIONS == 0x40000) {
                     cn_fastv2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
+                } else if (ITERATIONS == 0x10000) {
+                    cn_ultralitev2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
                 } else {
                     cnv2_mainloop_soft_aes_sandybridge_asm(scratchPad[0]);
                 }
@@ -1571,13 +1576,17 @@ public:
                 }
             }
         } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
-            if (ITERATIONS == 0x40000) {
+            if (ITERATIONS == 0x10000) {
+                cn_ultralitev2_mainloop_ryzen_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x40000) {
                 cn_fastv2_mainloop_ryzen_asm(scratchPad[0]);
             } else {
                 cnv2_mainloop_ryzen_asm(scratchPad[0]);
             }
         } else if (asmOptimization == AsmOptimization::ASM_BULLDOZER) {
-            if (ITERATIONS == 0x40000) {
+            if (ITERATIONS == 0x10000) {
+                cn_ultralitev2_mainloop_bulldozer_asm(scratchPad[0]);
+            } else if (ITERATIONS == 0x40000) {
                 cn_fastv2_mainloop_bulldozer_asm(scratchPad[0]);
             } else {
                 cnv2_mainloop_bulldozer_asm(scratchPad[0]);

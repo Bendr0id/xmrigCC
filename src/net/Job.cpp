@@ -138,6 +138,10 @@ bool Job::setTarget(const char *target)
 
 PowVariant Job::powVariant() const
 {
+    if (Options::i()->algo() == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
+        return PowVariant::POW_TURTLE;
+    }
+
     if (m_powVariant == PowVariant::POW_AUTODETECT) {
         if (m_blob[0] > 7) {
             return PowVariant::POW_V2;

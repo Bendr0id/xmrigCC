@@ -303,16 +303,16 @@ static struct option const cc_server_options[] = {
 static const char *algo_names[] = {
     "cryptonight",
     "cryptonight-lite",
-    "cryptonight-super-lite",
-    "cryptonight-ultra-lite",
+    "cryptonight-superlite",
+    "cryptonight-ultralite",
     "cryptonight-heavy"
 };
 
 static const char *algo_short_names[] = {
         "cn",
         "cn-lite",
-        "cn-super-lite",
-        "cn-ultra-lite",
+        "cn-superlite",
+        "cn-ultralite",
         "cn-heavy"
 };
 
@@ -329,7 +329,8 @@ constexpr static const char *pow_variant_names[] = {
         "rto",
         "xfh",
         "xtlv9",
-        "upx"
+        "upx",
+        "turtle"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1090,14 +1091,13 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-
-        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-superlite") || !strcmp(algo, "cn-super-lite") || !strcmp(algo, "cryptonight-superlight"))) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-super-lite") || !strcmp(algo, "cryptonight-super-lite") || !strcmp(algo, "cryptonight-superlight"))) {
             m_algo = ALGO_CRYPTONIGHT_SUPER_LITE;
             break;
         }
 
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultralite") || !strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultralight"))) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "cn-ultra-lite") || !strcmp(algo, "cryptonight-ultra-lite") || !strcmp(algo, "cryptonight-ultralight"))) {
             m_algo = ALGO_CRYPTONIGHT_ULTRA_LITE;
             break;
         }
@@ -1183,6 +1183,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "uplexa")) {
             m_powVariant = POW_UPX;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "trtl")) {
+            m_powVariant = POW_TURTLE;
             break;
         }
 
