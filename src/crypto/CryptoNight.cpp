@@ -313,7 +313,7 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
             }
             break;
 
-        case Options::ALGO_CRYPTONIGHT_SUPER_LITE:
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
             if (aesni) {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_super_lite_aesni<HASH_FACTOR>;
             } else {
@@ -321,7 +321,7 @@ void setCryptoNightHashMethods(Options::Algo algo, bool aesni)
             }
             break;
 
-        case Options::ALGO_CRYPTONIGHT_ULTRA_LITE:
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
             if (aesni) {
                 cryptonight_hash_ctx[HASH_FACTOR - 1] = cryptonight_ultra_lite_aesni<HASH_FACTOR>;
             } else {
@@ -534,12 +534,14 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_UPX, test_input, 76, output, scratchPads);
         resultLite = resultLite && memcmp(output,  test_output_upx, 32) == 0;
 
-    } else if (algo == Options::ALGO_CRYPTONIGHT_SUPER_LITE) {
+    } else if (algo == Options::ALGO_CRYPTONIGHT_SUPERLITE) {
 
-    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
+        return false;
+
+    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         // cn ultralite (cnv8 + turtle)
 
-        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V0, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
 
     } else {

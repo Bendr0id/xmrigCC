@@ -67,10 +67,10 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     size_t cache = availableCache();
     size_t algoBlockSize;
     switch (algo) {
-        case Options::ALGO_CRYPTONIGHT_ULTRA_LITE:
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
             algoBlockSize = 256;
             break;
-        case Options::ALGO_CRYPTONIGHT_SUPER_LITE:
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
             algoBlockSize = 512;
             break;
         case Options::ALGO_CRYPTONIGHT_LITE:
@@ -91,7 +91,7 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
 
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
         maximumReasonableHashFactor = 3;
-    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
+    } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRALITE) {
         if (m_asmOptimization == ASM_INTEL) {
             maximumReasonableHashFactor = 2;
         } else {
