@@ -40,10 +40,10 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
     size_t scratchPadSize;
 
     switch (m_algo) {
-        case Options::ALGO_CRYPTONIGHT_ULTRA_LITE:
+        case Options::ALGO_CRYPTONIGHT_ULTRALITE:
             scratchPadSize = MEMORY_ULTRA_LITE;
             break;
-        case Options::ALGO_CRYPTONIGHT_SUPER_LITE:
+        case Options::ALGO_CRYPTONIGHT_SUPERLITE:
             scratchPadSize = MEMORY_SUPER_LITE;
             break;
         case Options::ALGO_CRYPTONIGHT_LITE:
