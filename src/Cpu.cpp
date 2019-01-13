@@ -92,7 +92,11 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
     if (algo == Options::ALGO_CRYPTONIGHT_HEAVY || powVariant == POW_XFH) {
         maximumReasonableHashFactor = 3;
     } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
-        maximumReasonableHashFactor = 2;
+        if (m_asmOptimization == ASM_INTEL) {
+            maximumReasonableHashFactor = 2;
+        } else {
+            maximumReasonableHashFactor = 1;
+        }
     }
     if (safeMode) {
         if (threadsCount > maximumReasonableThreadCount) {

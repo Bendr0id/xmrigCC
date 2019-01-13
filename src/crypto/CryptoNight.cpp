@@ -537,9 +537,9 @@ bool CryptoNight::selfTest(int algo)
     } else if (algo == Options::ALGO_CRYPTONIGHT_SUPER_LITE) {
 
     } else if (algo == Options::ALGO_CRYPTONIGHT_ULTRA_LITE) {
-        // cn ultralite turtle
+        // cn ultralite (cnv8 + turtle)
 
-        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_TURTLE, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V0, test_input, 76, output, scratchPads);
         resultUltraLite = resultUltraLite && memcmp(output,  test_output_turtle, 32) == 0;
 
     } else {
@@ -593,7 +593,7 @@ bool CryptoNight::selfTest(int algo)
         result = result && memcmp(output, test_output_v1, 160) == 0;
         #endif
 
-        // cn v7 + xtl
+        // cnv7 + xtl
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_XTL,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xtl, 32) == 0;
@@ -608,7 +608,7 @@ bool CryptoNight::selfTest(int algo)
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_ALLOY,test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_alloy, 32) == 0;
 
-        // cn v8 aka cnv2
+        // cnv8 aka cnv2
 
         cryptonight_hash_ctx[0](asmOptimization, PowVariant::POW_V2, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v2, 32) == 0;
