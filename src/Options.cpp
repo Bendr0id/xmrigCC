@@ -1206,6 +1206,12 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "r") || !strcmp(powVariant, "cnv4") || !strcmp(powVariant, "cnv5"))) {
+            m_powVariant = POW_V4;
+            break;
+        }
+
+
         if (i == ARRAY_SIZE(pow_variant_names) - 1) {
             showUsage(1);
             return false;

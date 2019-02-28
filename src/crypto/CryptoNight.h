@@ -63,7 +63,7 @@ class CryptoNight
 {
 public:
     static bool init(int algo, bool aesni);
-    static void hash(size_t factor, AsmOptimization asmOptimization, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
+    static void hash(size_t factor, AsmOptimization asmOptimization, uint64_t height, PowVariant powVersion, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPads);
 
 public:
 

@@ -36,10 +36,14 @@
 #   define __restrict__ __restrict
 #endif
 
+#define SWAP32LE(x) x
+#define SWAP64LE(x) x
+#define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
 
 #include "crypto/CryptoNight.h"
 #include "crypto/soft_aes.h"
 #include "AsmOptimization.h"
+#include "variant4_random_math.h"
 
 extern "C"
 {
@@ -71,6 +75,11 @@ extern "C"
     void cnv2_main_loop_ultralite_bulldozer_asm(ScratchPad* ctx0);
     void cnv2_double_main_loop_ultralite_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
 
+    void cnv2_main_loop_xcash_ivybridge_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_xcash_ryzen_asm(ScratchPad* ctx0);
+    void cnv2_main_loop_xcash_bulldozer_asm(ScratchPad* ctx0);
+    void cnv2_double_main_loop_xcash_sandybridge_asm(ScratchPad* ctx0, ScratchPad* ctx1);
+
     void cnv1_main_loop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_lite_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv1_main_loop_fast_soft_aes_sandybridge_asm(ScratchPad* ctx0);
@@ -80,6 +89,7 @@ extern "C"
     void cnv2_main_loop_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(ScratchPad* ctx);
+    void cnv2_main_loop_xcash_soft_aes_sandybridge_asm(ScratchPad* ctx);
 #endif
 }
 
@@ -154,8 +164,10 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 
 #ifdef _MSC_VER
 #   define SET_ROUNDING_MODE_UP() _control87(RC_UP, MCW_RC);
+#   define SET_ROUNDING_MODE_DOWN() _control87(RC_DOWN, MCW_RC);
 #else
 #   define SET_ROUNDING_MODE_UP() std::fesetround(FE_UPWARD);
+#   define SET_ROUNDING_MODE_DOWN() fesetround(FE_DOWNWARD);
 #endif
 
 #   define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax) \
@@ -189,6 +201,39 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
     _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
+}
+
+#   define SHUFFLE_V4(l, idx, bx0, bx1, ax, cx) \
+{ \
+    const __m128i chunk1 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x10))); \
+    const __m128i chunk2 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x20))); \
+    const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x30))); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
+    cx = _mm_xor_si128(_mm_xor_si128(cx, chunk3), _mm_xor_si128(chunk1, chunk2)); \
+}
+
+#   define VARIANT4_RANDOM_MATH_INIT(part) \
+uint32_t r##part[9]; \
+struct V4_Instruction code##part[256]; \
+{ \
+    r##part[0] = (uint32_t)(h##part[12]); \
+    r##part[1] = (uint32_t)(h##part[12] >> 32); \
+    r##part[2] = (uint32_t)(h##part[13]); \
+    r##part[3] = (uint32_t)(h##part[13] >> 32); \
+} \
+v4_random_math_init<variant>(code##part, height);
+
+#   define VARIANT4_RANDOM_MATH(code, r, al, ah, cl, bx0, bx1) \
+{ \
+    cl ^= (r[0] + r[1]) | ((uint64_t)(r[2] + r[3]) << 32); \
+    r[4] = static_cast<uint32_t>(al); \
+    r[5] = static_cast<uint32_t>(ah); \
+    r[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
+    r[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
+    r[8] = static_cast<uint32_t>(_mm_cvtsi128_si32(_mm_srli_si128(bx1, 8))); \
+    v4_random_math(code, r); \
 }
 
 static inline void do_blake_hash(const uint8_t *input, size_t len, uint8_t *output) {
@@ -861,7 +906,116 @@ public:
 
                 lo = __umul128(idx[hashBlock], cl, &hi);
 
-                SHUFFLE_PHASE_2(l[hashBlock], idx[hashBlock] & MASK, bx0[hashBlock], bx1[hashBlock], ax[hashBlock], lo, hi)
+                SHUFFLE_PHASE_2(l[hashBlock], idx[hashBlock] & MASK, bx0[hashBlock], bx1[hashBlock], ax[hashBlock], lo, hi);
+
+                al[hashBlock] += hi;
+                ah[hashBlock] += lo;
+
+                ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[0] = al[hashBlock];
+                ((uint64_t*) &l[hashBlock][idx[hashBlock] & MASK])[1] = ah[hashBlock];
+
+                ah[hashBlock] ^= ch;
+                al[hashBlock] ^= cl;
+                idx[hashBlock] = al[hashBlock];
+
+                bx1[hashBlock] = bx0[hashBlock];
+                bx0[hashBlock] = cx[hashBlock];
+            }
+        }
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
+            keccakf(h[hashBlock], 24);
+            extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
+                                                              output + hashBlock * 32);
+        }
+    }
+
+    // multi
+    inline static void hashPowV4(const uint8_t* __restrict__ input,
+                                 size_t size,
+                                 uint8_t* __restrict__ output,
+                                 ScratchPad** __restrict__ scratchPad,
+                                 uint64_t height,
+                                 PowVariant variant)
+    {
+        const uint8_t* l[NUM_HASH_BLOCKS];
+        uint64_t* h[NUM_HASH_BLOCKS];
+        uint64_t al[NUM_HASH_BLOCKS];
+        uint64_t ah[NUM_HASH_BLOCKS];
+        uint64_t idx[NUM_HASH_BLOCKS];
+        uint32_t r[NUM_HASH_BLOCKS][9];
+        __m128i bx0[NUM_HASH_BLOCKS];
+        __m128i bx1[NUM_HASH_BLOCKS];
+        __m128i cx[NUM_HASH_BLOCKS];
+        __m128i ax[NUM_HASH_BLOCKS];
+
+        struct V4_Instruction code[NUM_HASH_BLOCKS][256];
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            keccak(static_cast<const uint8_t*>(input) + hashBlock * size, (int) size, scratchPad[hashBlock]->state, 200);
+        }
+
+        for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+            l[hashBlock] = scratchPad[hashBlock]->memory;
+            h[hashBlock] = reinterpret_cast<uint64_t*>(scratchPad[hashBlock]->state);
+
+            cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h[hashBlock], (__m128i*) l[hashBlock]);
+
+            al[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
+            ah[hashBlock] = h[hashBlock][1] ^ h[hashBlock][5];
+            bx0[hashBlock] = _mm_set_epi64x(h[hashBlock][3] ^ h[hashBlock][7], h[hashBlock][2] ^ h[hashBlock][6]);
+            bx1[hashBlock] = _mm_set_epi64x(h[hashBlock][9] ^ h[hashBlock][11], h[hashBlock][8] ^ h[hashBlock][10]);
+            idx[hashBlock] = h[hashBlock][0] ^ h[hashBlock][4];
+
+            r[hashBlock][0] = (uint32_t)(h[hashBlock][12]);
+            r[hashBlock][1] = (uint32_t)(h[hashBlock][12] >> 32);
+            r[hashBlock][2] = (uint32_t)(h[hashBlock][13]);
+            r[hashBlock][3] = (uint32_t)(h[hashBlock][13] >> 32);
+
+            v4_random_math_init(code[hashBlock], variant, height);
+        }
+
+        SET_ROUNDING_MODE_UP();
+
+        for (size_t i = 0; i < ITERATIONS; i++) {
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                ax[hashBlock] = _mm_set_epi64x(ah[hashBlock], al[hashBlock]);
+
+                if (SOFT_AES) {
+                    cx[hashBlock] = soft_aesenc((uint32_t *) &l[hashBlock][idx[hashBlock] & MASK], ax[hashBlock]);
+                } else {
+                    cx[hashBlock] = _mm_load_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK]);
+                    cx[hashBlock] = _mm_aesenc_si128(cx[hashBlock], ax[hashBlock]);
+                }
+            }
+
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                SHUFFLE_V4(l[hashBlock], idx[hashBlock] & MASK, bx0[hashBlock], bx1[hashBlock], ax[hashBlock], cx[hashBlock])
+            }
+
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                _mm_store_si128((__m128i *) &l[hashBlock][idx[hashBlock] & MASK],
+                                _mm_xor_si128(bx0[hashBlock], cx[hashBlock]));
+            }
+
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                idx[hashBlock] = EXTRACT64(cx[hashBlock]);
+            }
+
+            uint64_t hi, lo, cl, ch;
+            for (size_t hashBlock = 0; hashBlock < NUM_HASH_BLOCKS; ++hashBlock) {
+                cl = ((uint64_t *) &l[hashBlock][idx[hashBlock] & MASK])[0];
+                ch = ((uint64_t *) &l[hashBlock][idx[hashBlock] & MASK])[1];
+
+                VARIANT4_RANDOM_MATH(code[hashBlock], r[hashBlock], al[hashBlock], ah[hashBlock], cl, bx0[hashBlock], bx1[hashBlock]);
+
+                al[hashBlock] ^= r[hashBlock][2] | ((uint64_t)(r[hashBlock][3]) << 32);
+                ah[hashBlock] ^= r[hashBlock][0] | ((uint64_t)(r[hashBlock][1]) << 32);
+
+                lo = __umul128(idx[hashBlock], cl, &hi);
+
+                SHUFFLE_V4(l[hashBlock], idx[hashBlock] & MASK, bx0[hashBlock], bx1[hashBlock], ax[hashBlock], cx[hashBlock])
 
                 al[hashBlock] += hi;
                 ah[hashBlock] += lo;
@@ -987,7 +1141,7 @@ public:
             cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l[hashBlock], (__m128i*) h[hashBlock]);
             keccakf(h[hashBlock], 24);
             extra_hashes[scratchPad[hashBlock]->state[0] & 3](scratchPad[hashBlock]->state, 200,
-                                                       output + hashBlock * 32);
+                                                              output + hashBlock * 32);
         }
     }
 
@@ -1289,6 +1443,8 @@ public:
         }
     }
 };
+
+/*
 
 template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
 class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 1>
@@ -1597,6 +1753,9 @@ public:
                     case POW_TURTLE:
                         cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(scratchPad[0]);
                         break;
+                    case POW_XCASH:
+                        cnv2_main_loop_xcash_soft_aes_sandybridge_asm(scratchPad[0]);
+                        break;
                     default:
                         cnv2_main_loop_soft_aes_sandybridge_asm(scratchPad[0]);
                         break;
@@ -1609,6 +1768,9 @@ public:
                         break;
                     case POW_TURTLE:
                         cnv2_main_loop_ultralite_ivybridge_asm(scratchPad[0]);
+                        break;
+                    case POW_XCASH:
+                        cnv2_main_loop_xcash_ivybridge_asm(scratchPad[0]);
                         break;
                     default:
                         cnv2_main_loop_ivybridge_asm(scratchPad[0]);
@@ -1624,6 +1786,9 @@ public:
                 case POW_TURTLE:
                     cnv2_main_loop_ultralite_ryzen_asm(scratchPad[0]);
                     break;
+                case POW_XCASH:
+                    cnv2_main_loop_xcash_ryzen_asm(scratchPad[0]);
+                    break;
                 default:
                     cnv2_main_loop_ryzen_asm(scratchPad[0]);
                     break;
@@ -1636,6 +1801,9 @@ public:
                     break;
                 case POW_TURTLE:
                     cnv2_main_loop_ultralite_bulldozer_asm(scratchPad[0]);
+                    break;
+                case POW_XCASH:
+                    cnv2_main_loop_xcash_bulldozer_asm(scratchPad[0]);
                     break;
                 default:
                     cnv2_main_loop_bulldozer_asm(scratchPad[0]);
@@ -2364,6 +2532,9 @@ public:
                 break;
             case POW_TURTLE:
                 cnv2_double_main_loop_ultralite_sandybridge_asm(scratchPad[0], scratchPad[1]);
+                break;
+            case POW_XCASH:
+                cnv2_double_main_loop_xcash_sandybridge_asm(scratchPad[0], scratchPad[1]);
                 break;
             default:
                 cnv2_double_main_loop_sandybridge_asm(scratchPad[0], scratchPad[1]);
@@ -5789,5 +5960,6 @@ public:
         // not supported
     }
 };
+*/
 
 #endif /* __CRYPTONIGHT_X86_H__ */
