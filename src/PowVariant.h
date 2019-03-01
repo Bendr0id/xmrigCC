@@ -80,7 +80,7 @@ inline std::string getPowVariantName(PowVariant powVariant)
         case POW_WOW:
             return "wow";
         case POW_V4:
-            return "4";
+            return "r";
         case POW_XCASH:
             return "xcash";
         case POW_AUTODETECT:
@@ -160,7 +160,7 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_HOSP;
     } else if (variant == "wow") {
         powVariant = PowVariant::POW_WOW;
-    } else if (variant == "r" || variant == "cnv9" || variant == "4") {
+    } else if (variant == "r" || variant == "4" || variant == "cnv4" || variant == "cnv5") {
         powVariant = PowVariant::POW_V4;
     } else if (variant == "xcash" || variant == "heavyx") {
         powVariant = PowVariant::POW_XCASH;

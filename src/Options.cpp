@@ -331,7 +331,10 @@ constexpr static const char *pow_variant_names[] = {
         "fast2",
         "upx",
         "turtle",
-        "hosp"
+        "hosp",
+        "wow",
+        "r",
+        "xcash"
 };
 
 constexpr static const char *asm_optimization_names[] = {
@@ -1206,11 +1209,20 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "r") || !strcmp(powVariant, "cnv4") || !strcmp(powVariant, "cnv5"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && !strcmp(powVariant, "wow")) {
+            m_powVariant = POW_WOW;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "4") || !strcmp(powVariant, "r") || !strcmp(powVariant, "cnv4") || !strcmp(powVariant, "cnv5"))) {
             m_powVariant = POW_V4;
             break;
         }
 
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xcash") || !strcmp(powVariant, "heavyx"))) {
+            m_powVariant = POW_XCASH;
+            break;
+        }
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1) {
             showUsage(1);

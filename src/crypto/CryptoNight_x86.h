@@ -40,6 +40,16 @@
 #define SWAP64LE(x) x
 #define hash_extra_blake(data, length, hash) blake256_hash((uint8_t*)(hash), (uint8_t*)(data), (length))
 
+#ifndef NOINLINE
+#ifdef __GNUC__
+#define NOINLINE __attribute__ ((noinline))
+#elif _MSC_VER
+#define NOINLINE __declspec(noinline)
+#else
+#define NOINLINE
+#endif
+#endif
+
 #include "crypto/CryptoNight.h"
 #include "crypto/soft_aes.h"
 #include "AsmOptimization.h"
@@ -90,6 +100,14 @@ extern "C"
     void cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(ScratchPad* ctx0);
     void cnv2_main_loop_ultralite_soft_aes_sandybridge_asm(ScratchPad* ctx);
     void cnv2_main_loop_xcash_soft_aes_sandybridge_asm(ScratchPad* ctx);
+
+    void wow_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
+    void wow_compile_code(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
+    void wow_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
+
+    void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
+    void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
+    void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, AsmOptimization ASM);
 #endif
 }
 
@@ -159,10 +177,6 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 #endif
 
 #ifdef _MSC_VER
-#else
-#endif
-
-#ifdef _MSC_VER
 #   define SET_ROUNDING_MODE_UP() _control87(RC_UP, MCW_RC);
 #   define SET_ROUNDING_MODE_DOWN() _control87(RC_DOWN, MCW_RC);
 #else
@@ -172,12 +186,12 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
 
 #   define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax) \
 { \
-   const __m128i chunk1 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x10))); \
-   const __m128i chunk2 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x20))); \
-   const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x30))); \
-   _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
-   _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
-   _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
+    const __m128i chunk1 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x10))); \
+    const __m128i chunk2 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x20))); \
+    const __m128i chunk3 = _mm_load_si128((__m128i *)((l) + ((idx) ^ 0x30))); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x10)), _mm_add_epi64(chunk3, bx1)); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x20)), _mm_add_epi64(chunk1, bx0)); \
+    _mm_store_si128((__m128i *)((l) + ((idx) ^ 0x30)), _mm_add_epi64(chunk2, ax)); \
 }
 
 #   define INTEGER_MATH_V2(idx, cl, cx) \
@@ -214,23 +228,23 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
     cx = _mm_xor_si128(_mm_xor_si128(cx, chunk3), _mm_xor_si128(chunk1, chunk2)); \
 }
 
-#define VARIANT4_RANDOM_MATH_INIT(idx, h) \
-  uint32_t r##idx[9]; \
-  struct V4_Instruction code##idx[256]; \
-  r##idx[0] = (uint32_t)(h[12]); \
-  r##idx[1] = (uint32_t)(h[12] >> 32); \
-  r##idx[2] = (uint32_t)(h[13]); \
-  r##idx[3] = (uint32_t)(h[13] >> 32); \
-  v4_random_math_init(code##idx, variant, height);
+#   define VARIANT4_RANDOM_MATH_INIT(idx, h) \
+    uint32_t r##idx[9]; \
+    struct V4_Instruction code##idx[256]; \
+    r##idx[0] = (uint32_t)(h[12]); \
+    r##idx[1] = (uint32_t)(h[12] >> 32); \
+    r##idx[2] = (uint32_t)(h[13]); \
+    r##idx[3] = (uint32_t)(h[13] >> 32); \
+    v4_random_math_init(code##idx, variant, height);
 
-#define VARIANT4_RANDOM_MATH(idx, al, ah, cl, bx0, bx1) \
-  cl ^= (r##idx[0] + r##idx[1]) | ((uint64_t)(r##idx[2] + r##idx[3]) << 32); \
-  r##idx[4] = static_cast<uint32_t>(al); \
-  r##idx[5] = static_cast<uint32_t>(ah); \
-  r##idx[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
-  r##idx[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
-  r##idx[8] = static_cast<uint32_t>(_mm_cvtsi128_si32(_mm_srli_si128(bx1, 8))); \
-  v4_random_math(code##idx, r##idx); \
+#   define VARIANT4_RANDOM_MATH(idx, al, ah, cl, bx0, bx1) \
+    cl ^= (r##idx[0] + r##idx[1]) | ((uint64_t)(r##idx[2] + r##idx[3]) << 32); \
+    r##idx[4] = static_cast<uint32_t>(al); \
+    r##idx[5] = static_cast<uint32_t>(ah); \
+    r##idx[6] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx0)); \
+    r##idx[7] = static_cast<uint32_t>(_mm_cvtsi128_si32(bx1)); \
+    r##idx[8] = static_cast<uint32_t>(_mm_cvtsi128_si32(_mm_srli_si128(bx1, 8))); \
+    v4_random_math(code##idx, r##idx); \
 
 static inline void do_blake_hash(const uint8_t *input, size_t len, uint8_t *output) {
     blake256_hash(output, input, len);
@@ -658,7 +672,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // dummy
     }
@@ -677,7 +691,7 @@ public:
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
                                  AsmOptimization asmOptimization,
-                                 PowVariant powVariant)
+                                 PowVariant variant)
     {
         // dummy
     }
@@ -688,6 +702,17 @@ public:
                                  ScratchPad** __restrict__ scratchPad,
                                  uint64_t height,
                                  PowVariant variant)
+    {
+        // dummy
+    }
+
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                size_t size,
+                                uint8_t* __restrict__ output,
+                                ScratchPad** __restrict__ scratchPad,
+                                uint64_t height,
+                                AsmOptimization asmOptimization,
+                                PowVariant variant)
     {
         // dummy
     }
@@ -861,7 +886,7 @@ public:
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
                                  AsmOptimization asmOptimization,
-                                 PowVariant powVariant)
+                                 PowVariant variant)
     {
         keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
 
@@ -882,7 +907,7 @@ public:
         if (SOFT_AES) {
             scratchPad[0]->t_fn = (const uint32_t*)saes_table;
 
-            switch (powVariant)
+            switch (variant)
             {
                 case POW_MSR:
                     cnv1_main_loop_fast_soft_aes_sandybridge_asm(scratchPad[0]);
@@ -903,7 +928,7 @@ public:
                     break;
             }
         } else {
-            switch (powVariant)
+            switch (variant)
             {
                 case POW_MSR:
                     cnv1_main_loop_fast_sandybridge_asm(scratchPad[0]);
@@ -1009,7 +1034,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         const uint8_t* l = scratchPad[0]->memory;
         uint64_t* h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
@@ -1023,7 +1048,7 @@ public:
                 scratchPad[0]->input = input;
                 scratchPad[0]->t_fn = (const uint32_t*)saes_table;
 
-                switch (powVariant)
+                switch (variant)
                 {
                     case POW_FAST_2:
                         cnv2_main_loop_fastv2_soft_aes_sandybridge_asm(scratchPad[0]);
@@ -1039,7 +1064,7 @@ public:
                         break;
                 }
             } else {
-                switch (powVariant)
+                switch (variant)
                 {
                     case POW_FAST_2:
                         cnv2_main_loop_fastv2_ivybridge_asm(scratchPad[0]);
@@ -1056,7 +1081,7 @@ public:
                 }
             }
         } else if (asmOptimization == AsmOptimization::ASM_RYZEN) {
-            switch (powVariant)
+            switch (variant)
             {
                 case POW_FAST_2:
                     cnv2_main_loop_fastv2_ryzen_asm(scratchPad[0]);
@@ -1072,7 +1097,7 @@ public:
                     break;
             }
         } else if (asmOptimization == AsmOptimization::ASM_BULLDOZER) {
-            switch (powVariant)
+            switch (variant)
             {
                 case POW_FAST_2:
                     cnv2_main_loop_fastv2_bulldozer_asm(scratchPad[0]);
@@ -1168,6 +1193,64 @@ public:
             bx1 = bx0;
             bx0 = cx;
         }
+
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
+        keccakf(h, 24);
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+    }
+
+    // single asm
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     uint64_t height,
+                                     AsmOptimization asmOptimization,
+                                     PowVariant variant)
+    {
+        const uint8_t* l = scratchPad[0]->memory;
+        uint64_t* h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+
+        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
+
+#ifndef XMRIG_NO_ASM
+        if (SOFT_AES) {
+                if (!scratchPad[0]->generated_code_data.match(variant, height)) {
+                    V4_Instruction code[256];
+                    const int code_size = v4_random_math_init(code, variant, height);
+
+                    if (variant == POW_WOW) {
+                        wow_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code), ASM_OFF);
+                    } else {
+                        v4_soft_aes_compile_code(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code), ASM_OFF);
+                    }
+
+                    scratchPad[0]->generated_code_data.variant = variant;
+                    scratchPad[0]->generated_code_data.height = height;
+                }
+
+                scratchPad[0]->input = input;
+                scratchPad[0]->t_fn = (const uint32_t*)saes_table;
+                scratchPad[0]->generated_code(scratchPad[0]);
+        } else {
+            if (!scratchPad[0]->generated_code_data.match(variant, height)) {
+                V4_Instruction code[256];
+                const int code_size = v4_random_math_init(code, variant, height);
+
+                if (variant == POW_WOW) {
+                    wow_compile_code(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code), asmOptimization);
+                } else {
+                    v4_compile_code(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code), asmOptimization);
+                }
+
+                scratchPad[0]->generated_code_data.variant = variant;
+                scratchPad[0]->generated_code_data.height = height;
+            }
+
+            scratchPad[0]->generated_code(scratchPad[0]);
+        }
+#endif
 
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
         keccakf(h, 24);
@@ -1679,7 +1762,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -1868,7 +1951,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
         keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
@@ -1882,7 +1965,7 @@ public:
         cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
 
 #ifndef XMRIG_NO_ASM
-        switch(powVariant) {
+        switch(variant) {
             case POW_FAST_2:
                 cnv2_double_main_loop_fastv2_sandybridge_asm(scratchPad[0], scratchPad[1]);
                 break;
@@ -2031,6 +2114,52 @@ public:
             bx01 = cx1;
         }
 
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
+        cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
+
+        keccakf(h0, 24);
+        keccakf(h1, 24);
+
+        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
+        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
+    }
+
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     uint64_t height,
+                                     AsmOptimization asmOptimization,
+                                     PowVariant variant)
+    {
+        keccak((const uint8_t*) input, (int) size, scratchPad[0]->state, 200);
+        keccak((const uint8_t*) input + size, (int) size, scratchPad[1]->state, 200);
+
+        const uint8_t* l0 = scratchPad[0]->memory;
+        const uint8_t* l1 = scratchPad[1]->memory;
+        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
+        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
+
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
+        cn_explode_scratchpad<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
+
+#ifndef XMRIG_NO_ASM
+        if (!scratchPad[0]->generated_code_double_data.match(variant, height)) {
+            V4_Instruction code[256];
+            const int code_size = v4_random_math_init(code, variant, height);
+
+            if (variant == POW_WOW) {
+                wow_compile_code_double(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code_double), asmOptimization);
+            } else {
+                v4_compile_code_double(code, code_size, reinterpret_cast<void*>(scratchPad[0]->generated_code_double), asmOptimization);
+            }
+
+            scratchPad[0]->generated_code_double_data.variant = variant;
+            scratchPad[0]->generated_code_double_data.height = height;
+        }
+
+        scratchPad[0]->generated_code_double(scratchPad[0], scratchPad[1]);
+#endif
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
         cn_implode_scratchpad<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
 
@@ -2816,7 +2945,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -2994,7 +3123,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -3178,6 +3307,17 @@ public:
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
         extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
         extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
+    }
+
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     uint64_t height,
+                                     AsmOptimization asmOptimization,
+                                     PowVariant variant)
+    {
+        // not supported
     }
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,
@@ -4210,7 +4350,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -4435,7 +4575,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -4670,6 +4810,18 @@ public:
         extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
         extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
         extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
+    }
+
+
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     uint64_t height,
+                                     AsmOptimization asmOptimization,
+                                     PowVariant variant)
+    {
+        // not supported
     }
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,
@@ -5325,7 +5477,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -5594,7 +5746,7 @@ public:
                                      uint8_t* __restrict__ output,
                                      ScratchPad** __restrict__ scratchPad,
                                      AsmOptimization asmOptimization,
-                                     PowVariant powVariant)
+                                     PowVariant variant)
     {
         // not supported
     }
@@ -5877,6 +6029,17 @@ public:
         extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
         extra_hashes[scratchPad[3]->state[0] & 3](scratchPad[3]->state, 200, output + 96);
         extra_hashes[scratchPad[4]->state[0] & 3](scratchPad[4]->state, 200, output + 128);
+    }
+
+    inline static void hashPowV4_asm(const uint8_t* __restrict__ input,
+                                     size_t size,
+                                     uint8_t* __restrict__ output,
+                                     ScratchPad** __restrict__ scratchPad,
+                                     uint64_t height,
+                                     AsmOptimization asmOptimization,
+                                     PowVariant variant)
+    {
+        // not supported
     }
 
     inline static void hashLiteTube(const uint8_t* __restrict__ input,

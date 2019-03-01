@@ -116,16 +116,19 @@ configure_file("src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in" "
 
 if (CMAKE_C_COMPILER_ID MATCHES MSVC)
     enable_language(ASM_MASM)
-    set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop.asm")
+    set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop.asm"
+                       "src/crypto/asm/win/CryptonightR_template.asm")
     set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY ASM_MASM)
     include_directories(${CMAKE_BINARY_DIR}/src/crypto/asm/win)
 else()
     enable_language(ASM)
 
     if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
-        set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop_win_gcc.S")
+        set(XMRIG_ASM_FILE "src/crypto/asm/win/cn_main_loop_win_gcc.S"
+                           "src/crypto/asm/win/CryptonightR_template.S")
     else()
-        set(XMRIG_ASM_FILE "src/crypto/asm/cn_main_loop.S")
+        set(XMRIG_ASM_FILE "src/crypto/asm/cn_main_loop.S"
+                           "src/crypto/asm/CryptonightR_template.S")
     endif()
 
     set_property(SOURCE ${XMRIG_ASM_FILE} PROPERTY C)
