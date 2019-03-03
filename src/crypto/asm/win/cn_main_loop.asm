@@ -26,6 +26,11 @@ PUBLIC cnv2_main_loop_xcash_ryzen_asm
 PUBLIC cnv2_main_loop_xcash_bulldozer_asm
 PUBLIC cnv2_double_main_loop_xcash_sandybridge_asm
 
+PUBLIC cnv2_main_loop_zelerius_ivybridge_asm
+PUBLIC cnv2_main_loop_zelerius_ryzen_asm
+PUBLIC cnv2_main_loop_zelerius_bulldozer_asm
+PUBLIC cnv2_double_main_loop_zelerius_sandybridge_asm
+
 PUBLIC cnv1_main_loop_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_lite_soft_aes_sandybridge_asm
 PUBLIC cnv1_main_loop_fast_soft_aes_sandybridge_asm
@@ -36,6 +41,7 @@ PUBLIC cnv2_main_loop_soft_aes_sandybridge_asm
 PUBLIC cnv2_main_loop_fastv2_soft_aes_sandybridge_asm
 PUBLIC cnv2_main_loop_ultralite_soft_aes_sandybridge_asm
 PUBLIC cnv2_main_loop_xcash_soft_aes_sandybridge_asm
+PUBLIC cnv2_main_loop_zelerius_soft_aes_sandybridge_asm
 
 ALIGN 64
 cnv1_main_loop_sandybridge_asm PROC
@@ -164,6 +170,30 @@ cnv2_double_main_loop_xcash_sandybridge_asm PROC
 cnv2_double_main_loop_xcash_sandybridge_asm ENDP
 
 ALIGN 64
+cnv2_main_loop_zelerius_ivybridge_asm PROC
+	INCLUDE cnv2_main_loop_zelerius_ivybridge.inc
+	ret 0
+cnv2_main_loop_zelerius_ivybridge_asm ENDP
+
+ALIGN 64
+cnv2_main_loop_zelerius_ryzen_asm PROC
+	INCLUDE cnv2_main_loop_zelerius_ryzen.inc
+	ret 0
+cnv2_main_loop_zelerius_ryzen_asm ENDP
+
+ALIGN 64
+cnv2_main_loop_zelerius_bulldozer_asm PROC
+	INCLUDE cnv2_main_loop_zelerius_bulldozer.inc
+	ret 0
+cnv2_main_loop_zelerius_bulldozer_asm ENDP
+
+ALIGN 64
+cnv2_double_main_loop_zelerius_sandybridge_asm PROC
+	INCLUDE cnv2_double_main_loop_zelerius_sandybridge.inc
+	ret 0
+cnv2_double_main_loop_zelerius_sandybridge_asm ENDP
+
+ALIGN 64
 cnv1_main_loop_soft_aes_sandybridge_asm PROC
 	INCLUDE cnv1_main_loop_soft_aes_sandybridge.inc
 	ret 0
@@ -216,6 +246,12 @@ cnv2_main_loop_xcash_soft_aes_sandybridge_asm PROC
 	INCLUDE cnv2_main_loop_xcash_soft_aes_sandybridge.inc
 	ret 0
 cnv2_main_loop_xcash_soft_aes_sandybridge_asm ENDP
+
+ALIGN 64
+cnv2_main_loop_zelerius_soft_aes_sandybridge_asm PROC
+	INCLUDE cnv2_main_loop_zelerius_soft_aes_sandybridge.inc
+	ret 0
+cnv2_main_loop_zelerius_soft_aes_sandybridge_asm ENDP
 
 _TEXT_CN_MAINLOOP ENDS
 END

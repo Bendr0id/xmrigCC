@@ -73,6 +73,23 @@ configure_file("src/crypto/asm/win/cnv2_main_loop_ryzen.inc.in" "src/crypto/asm/
 configure_file("src/crypto/asm/win/cnv2_double_main_loop_sandybridge.inc.in" "src/crypto/asm/win/cnv2_double_main_loop_xcash_sandybridge.inc")
 configure_file("src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in" "src/crypto/asm/win/cnv2_main_loop_xcash_soft_aes_sandybridge.inc")
 
+# CN ZELERIUS
+set(ALGO "zelerius")
+set(ITERATIONS "1048576") #0x60000
+set(MASK "2097136") #0x1FFFF0
+
+configure_file("src/crypto/asm/cnv2_main_loop_ivybridge.inc.in" "src/crypto/asm/cnv2_main_loop_zelerius_ivybridge.inc")
+configure_file("src/crypto/asm/cnv2_main_loop_bulldozer.inc.in" "src/crypto/asm/cnv2_main_loop_zelerius_bulldozer.inc")
+configure_file("src/crypto/asm/cnv2_main_loop_ryzen.inc.in" "src/crypto/asm/cnv2_main_loop_zelerius_ryzen.inc")
+configure_file("src/crypto/asm/cnv2_double_main_loop_sandybridge.inc.in" "src/crypto/asm/cnv2_double_main_loop_zelerius_sandybridge.inc")
+configure_file("src/crypto/asm/cnv2_main_loop_soft_aes_sandybridge.inc.in" "src/crypto/asm/cnv2_main_loop_zelerius_soft_aes_sandybridge.inc")
+
+configure_file("src/crypto/asm/win/cnv2_main_loop_ivybridge.inc.in" "src/crypto/asm/win/cnv2_main_loop_zelerius_ivybridge.inc")
+configure_file("src/crypto/asm/win/cnv2_main_loop_bulldozer.inc.in" "src/crypto/asm/win/cnv2_main_loop_zelerius_bulldozer.inc")
+configure_file("src/crypto/asm/win/cnv2_main_loop_ryzen.inc.in" "src/crypto/asm/win/cnv2_main_loop_zelerius_ryzen.inc")
+configure_file("src/crypto/asm/win/cnv2_double_main_loop_sandybridge.inc.in" "src/crypto/asm/win/cnv2_double_main_loop_zelerius_sandybridge.inc")
+configure_file("src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in" "src/crypto/asm/win/cnv2_main_loop_zelerius_soft_aes_sandybridge.inc")
+
 # CN LITE
 
 set(ALGO "lite")

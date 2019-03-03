@@ -42,6 +42,7 @@ enum PowVariant
     POW_WOW,
     POW_V4,
     POW_XCASH,
+    POW_ZELERIUS,
     LAST_ITEM
 };
 
@@ -83,6 +84,8 @@ inline std::string getPowVariantName(PowVariant powVariant)
             return "r";
         case POW_XCASH:
             return "xcash";
+        case POW_ZELERIUS:
+            return "zelerius";
         case POW_AUTODETECT:
         default:
             return "-1";
@@ -158,12 +161,14 @@ inline PowVariant parseVariant(const std::string variant)
         powVariant = PowVariant::POW_TURTLE;
     } else if (variant == "hosp" || variant == "hospital") {
         powVariant = PowVariant::POW_HOSP;
-    } else if (variant == "wow") {
+    } else if (variant == "wow" || variant == "wownero") {
         powVariant = PowVariant::POW_WOW;
     } else if (variant == "r" || variant == "4" || variant == "cnv4" || variant == "cnv5") {
         powVariant = PowVariant::POW_V4;
     } else if (variant == "xcash" || variant == "heavyx") {
         powVariant = PowVariant::POW_XCASH;
+    } else if (variant == "zelerius" || variant == "zls") {
+        powVariant = PowVariant::POW_ZELERIUS;
     }
 
     return powVariant;

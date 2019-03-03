@@ -90,7 +90,7 @@ public:
 public:
 
 private:
-    static bool selfTest(int algo);
+    static bool selfCheck(int algo);
 };
 
 

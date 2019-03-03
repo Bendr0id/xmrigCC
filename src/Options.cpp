@@ -73,7 +73,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: -> 'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx', 'turtle', 'hosp'\n\
+      --pow-variant=V                   specificy the PoW variat to use: \n'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'xcash', 'zelerius'\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
       --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
@@ -92,7 +92,8 @@ Options:\n"
       --api-access-token=T              access token for API\n\
       --api-worker-id=ID                custom worker-id for API\n\
       --reboot-cmd                      command/bat to execute to Reboot miner\n\
-      --force-pow-variant               disable pow/variant parsing from pool\n"
+      --force-pow-variant               disable pow/variant parsing from pool\n\
+      --skip-self-check                 disable self check on startup\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
@@ -179,6 +180,7 @@ static struct option const options[] = {
     { "force-pow-variant", 0, nullptr, 1016 },
     { "pow-variant",      1, nullptr, 1017 },
     { "variant",          1, nullptr, 1017 },
+    { "skip-self-check",  0, nullptr, 1018 },
     { "api-port",         1, nullptr, 4000 },
     { "api-access-token", 1, nullptr, 4001 },
     { "api-worker-id",    1, nullptr, 4002 },
@@ -237,6 +239,7 @@ static struct option const config_options[] = {
     { "force-pow-variant", 0, nullptr, 1016 },
     { "pow-variant",   1, nullptr, 1017 },
     { "variant",       1, nullptr, 1017 },
+    { "skip-self-check", 0, nullptr, 1018 },
     { "doublehash-thread-mask",     1, nullptr, 4013 },
     { "multihash-thread-mask",     1, nullptr, 4013 },
     { "asm-optimization", 1, nullptr, 4020 },
@@ -383,6 +386,7 @@ Options::Options(int argc, char **argv) :
     m_ccPushPeriodicStatus(false),
     m_ccPushZeroHashrateMiners(false),
     m_forcePowVariant(false),
+    m_skipSelfCheck(false),
     m_fileName(Platform::defaultConfigName()),
     m_apiToken(nullptr),
     m_apiWorkerId(nullptr),
@@ -646,10 +650,13 @@ bool Options::parseArg(int key, const char *arg)
         return parseBoolean(key, true);
 
     case 1016: /* --force-pow-variant */
-        return parseBoolean(key, false);
+        return parseBoolean(key, true);
 
     case 1017: /* --pow-variant/--variant */
         return parsePowVariant(arg);
+
+    case 1018: /* --skip-self-check */
+        return parseBoolean(key, true);
 
     case 4016: /* --cc-use-tls */
         return parseBoolean(key, true);
@@ -913,6 +920,10 @@ bool Options::parseBoolean(int key, bool enable)
 
     case 1016: /* --force-pow-variant */
         m_forcePowVariant = enable;
+        break;
+
+    case 1018: /* --skip-self-check */
+        m_skipSelfCheck = enable;
         break;
 
     case 2000: /* --colors */
@@ -1221,6 +1232,11 @@ bool Options::parsePowVariant(const char *powVariant)
 
         if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xcash") || !strcmp(powVariant, "heavyx"))) {
             m_powVariant = POW_XCASH;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "zelerius") || !strcmp(powVariant, "zls"))) {
+            m_powVariant = POW_ZELERIUS;
             break;
         }
 
