@@ -21,6 +21,7 @@
     "syslog": false,                            // use system log for output messages
     "reboot-cmd" : "",                          // command to execute to reboot the OS
     "force-pow-variant" : false,                // force pow variant, dont parse pow/variant from pool job
+    "skip-self-check" : false,                  // skip the self check on startup
     "pools": [
         {
             "url": "donate2.graef.in:80",       // URL of mining server

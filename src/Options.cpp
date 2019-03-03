@@ -92,8 +92,8 @@ Options:\n"
       --api-access-token=T              access token for API\n\
       --api-worker-id=ID                custom worker-id for API\n\
       --reboot-cmd                      command/bat to execute to Reboot miner\n\
-      --force-pow-variant               disable pow/variant parsing from pool\n\
-      --skip-self-check                 disable self check on startup\n"
+      --force-pow-variant               skip pow/variant parsing from pool\n\
+      --skip-self-check                 skip self check on startup\n"
 # ifndef XMRIG_NO_CC
 "\
       --cc-url=URL                      url of the CC Server\n\
