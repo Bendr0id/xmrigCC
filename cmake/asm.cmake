@@ -75,7 +75,7 @@ configure_file("src/crypto/asm/win/cnv2_main_loop_soft_aes_sandybridge.inc.in" "
 
 # CN ZELERIUS
 set(ALGO "zelerius")
-set(ITERATIONS "1048576") #0x60000
+set(ITERATIONS "393216") #0x60000
 set(MASK "2097136") #0x1FFFF0
 
 configure_file("src/crypto/asm/cnv2_main_loop_ivybridge.inc.in" "src/crypto/asm/cnv2_main_loop_zelerius_ivybridge.inc")

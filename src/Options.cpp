@@ -73,7 +73,7 @@ Options:\n"
   -k, --keepalive                       send keepalived for prevent timeout (need pool support)\n\
   -r, --retries=N                       number of times to retry before switch to backup server (default: 5)\n\
   -R, --retry-pause=N                   time to pause between retries (default: 5)\n\
-      --pow-variant=V                   specificy the PoW variat to use: \n'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'xcash', 'zelerius'\n\
+      --pow-variant=V                   specificy the PoW variat to use: \n'auto' (default), '0' (v0), '1' (v1, aka cnv7), '2' (v2, aka cnv8), 'ipbc' (tube), 'xao', 'xtl' (including autodetect for > v5), 'rto', 'xfh', 'upx', 'turtle', 'hosp', 'r', 'wow', 'double (xcash)', 'zelerius', 'rwz'\n\
                                         for further help see: https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations\n\
       --asm-optimization=V              specificy the ASM optimization to use: -> 'auto' (default), 'intel', 'ryzen', 'bulldozer', 'off' \n\
       --multihash-factor=N              number of hash blocks to process at a time (don't set or 0 enables automatic selection of optimal number of hash blocks)\n\
@@ -1230,13 +1230,18 @@ bool Options::parsePowVariant(const char *powVariant)
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xcash") || !strcmp(powVariant, "heavyx"))) {
-            m_powVariant = POW_XCASH;
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "xcash") || !strcmp(powVariant, "heavyx") || !strcmp(powVariant, "double"))) {
+            m_powVariant = POW_DOUBLE;
             break;
         }
 
-        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "zelerius") || !strcmp(powVariant, "zls"))) {
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "zelerius") || !strcmp(powVariant, "zls") || !strcmp(powVariant, "zlx"))) {
             m_powVariant = POW_ZELERIUS;
+            break;
+        }
+
+        if (i == ARRAY_SIZE(pow_variant_names) - 1 && (!strcmp(powVariant, "rwz") || !strcmp(powVariant, "graft"))) {
+            m_powVariant = POW_RWZ;
             break;
         }
 

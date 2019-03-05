@@ -34,6 +34,9 @@
 .global FN_PREFIX(cnv2_main_loop_zelerius_bulldozer_asm)
 .global FN_PREFIX(cnv2_double_main_loop_zelerius_sandybridge_asm)
 
+.global FN_PREFIX(cnv2_main_loop_rwz_allr_asm)
+.global FN_PREFIX(cnv2_double_main_loop_rwz_all_asm)
+
 .global FN_PREFIX(cnv1_main_loop_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_lite_soft_aes_sandybridge_asm)
 .global FN_PREFIX(cnv1_main_loop_fast_soft_aes_sandybridge_asm)
@@ -169,6 +172,16 @@ FN_PREFIX(cnv2_main_loop_zelerius_bulldozer_asm):
 ALIGN 64
 FN_PREFIX(cnv2_double_main_loop_zelerius_sandybridge_asm):
 	#include "../cnv2_double_main_loop_zelerius_sandybridge.inc"
+	ret 0
+
+ALIGN 64
+FN_PREFIX(cnv2_main_loop_rwz_allr_asm):
+	#include "../cnv2_main_loop_rwz_allr.inc"
+	ret 0
+
+ALIGN 64
+FN_PREFIX(cnv2_double_main_loop_rwz_all_asm):
+	#include "../cnv2_double_main_loop_rwz_all.inc"
 	ret 0
 
 ALIGN 64

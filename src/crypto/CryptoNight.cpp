@@ -49,14 +49,14 @@ static void cryptonight_aesni(AsmOptimization asmOptimization, uint64_t height, 
 #endif
     } else if (variant == PowVariant::POW_V2) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
             (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
             (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
             CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
     } else if (variant == PowVariant::POW_V4 || variant == PowVariant::POW_WOW) {
@@ -83,38 +83,48 @@ static void cryptonight_aesni(AsmOptimization asmOptimization, uint64_t height, 
 #endif
     } else if (variant == PowVariant::POW_FAST_2) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
             (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
             (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
             CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
-    } else if (variant == PowVariant::POW_XCASH) {
+    } else if (variant == PowVariant::POW_DOUBLE) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
             (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
             (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
             CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
     } else if (variant == PowVariant::POW_ZELERIUS) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
             (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
             (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
             CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
+        }
+#endif
+    } else if (variant == PowVariant::POW_RWZ) {
+#if defined(XMRIG_ARM)
+        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
+#else
+        if ((asmOptimization != AsmOptimization::ASM_OFF && NUM_HASH_BLOCKS <= 2)) {
+            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
+        } else {
+            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
     } else if (variant == PowVariant::POW_MSR) {
@@ -159,14 +169,12 @@ static void cryptonight_softaes(AsmOptimization asmOptimization, uint64_t height
 #endif
     } else if (variant == PowVariant::POW_V2) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
-            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(
-                    input, size, output, scratchPad, asmOptimization, variant);
+            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(
-                    input, size, output, scratchPad);
+            CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
     } else if (variant == PowVariant::POW_V4 || variant == PowVariant::POW_WOW) {
@@ -183,34 +191,36 @@ static void cryptonight_softaes(AsmOptimization asmOptimization, uint64_t height
 
     } else if (variant == PowVariant::POW_FAST_2) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
             CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
-    } else if (variant == PowVariant::POW_XCASH) {
+    } else if (variant == PowVariant::POW_DOUBLE) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
         CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
     } else if (variant == PowVariant::POW_ZELERIUS) {
 #if defined(XMRIG_ARM)
-        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
         if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
             CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
         } else {
-            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+            CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
         }
 #endif
+    } else if (variant == PowVariant::POW_RWZ) {
+        CryptoNightMultiHash<0x60000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
     } else if (variant == PowVariant::POW_ALLOY) {
         CryptoNightMultiHash<0x100000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     } else if (variant == PowVariant::POW_XTL) {
@@ -324,14 +334,14 @@ template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_ultra_lite_aesni(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
 #   if !defined(XMRIG_ARMv7)
 #if defined(XMRIG_ARM)
-    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
     if ((asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS <= 2) ||
         (asmOptimization == AsmOptimization::ASM_RYZEN && NUM_HASH_BLOCKS == 1) ||
         (asmOptimization == AsmOptimization::ASM_BULLDOZER && NUM_HASH_BLOCKS == 1)) {
         CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
     } else {
-        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, false, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
     }
 #endif
 #   endif
@@ -340,12 +350,12 @@ static void cryptonight_ultra_lite_aesni(AsmOptimization asmOptimization, uint64
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_ultra_lite_softaes(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
 #if defined(XMRIG_ARM)
-    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+    CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
 #else
     if (asmOptimization == AsmOptimization::ASM_INTEL && NUM_HASH_BLOCKS == 1) {
         CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3_asm(input, size, output, scratchPad, asmOptimization, variant);
     } else {
-        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x10000, POW_DEFAULT_INDEX_SHIFT, MEMORY_ULTRA_LITE, 0x1FFF0, true, NUM_HASH_BLOCKS>::hashPowV3(input, size, output, scratchPad, variant);
     }
 #endif
 }
@@ -755,13 +765,23 @@ bool CryptoNight::selfCheck(int algo)
 
         // cnv8 + xcash
 
-        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_XCASH, test_input, 76, output, scratchPads);
+        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_DOUBLE, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_xcash, 32) == 0;
 
         // cnv8 + zelerius
 
         cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_ZELERIUS, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_zelerius, 32) == 0;
+
+        // cnv8 + rwz
+
+        cryptonight_hash_ctx[0](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_rwz, 32) == 0;
+
+        #if MAX_NUM_HASH_BLOCKS > 1
+        cryptonight_hash_ctx[1](asmOptimization, 0, PowVariant::POW_RWZ, test_input, 76, output, scratchPads);
+        result = result && memcmp(output, test_output_rwz, 64) == 0;
+        #endif
 
         // cnv9 aka cnv4 aka cnv5 aka cnr
 
