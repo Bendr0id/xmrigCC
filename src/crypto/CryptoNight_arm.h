@@ -126,11 +126,21 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
 #define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 
-# define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax, reverse) \
+# define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax) \
 { \
-    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ (reverse ? 0x30 : 0x10)))); \
+    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))); \
     const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
-    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ (reverse ? 0x10 : 0x30)))); \
+    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
+}
+
+# define SHUFFLE_PHASE_1_RWZ(l, idx, bx0, bx1, ax) \
+{ \
+    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
+    const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
+    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
@@ -151,20 +161,27 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
     sqrt_result##idx += ((r2 + b > sqrt_input) ? -1 : 0) + ((r2 + (1ULL << 32) < sqrt_input - s) ? 1 : 0); \
 }
 
-# define SHUFFLE_PHASE_2(l, idx, bx0, bx1, ax, lo, hi, reverse) \
+# define SHUFFLE_PHASE_2(l, idx, bx0, bx1, ax, lo, hi) \
 { \
     const uint64x2_t chunk1 = veorq_u64(vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))), vcombine_u64(vcreate_u64(hi), vcreate_u64(lo))); \
     const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
     const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
     hi ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[0]; \
     lo ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[1]; \
-    if (reverse) { \
-        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx1))); \
-        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx0))); \
-    } else { \
-        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
-        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
-    } \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
+}
+
+# define SHUFFLE_PHASE_2_RWZ(l, idx, bx0, bx1, ax, lo, hi) \
+{ \
+    const uint64x2_t chunk1 = veorq_u64(vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))), vcombine_u64(vcreate_u64(hi), vcreate_u64(lo))); \
+    const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
+    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
+    hi ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[0]; \
+    lo ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[1]; \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx1))); \
+    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx0))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
 }
 
@@ -926,7 +943,12 @@ public:
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, variant == POW_RWZ)
+            if (variant == POW_RWZ)
+            {
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
 
@@ -940,7 +962,12 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ)
+            {
+                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             al0 += hi;
             ah0 += lo;
@@ -1611,8 +1638,14 @@ public:
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, variant == POW_RWZ)
+            if (variant == POW_RWZ)
+            {
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
+            } else {
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
+            }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -1628,7 +1661,12 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ)
+            {
+                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             al0 += hi;
             ah0 += lo;
@@ -1651,7 +1689,12 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ)
+            {
+                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            }
 
             al1 += hi;
             ah1 += lo;
@@ -2661,9 +2704,15 @@ public:
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
+            } else {
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
+            }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -2681,7 +2730,11 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             al0 += hi;
             ah0 += lo;
@@ -2704,7 +2757,11 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            }
 
             al1 += hi;
             ah1 += lo;
@@ -2727,7 +2784,11 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            }
 
             al2 += hi;
             ah2 += lo;
@@ -4075,10 +4136,17 @@ public:
                 cx3 = _mm_aesenc_si128(cx3, ax3);
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
+                SHUFFLE_PHASE_1_RWZ(l3, (idx3&MASK), bx03, bx13, ax3)
+            } else {
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
+                SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3)
+            }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -4098,7 +4166,11 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             al0 += hi;
             ah0 += lo;
@@ -4121,7 +4193,11 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            }
 
             al1 += hi;
             ah1 += lo;
@@ -4144,7 +4220,11 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            }
 
             al2 += hi;
             ah2 += lo;
@@ -4167,7 +4247,11 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
+            }
 
             al3 += hi;
             ah3 += lo;
@@ -5180,11 +5264,19 @@ public:
                 cx4 = _mm_aesenc_si128(cx4, ax4);
             }
 
-            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, variant == POW_RWZ)
-            SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
+                SHUFFLE_PHASE_1_RWZ(l3, (idx3&MASK), bx03, bx13, ax3)
+                SHUFFLE_PHASE_1_RWZ(l4, (idx4&MASK), bx04, bx14, ax4)
+            } else {
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
+                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
+                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
+                SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3)
+                SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4)
+            }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -5206,7 +5298,11 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
+            }
 
             al0 += hi;
             ah0 += lo;
@@ -5229,7 +5325,11 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
+            }
 
             al1 += hi;
             ah1 += lo;
@@ -5252,7 +5352,11 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
+            }
 
             al2 += hi;
             ah2 += lo;
@@ -5275,7 +5379,11 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
+            }
 
             al3 += hi;
             ah3 += lo;
@@ -5298,7 +5406,11 @@ public:
 
             lo = __umul128(idx4, cl, &hi);
 
-            SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi, variant == POW_RWZ)
+            if (variant == POW_RWZ) {
+                SHUFFLE_PHASE_2_RWZ(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi)
+            } else {
+                SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi)
+            }
 
             al4 += hi;
             ah4 += lo;
