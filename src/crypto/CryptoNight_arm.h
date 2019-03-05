@@ -945,9 +945,9 @@ public:
 
             if (variant == POW_RWZ)
             {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
             } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
+                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
             }
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
