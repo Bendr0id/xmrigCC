@@ -168,7 +168,7 @@ static void cryptonight_aesni(AsmOptimization asmOptimization, uint64_t height, 
         }
 #endif
     } else if (variant == PowVariant::POW_XFH) {
-        CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_XFH, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_XFH, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, false, POW_V0, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -292,7 +292,7 @@ static void cryptonight_softaes(AsmOptimization asmOptimization, uint64_t height
         }
 #endif
     } else if (variant == PowVariant::POW_XFH) {
-        CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_XFH, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x20000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_XFH, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
     } else {
         CryptoNightMultiHash<0x80000, POW_DEFAULT_INDEX_SHIFT, MEMORY, 0x1FFFF0, true, POW_V0, NUM_HASH_BLOCKS>::hash(input, size, output, scratchPad);
     }
@@ -402,7 +402,7 @@ template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_aesni(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
 #   if !defined(XMRIG_ARMv7)
     if (variant == PowVariant::POW_XHV) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, POW_XHV, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, POW_XHV, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
     }
     else if (variant == PowVariant::POW_TUBE) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, false, POW_TUBE, NUM_HASH_BLOCKS>::hashHeavyTube(input, size, output, scratchPad);
@@ -416,7 +416,7 @@ static void cryptonight_heavy_aesni(AsmOptimization asmOptimization, uint64_t he
 template <size_t NUM_HASH_BLOCKS>
 static void cryptonight_heavy_softaes(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad) {
     if (variant == PowVariant::POW_XHV) {
-        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, POW_XHV, NUM_HASH_BLOCKS>::hashHeavyHaven(input, size, output, scratchPad);
+        CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, POW_XHV, NUM_HASH_BLOCKS>::hashHeavy(input, size, output, scratchPad);
     }
     else if (variant == PowVariant::POW_TUBE) {
         CryptoNightMultiHash<0x40000, POW_DEFAULT_INDEX_SHIFT, MEMORY_HEAVY, 0x3FFFF0, true, POW_TUBE, NUM_HASH_BLOCKS>::hashHeavyTube(input, size, output, scratchPad);

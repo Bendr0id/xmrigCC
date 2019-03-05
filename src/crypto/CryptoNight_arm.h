@@ -742,14 +742,6 @@ public:
         //dummy
     }
 
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
-    {
-        //dummy
-    }
-
     inline static void hashHeavyTube(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
@@ -1167,82 +1159,17 @@ public:
 
             ((int64_t*) &l[idx & MASK])[0] = n ^ q;
 
-            idx = d ^ q;
+            if (VARIANT == POW_XHV) {
+                idx = (~d) ^ q;
+            } else {
+                idx = d ^ q;
+            }
         }
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) scratchPad[0]->memory, (__m128i*) scratchPad[0]->state);
         keccakf(h, 24);
         extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
     }
-
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
-    {
-        const uint8_t* l;
-        uint64_t* h;
-        uint64_t al;
-        uint64_t ah;
-        __m128i bx;
-        uint64_t idx;
-
-        keccak(static_cast<const uint8_t*>(input), (int) size, scratchPad[0]->state, 200);
-
-        l = scratchPad[0]->memory;
-        h = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
-
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h, (__m128i*) l);
-
-        al = h[0] ^ h[4];
-        ah = h[1] ^ h[5];
-        bx = _mm_set_epi64x(h[3] ^ h[7], h[2] ^ h[6]);
-        idx = h[0] ^ h[4];
-
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx;
-
-            if (SOFT_AES) {
-                cx = soft_aesenc((uint32_t*) &l[idx & MASK], _mm_set_epi64x(ah, al));
-            } else {
-                cx = _mm_load_si128((__m128i*) &l[idx & MASK]);
-                cx = _mm_aesenc_si128(cx, _mm_set_epi64x(ah, al));
-            }
-
-            _mm_store_si128((__m128i*) &l[idx & MASK], _mm_xor_si128(bx, cx));
-            idx = EXTRACT64(cx);
-            bx = cx;
-
-            uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l[idx & MASK])[0];
-            ch = ((uint64_t*) &l[idx & MASK])[1];
-            lo = __umul128(idx, cl, &hi);
-
-            al += hi;
-            ah += lo;
-
-            ((uint64_t*) &l[idx & MASK])[0] = al;
-            ((uint64_t*) &l[idx & MASK])[1] = ah;
-
-            ah ^= ch;
-            al ^= cl;
-            idx = al;
-
-            const int64x2_t x = vld1q_s64(reinterpret_cast<const int64_t*>(&l[idx & MASK]));
-            const int64_t n = vgetq_lane_s64(x, 0);
-            const int32_t d = vgetq_lane_s32(x, 2);
-            const int64_t q = n / (d | 0x5);
-
-            ((int64_t*) &l[idx & MASK])[0] = n ^ q;
-
-            idx = (~d) ^ q;
-        }
-
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l, (__m128i*) h);
-        keccakf(h, 24);
-        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
-    }
-
 
     inline static void hashHeavyTube(const uint8_t* __restrict__ input,
                                      size_t size,
@@ -1986,118 +1913,12 @@ public:
 
             ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
 
-            idx0 = d0 ^ q0;
-
-
-            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
-            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
-            lo = __umul128(idx1, cl, &hi);
-
-            al1 += hi;
-            ah1 += lo;
-
-            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
-
-            ah1 ^= ch;
-            al1 ^= cl;
-            idx1 = al1;
-
-            const int64x2_t x1 = vld1q_s64(reinterpret_cast<const int64_t*>(&l1[idx1 & MASK]));
-            const int64_t n1 = vgetq_lane_s64(x1, 0);
-            const int32_t d1 = vgetq_lane_s32(x1, 2);
-            const int64_t q1 = n1 / (d1 | 0x5);
-
-            ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
-
-            idx1 = d1 ^ q1;
-        }
-
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
-
-        keccakf(h0, 24);
-        keccakf(h1, 24);
-
-        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
-        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
-    }
-
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
-    {
-        keccak(input, (int) size, scratchPad[0]->state, 200);
-        keccak(input + size, (int) size, scratchPad[1]->state, 200);
-
-        const uint8_t* l0 = scratchPad[0]->memory;
-        const uint8_t* l1 = scratchPad[1]->memory;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
-
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
-
-        uint64_t al0 = h0[0] ^h0[4];
-        uint64_t al1 = h1[0] ^h1[4];
-        uint64_t ah0 = h0[1] ^h0[5];
-        uint64_t ah1 = h1[1] ^h1[5];
-
-        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
-
-        uint64_t idx0 = h0[0] ^h0[4];
-        uint64_t idx1 = h1[0] ^h1[4];
-
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0;
-            __m128i cx1;
-
-            if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*) &l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*) &l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
+            if (VARIANT == POW_XHV) {
+                idx0 = (~d0) ^ q0;
             } else {
-                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-
-                cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
-                cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
+                idx0 = d0 ^ q0;
             }
 
-            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
-
-            idx0 = EXTRACT64(cx0);
-            idx1 = EXTRACT64(cx1);
-
-            bx0 = cx0;
-            bx1 = cx1;
-
-            uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-            lo = __umul128(idx0, cl, &hi);
-
-            al0 += hi;
-            ah0 += lo;
-
-            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
-
-            ah0 ^= ch;
-            al0 ^= cl;
-            idx0 = al0;
-
-            const int64x2_t x0 = vld1q_s64(reinterpret_cast<const int64_t*>(&l0[idx0 & MASK]));
-            const int64_t n0 = vgetq_lane_s64(x0, 0);
-            const int32_t d0 = vgetq_lane_s32(x0, 2);
-            const int64_t q0 = n0 / (d0 | 0x5);
-
-            ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
-
-            idx0 = (~d0) ^ q0;
-
             cl = ((uint64_t*) &l1[idx1 & MASK])[0];
             ch = ((uint64_t*) &l1[idx1 & MASK])[1];
             lo = __umul128(idx1, cl, &hi);
@@ -2119,7 +1940,11 @@ public:
 
             ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
 
-            idx1 = (~d1) ^ q1;
+            if (VARIANT == POW_XHV) {
+                idx1 = (~d1) ^ q1;
+            } else {
+                idx1 = d1 ^ q1;
+            }
         }
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
@@ -3172,162 +2997,12 @@ public:
 
             ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
 
-            idx0 = d0 ^ q0;
-
-            cl = ((uint64_t*) &l1[idx1 & MASK])[0];
-            ch = ((uint64_t*) &l1[idx1 & MASK])[1];
-            lo = __umul128(idx1, cl, &hi);
-
-            al1 += hi;
-            ah1 += lo;
-
-            ((uint64_t*) &l1[idx1 & MASK])[0] = al1;
-            ((uint64_t*) &l1[idx1 & MASK])[1] = ah1;
-
-            ah1 ^= ch;
-            al1 ^= cl;
-            idx1 = al1;
-
-            const int64x2_t x1 = vld1q_s64(reinterpret_cast<const int64_t*>(&l1[idx1 & MASK]));
-            const int64_t n1 = vgetq_lane_s64(x1, 0);
-            const int32_t d1 = vgetq_lane_s32(x1, 2);
-            const int64_t q1 = n1 / (d1 | 0x5);
-
-            ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
-
-            idx1 = d1 ^ q1;
-
-
-            cl = ((uint64_t*) &l2[idx2 & MASK])[0];
-            ch = ((uint64_t*) &l2[idx2 & MASK])[1];
-            lo = __umul128(idx2, cl, &hi);
-
-            al2 += hi;
-            ah2 += lo;
-
-            ((uint64_t*) &l2[idx2 & MASK])[0] = al2;
-            ((uint64_t*) &l2[idx2 & MASK])[1] = ah2;
-
-            ah2 ^= ch;
-            al2 ^= cl;
-            idx2 = al2;
-
-
-            const int64x2_t x2 = vld1q_s64(reinterpret_cast<const int64_t*>(&l2[idx2 & MASK]));
-            const int64_t n2 = vgetq_lane_s64(x2, 0);
-            const int32_t d2 = vgetq_lane_s32(x2, 2);
-            const int64_t q2 = n2 / (d2 | 0x5);
-
-            ((int64_t*) &l2[idx2 & MASK])[0] = n2 ^ q2;
-
-            idx2 = d2 ^ q2;
-        }
-
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l1, (__m128i*) h1);
-        cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l2, (__m128i*) h2);
-
-        keccakf(h0, 24);
-        keccakf(h1, 24);
-        keccakf(h2, 24);
-
-        extra_hashes[scratchPad[0]->state[0] & 3](scratchPad[0]->state, 200, output);
-        extra_hashes[scratchPad[1]->state[0] & 3](scratchPad[1]->state, 200, output + 32);
-        extra_hashes[scratchPad[2]->state[0] & 3](scratchPad[2]->state, 200, output + 64);
-    }
-
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
-    {
-        keccak(input, (int) size, scratchPad[0]->state, 200);
-        keccak(input + size, (int) size, scratchPad[1]->state, 200);
-        keccak(input + 2 * size, (int) size, scratchPad[2]->state, 200);
-
-        const uint8_t* l0 = scratchPad[0]->memory;
-        const uint8_t* l1 = scratchPad[1]->memory;
-        const uint8_t* l2 = scratchPad[2]->memory;
-        uint64_t* h0 = reinterpret_cast<uint64_t*>(scratchPad[0]->state);
-        uint64_t* h1 = reinterpret_cast<uint64_t*>(scratchPad[1]->state);
-        uint64_t* h2 = reinterpret_cast<uint64_t*>(scratchPad[2]->state);
-
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h0, (__m128i*) l0);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h1, (__m128i*) l1);
-        cn_explode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) h2, (__m128i*) l2);
-
-        uint64_t al0 = h0[0] ^h0[4];
-        uint64_t al1 = h1[0] ^h1[4];
-        uint64_t al2 = h2[0] ^h2[4];
-        uint64_t ah0 = h0[1] ^h0[5];
-        uint64_t ah1 = h1[1] ^h1[5];
-        uint64_t ah2 = h2[1] ^h2[5];
-
-        __m128i bx0 = _mm_set_epi64x(h0[3] ^ h0[7], h0[2] ^ h0[6]);
-        __m128i bx1 = _mm_set_epi64x(h1[3] ^ h1[7], h1[2] ^ h1[6]);
-        __m128i bx2 = _mm_set_epi64x(h2[3] ^ h2[7], h2[2] ^ h2[6]);
-
-        uint64_t idx0 = h0[0] ^h0[4];
-        uint64_t idx1 = h1[0] ^h1[4];
-        uint64_t idx2 = h2[0] ^h2[4];
-
-        for (size_t i = 0; i < ITERATIONS; i++) {
-            __m128i cx0;
-            __m128i cx1;
-            __m128i cx2;
-
-            if (SOFT_AES) {
-                cx0 = soft_aesenc((uint32_t*) &l0[idx0 & MASK], _mm_set_epi64x(ah0, al0));
-                cx1 = soft_aesenc((uint32_t*) &l1[idx1 & MASK], _mm_set_epi64x(ah1, al1));
-                cx2 = soft_aesenc((uint32_t*) &l2[idx2 & MASK], _mm_set_epi64x(ah2, al2));
+            if (VARIANT == POW_XHV) {
+                idx0 = (~d0) ^ q0;
             } else {
-                cx0 = _mm_load_si128((__m128i*) &l0[idx0 & MASK]);
-                cx1 = _mm_load_si128((__m128i*) &l1[idx1 & MASK]);
-                cx2 = _mm_load_si128((__m128i*) &l2[idx2 & MASK]);
-
-                cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
-                cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
-                cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
+                idx0 = d0 ^ q0;
             }
 
-            _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx0, cx0));
-            _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx1, cx1));
-            _mm_store_si128((__m128i*) &l2[idx2 & MASK], _mm_xor_si128(bx2, cx2));
-
-            idx0 = EXTRACT64(cx0);
-            idx1 = EXTRACT64(cx1);
-            idx2 = EXTRACT64(cx2);
-
-            bx0 = cx0;
-            bx1 = cx1;
-            bx2 = cx2;
-
-
-            uint64_t hi, lo, cl, ch;
-            cl = ((uint64_t*) &l0[idx0 & MASK])[0];
-            ch = ((uint64_t*) &l0[idx0 & MASK])[1];
-            lo = __umul128(idx0, cl, &hi);
-
-            al0 += hi;
-            ah0 += lo;
-
-            ((uint64_t*) &l0[idx0 & MASK])[0] = al0;
-            ((uint64_t*) &l0[idx0 & MASK])[1] = ah0;
-
-            ah0 ^= ch;
-            al0 ^= cl;
-            idx0 = al0;
-
-            const int64x2_t x0 = vld1q_s64(reinterpret_cast<const int64_t*>(&l0[idx0 & MASK]));
-            const int64_t n0 = vgetq_lane_s64(x0, 0);
-            const int32_t d0 = vgetq_lane_s32(x0, 2);
-            const int64_t q0 = n0 / (d0 | 0x5);
-
-            ((int64_t*) &l0[idx0 & MASK])[0] = n0 ^ q0;
-
-            idx0 = (~d0) ^ q0;
-
-
             cl = ((uint64_t*) &l1[idx1 & MASK])[0];
             ch = ((uint64_t*) &l1[idx1 & MASK])[1];
             lo = __umul128(idx1, cl, &hi);
@@ -3349,7 +3024,11 @@ public:
 
             ((int64_t*) &l1[idx1 & MASK])[0] = n1 ^ q1;
 
-            idx1 = (~d1) ^ q1;
+            if (VARIANT == POW_XHV) {
+                idx1 = (~d1) ^ q1;
+            } else {
+                idx1 = d1 ^ q1;
+            }
 
             cl = ((uint64_t*) &l2[idx2 & MASK])[0];
             ch = ((uint64_t*) &l2[idx2 & MASK])[1];
@@ -3365,6 +3044,7 @@ public:
             al2 ^= cl;
             idx2 = al2;
 
+
             const int64x2_t x2 = vld1q_s64(reinterpret_cast<const int64_t*>(&l2[idx2 & MASK]));
             const int64_t n2 = vgetq_lane_s64(x2, 0);
             const int32_t d2 = vgetq_lane_s32(x2, 2);
@@ -3372,7 +3052,11 @@ public:
 
             ((int64_t*) &l2[idx2 & MASK])[0] = n2 ^ q2;
 
-            idx2 = (~d2) ^ q2;
+            if (VARIANT == POW_XHV) {
+                idx2 = (~d2) ^ q2;
+            } else {
+                idx2 = d2 ^ q2;
+            }
         }
 
         cn_implode_scratchpad_heavy<MEM, SOFT_AES>((__m128i*) l0, (__m128i*) h0);
@@ -4624,14 +4308,6 @@ public:
         // not supported
     }
 
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
-    {
-        // not supported
-    }
-
     inline static void hashHeavyTube(const uint8_t* __restrict__ input,
                                      size_t size,
                                      uint8_t* __restrict__ output,
@@ -5842,14 +5518,6 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad)
-    {
-        // not supported
-    }
-
-    inline static void hashHeavyHaven(const uint8_t* __restrict__ input,
-                                      size_t size,
-                                      uint8_t* __restrict__ output,
-                                      ScratchPad** __restrict__ scratchPad)
     {
         // not supported
     }
