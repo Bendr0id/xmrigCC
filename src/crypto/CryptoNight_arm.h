@@ -126,21 +126,11 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
 #define EXTRACT64(X) _mm_cvtsi128_si64(X)
 
 
-# define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax) \
+# define SHUFFLE_PHASE_1(l, idx, bx0, bx1, ax, reverse) \
 { \
-    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))); \
+    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ (reverse ? 0x30 : 0x10)))); \
     const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
-    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
-}
-
-# define SHUFFLE_PHASE_1_RWZ(l, idx, bx0, bx1, ax) \
-{ \
-    const uint64x2_t chunk1 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
-    const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
-    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))); \
+    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ (reverse ? 0x10 : 0x30)))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
@@ -161,27 +151,20 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
     sqrt_result##idx += ((r2 + b > sqrt_input) ? -1 : 0) + ((r2 + (1ULL << 32) < sqrt_input - s) ? 1 : 0); \
 }
 
-# define SHUFFLE_PHASE_2(l, idx, bx0, bx1, ax, lo, hi) \
+# define SHUFFLE_PHASE_2(l, idx, bx0, bx1, ax, lo, hi, reverse) \
 { \
     const uint64x2_t chunk1 = veorq_u64(vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))), vcombine_u64(vcreate_u64(hi), vcreate_u64(lo))); \
     const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
     const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
     hi ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[0]; \
     lo ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[1]; \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
-}
-
-# define SHUFFLE_PHASE_2_RWZ(l, idx, bx0, bx1, ax, lo, hi) \
-{ \
-    const uint64x2_t chunk1 = veorq_u64(vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x10))), vcombine_u64(vcreate_u64(hi), vcreate_u64(lo))); \
-    const uint64x2_t chunk2 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x20))); \
-    const uint64x2_t chunk3 = vld1q_u64((uint64_t*)((l) + ((idx) ^ 0x30))); \
-    hi ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[0]; \
-    lo ^= ((uint64_t*)((l) + ((idx) ^ 0x20)))[1]; \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx1))); \
-    vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx0))); \
+    if (reverse) { \
+        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx1))); \
+        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx0))); \
+    } else { \
+        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x10)), vaddq_u64(chunk3, vreinterpretq_u64_u8(bx1))); \
+        vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x20)), vaddq_u64(chunk1, vreinterpretq_u64_u8(bx0))); \
+    } \
     vst1q_u64((uint64_t*)((l) + ((idx) ^ 0x30)), vaddq_u64(chunk2, vreinterpretq_u64_u8(ax))); \
 }
 
@@ -203,7 +186,7 @@ static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i 
     r##idx[1] = (uint32_t)(h[12] >> 32); \
     r##idx[2] = (uint32_t)(h[13]); \
     r##idx[3] = (uint32_t)(h[13] >> 32); \
-    v4_random_math_init(code##idx, variant, height);
+    v4_random_math_init(code##idx, VARIANT, height);
 
 #   define VARIANT4_RANDOM_MATH(idx, al, ah, cl, bx0, bx1) \
     cl ^= (r##idx[0] + r##idx[1]) | ((uint64_t)(r##idx[2] + r##idx[3]) << 32); \
@@ -706,7 +689,7 @@ static inline void cn_implode_scratchpad_heavy(const __m128i* input, __m128i* ou
     _mm_store_si128(output + 11, xout7);
 }
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, size_t NUM_HASH_BLOCKS>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT, size_t NUM_HASH_BLOCKS>
 class CryptoNightMultiHash
 {
 public:
@@ -729,8 +712,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad,
-                            PowVariant variant)
+                            ScratchPad** __restrict__ scratchPad)
     {
         //dummy
     }
@@ -739,8 +721,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
     {
         // dummy
     }
@@ -778,8 +759,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 1>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, VARIANT, 1>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -912,8 +893,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 ScratchPad** __restrict__ scratchPad,
-                                 PowVariant variant)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
 
@@ -943,12 +923,7 @@ public:
                 cx0 = _mm_aesenc_si128(cx0, _mm_set_epi64x(ah0, al0));
             }
 
-            if (variant == POW_RWZ)
-            {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
-            } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
-            }
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
 
@@ -962,12 +937,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            if (variant == POW_RWZ)
-            {
-                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
 
             al0 += hi;
             ah0 += lo;
@@ -995,8 +965,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
 
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
@@ -1039,7 +1008,7 @@ public:
 
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx10)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
                 ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
             }
@@ -1379,8 +1348,8 @@ public:
 };
 
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 2>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, VARIANT, 2>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -1586,8 +1555,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                                  size_t size,
                                  uint8_t* __restrict__ output,
-                                 ScratchPad** __restrict__ scratchPad,
-                                 PowVariant variant)
+                                 ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -1638,14 +1606,8 @@ public:
                 cx1 = _mm_aesenc_si128(cx1, _mm_set_epi64x(ah1, al1));
             }
 
-            if (variant == POW_RWZ)
-            {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
-            } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
-            }
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -1661,12 +1623,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            if (variant == POW_RWZ)
-            {
-                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
 
             al0 += hi;
             ah0 += lo;
@@ -1689,12 +1646,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            if (variant == POW_RWZ)
-            {
-                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
 
             al1 += hi;
             ah1 += lo;
@@ -1725,8 +1677,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -1789,7 +1740,7 @@ public:
 
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx10)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
                 ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
             }
@@ -1817,7 +1768,7 @@ public:
 
             VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx01, bx11)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
                 ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
             }
@@ -2352,8 +2303,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 3>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, VARIANT, 3>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -2636,8 +2587,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad,
-                            PowVariant variant)
+                            ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -2704,15 +2654,9 @@ public:
                 cx2 = _mm_aesenc_si128(cx2, _mm_set_epi64x(ah2, al2));
             }
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
-            } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
-            }
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -2730,11 +2674,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
 
             al0 += hi;
             ah0 += lo;
@@ -2757,11 +2697,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
 
             al1 += hi;
             ah1 += lo;
@@ -2784,11 +2720,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
 
             al2 += hi;
             ah2 += lo;
@@ -2822,8 +2754,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -2904,7 +2835,7 @@ public:
 
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx10)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
                 ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
             }
@@ -2932,7 +2863,7 @@ public:
 
             VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx01, bx11)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
                 ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
             }
@@ -2960,7 +2891,7 @@ public:
 
             VARIANT4_RANDOM_MATH(2, al2, ah2, cl, bx02, bx12)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al2 ^= r2[2] | ((uint64_t)(r2[3]) << 32);
                 ah2 ^= r2[0] | ((uint64_t)(r2[1]) << 32);
             }
@@ -3695,8 +3626,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 4>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, VARIANT, 4>
 {
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -4052,8 +3983,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad,
-                            PowVariant variant)
+                            ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -4136,17 +4066,10 @@ public:
                 cx3 = _mm_aesenc_si128(cx3, ax3);
             }
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
-                SHUFFLE_PHASE_1_RWZ(l3, (idx3&MASK), bx03, bx13, ax3)
-            } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
-                SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3)
-            }
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -4166,11 +4089,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
 
             al0 += hi;
             ah0 += lo;
@@ -4193,11 +4112,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
 
             al1 += hi;
             ah1 += lo;
@@ -4220,11 +4135,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
 
             al2 += hi;
             ah2 += lo;
@@ -4247,11 +4158,7 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ)
 
             al3 += hi;
             ah3 += lo;
@@ -4288,8 +4195,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -4388,7 +4294,7 @@ public:
 
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx10)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
                 ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
             }
@@ -4416,7 +4322,7 @@ public:
 
             VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx01, bx11)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
                 ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
             }
@@ -4445,7 +4351,7 @@ public:
 
             VARIANT4_RANDOM_MATH(2, al2, ah2, cl, bx02, bx12)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al2 ^= r2[2] | ((uint64_t)(r2[3]) << 32);
                 ah2 ^= r2[0] | ((uint64_t)(r2[1]) << 32);
             }
@@ -4473,7 +4379,7 @@ public:
 
             VARIANT4_RANDOM_MATH(3, al3, ah3, cl, bx03, bx13)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al3 ^= r3[2] | ((uint64_t)(r3[3]) << 32);
                 ah3 ^= r3[0] | ((uint64_t)(r3[1]) << 32);
             }
@@ -4735,8 +4641,8 @@ public:
     }
 };
 
-template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES>
-class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, 5>
+template<size_t ITERATIONS, size_t INDEX_SHIFT, size_t MEM, size_t MASK, bool SOFT_AES, PowVariant VARIANT>
+class CryptoNightMultiHash<ITERATIONS, INDEX_SHIFT, MEM, MASK, SOFT_AES, VARIANT, 5>
 {//
 public:
     inline static void hash(const uint8_t* __restrict__ input,
@@ -5164,8 +5070,7 @@ public:
     inline static void hashPowV3(const uint8_t* __restrict__ input,
                             size_t size,
                             uint8_t* __restrict__ output,
-                            ScratchPad** __restrict__ scratchPad,
-                            PowVariant variant)
+                            ScratchPad** __restrict__ scratchPad)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -5264,19 +5169,11 @@ public:
                 cx4 = _mm_aesenc_si128(cx4, ax4);
             }
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_1_RWZ(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1_RWZ(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1_RWZ(l2, (idx2&MASK), bx02, bx12, ax2)
-                SHUFFLE_PHASE_1_RWZ(l3, (idx3&MASK), bx03, bx13, ax3)
-                SHUFFLE_PHASE_1_RWZ(l4, (idx4&MASK), bx04, bx14, ax4)
-            } else {
-                SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0)
-                SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1)
-                SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2)
-                SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3)
-                SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4)
-            }
+            SHUFFLE_PHASE_1(l0, (idx0&MASK), bx00, bx10, ax0, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l1, (idx1&MASK), bx01, bx11, ax1, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l2, (idx2&MASK), bx02, bx12, ax2, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l3, (idx3&MASK), bx03, bx13, ax3, VARIANT == POW_RWZ)
+            SHUFFLE_PHASE_1(l4, (idx4&MASK), bx04, bx14, ax4, VARIANT == POW_RWZ)
 
             _mm_store_si128((__m128i*) &l0[idx0 & MASK], _mm_xor_si128(bx00, cx0));
             _mm_store_si128((__m128i*) &l1[idx1 & MASK], _mm_xor_si128(bx01, cx1));
@@ -5298,11 +5195,7 @@ public:
 
             lo = __umul128(idx0, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l0, (idx0 & MASK), bx00, bx10, ax0, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l0, (idx0&MASK), bx00, bx10, ax0, lo, hi, VARIANT == POW_RWZ)
 
             al0 += hi;
             ah0 += lo;
@@ -5325,11 +5218,7 @@ public:
 
             lo = __umul128(idx1, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l1, (idx1&MASK), bx01, bx11, ax1, lo, hi, VARIANT == POW_RWZ)
 
             al1 += hi;
             ah1 += lo;
@@ -5352,11 +5241,7 @@ public:
 
             lo = __umul128(idx2, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l2, (idx2&MASK), bx02, bx12, ax2, lo, hi, VARIANT == POW_RWZ)
 
             al2 += hi;
             ah2 += lo;
@@ -5379,11 +5264,7 @@ public:
 
             lo = __umul128(idx3, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l3, (idx3&MASK), bx03, bx13, ax3, lo, hi, VARIANT == POW_RWZ)
 
             al3 += hi;
             ah3 += lo;
@@ -5406,11 +5287,7 @@ public:
 
             lo = __umul128(idx4, cl, &hi);
 
-            if (variant == POW_RWZ) {
-                SHUFFLE_PHASE_2_RWZ(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi)
-            } else {
-                SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi)
-            }
+            SHUFFLE_PHASE_2(l4, (idx4&MASK), bx04, bx14, ax4, lo, hi, VARIANT == POW_RWZ)
 
             al4 += hi;
             ah4 += lo;
@@ -5450,8 +5327,7 @@ public:
                                  size_t size,
                                  uint8_t* __restrict__ output,
                                  ScratchPad** __restrict__ scratchPad,
-                                 uint64_t height,
-                                 PowVariant variant)
+                                 uint64_t height)
     {
         keccak(input, (int) size, scratchPad[0]->state, 200);
         keccak(input + size, (int) size, scratchPad[1]->state, 200);
@@ -5568,7 +5444,7 @@ public:
 
             VARIANT4_RANDOM_MATH(0, al0, ah0, cl, bx00, bx10)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al0 ^= r0[2] | ((uint64_t)(r0[3]) << 32);
                 ah0 ^= r0[0] | ((uint64_t)(r0[1]) << 32);
             }
@@ -5596,7 +5472,7 @@ public:
 
             VARIANT4_RANDOM_MATH(1, al1, ah1, cl, bx01, bx11)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al1 ^= r1[2] | ((uint64_t)(r1[3]) << 32);
                 ah1 ^= r1[0] | ((uint64_t)(r1[1]) << 32);
             }
@@ -5624,7 +5500,7 @@ public:
 
             VARIANT4_RANDOM_MATH(2, al2, ah2, cl, bx02, bx12)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al2 ^= r2[2] | ((uint64_t)(r2[3]) << 32);
                 ah2 ^= r2[0] | ((uint64_t)(r2[1]) << 32);
             }
@@ -5652,7 +5528,7 @@ public:
 
             VARIANT4_RANDOM_MATH(3, al3, ah3, cl, bx03, bx13)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al3 ^= r3[2] | ((uint64_t)(r3[3]) << 32);
                 ah3 ^= r3[0] | ((uint64_t)(r3[1]) << 32);
             }
@@ -5680,7 +5556,7 @@ public:
 
             VARIANT4_RANDOM_MATH(4, al4, ah4, cl, bx04, bx14)
 
-            if (variant == POW_V4) {
+            if (VARIANT == POW_V4) {
                 al4 ^= r4[2] | ((uint64_t)(r4[3]) << 32);
                 ah4 ^= r4[0] | ((uint64_t)(r4[1]) << 32);
             }
