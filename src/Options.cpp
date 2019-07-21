@@ -1173,13 +1173,13 @@ bool Options::setAlgo(const char *algo)
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-chukwa") || !strcmp(algo, "chukwa"))) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-chukwa") || !strcmp(algo, "chukwa") || !strcmp(algo, "argon2d512") || !strcmp(algo, "argon2id512") || !strcmp(algo, "argon2512"))) {
             m_algo = ALGO_ARGON2_512;
             m_powVariant = POW_ARGON2_CHUKWA;
             break;
         }
 
-        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-wrkz") || !strcmp(algo, "wrkz"))) {
+        if (i == ARRAY_SIZE(algo_names) - 1 && (!strcmp(algo, "argon2-wrkz") || !strcmp(algo, "wrkz") || !strcmp(algo, "argon2d256") || !strcmp(algo, "argon2id256") || !strcmp(algo, "argon2256"))) {
             m_algo = ALGO_ARGON2_256;
             m_powVariant = POW_ARGON2_WRKZ;
             break;
@@ -1191,11 +1191,11 @@ bool Options::setAlgo(const char *algo)
         }
     }
 
-    if (m_algo == ALGO_ARGON2_512 && m_powVariant == POW_AUTODETECT) {
+    if (m_algo == ALGO_ARGON2_512) {
         m_powVariant = POW_ARGON2_CHUKWA;
     }
 
-    if (m_algo == ALGO_ARGON2_256 && m_powVariant == POW_AUTODETECT) {
+    if (m_algo == ALGO_ARGON2_256) {
         m_powVariant = POW_ARGON2_WRKZ;
     }
 
