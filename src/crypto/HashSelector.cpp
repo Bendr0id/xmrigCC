@@ -454,11 +454,23 @@ template <size_t NUM_HASH_BLOCKS>
 static void argon2(AsmOptimization asmOptimization, uint64_t height, PowVariant variant, const uint8_t* input, size_t size, uint8_t* output, ScratchPad** scratchPad)
 {
     if (variant == PowVariant::POW_ARGON2_CHUKWA || variant == POW_TURTLE) {
-        argon2id_hash_raw(3, MEMORY_ARGON2_512/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_512);
+        argon2id_hash_raw(3, MEMORY_ARGON2_512/1024, 1, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_512);
     }
 
     if (variant == PowVariant::POW_ARGON2_WRKZ) {
-        argon2id_hash_raw(4, MEMORY_ARGON2_256/1024, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_256);
+        argon2id_hash_raw(4, MEMORY_ARGON2_256/1024, 1, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_256);
+    }
+
+    if (variant == PowVariant::POW_ARGON2_CREDITS) {
+        argon2d_hash_raw(1, MEMORY_ARGON2_250/1024, 4, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_250);
+    }
+
+    if (variant == PowVariant::POW_ARGON2_DYNAMIC) {
+        argon2d_hash_raw(2, MEMORY_ARGON2_500/1024, 8, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_500);
+    }
+
+    if (variant == PowVariant::POW_ARGON2_UNITUS) {
+        argon2d_hash_raw(2, MEMORY_ARGON2_4096/1024, 1, 1, input, size, input, 16, output, 32, scratchPad[0]->memory, MEMORY_ARGON2_4096);
     }
 }
 
