@@ -57,20 +57,11 @@ ScratchPadMem Mem::create(ScratchPad** scratchPads, int threadId)
         case Options::ALGO_CRYPTONIGHT_HEAVY:
             scratchPadSize = MEMORY_HEAVY;
             break;
-        case Options::ALGO_ARGON2_250:
-            scratchPadSize = MEMORY_ARGON2_250;
-            break;
         case Options::ALGO_ARGON2_256:
             scratchPadSize = MEMORY_ARGON2_256;
             break;
-        case Options::ALGO_ARGON2_500:
-            scratchPadSize = MEMORY_ARGON2_500;
-            break;
         case Options::ALGO_ARGON2_512:
             scratchPadSize = MEMORY_ARGON2_512;
-            break;
-        case Options::ALGO_ARGON2_4096:
-            scratchPadSize = MEMORY_ARGON2_4096;
             break;
         case Options::ALGO_CRYPTONIGHT:
         default:

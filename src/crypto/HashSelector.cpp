@@ -519,11 +519,8 @@ void setHashMethods(Options::Algo algo, bool aesni)
                 hash_ctx[HASH_FACTOR - 1] = cryptonight_heavy_softaes<HASH_FACTOR>;
             }
             break;
-        case Options::ALGO_ARGON2_250:
         case Options::ALGO_ARGON2_256:
-        case Options::ALGO_ARGON2_500:
         case Options::ALGO_ARGON2_512:
-        case Options::ALGO_ARGON2_4096:
             hash_ctx[HASH_FACTOR - 1] = argon2<HASH_FACTOR>;
             break;
     }
@@ -946,27 +943,17 @@ bool HashSelector::selfCheck(Options::Algo algo)
         hash_ctx[0](asmOptimization, 10002, PowVariant::POW_V4, test_input, 76, output, scratchPads);
         result = result && memcmp(output, test_output_v4_2, 32) == 0;
     }
-    else if (algo == Options::ALGO_ARGON2_250) {
-        // Trigger Benchmark once to setup CPU instruction set
-        argon2_select_impl(NULL, NULL);
-    }
     else if (algo == Options::ALGO_ARGON2_256) {
         argon2_select_impl(NULL, NULL);
 
         hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_WRKZ, argon2_test_input, 76, output, scratchPads);
         resultArgon2 = resultArgon2 && memcmp(output, argon2_wrkz_test_out, 32) == 0;
     }
-    else if (algo == Options::ALGO_ARGON2_500) {
-        argon2_select_impl(NULL, NULL);
-    }
     else if (algo == Options::ALGO_ARGON2_512) {
         argon2_select_impl(NULL, NULL);
 
         hash_ctx[0](asmOptimization, 0, PowVariant::POW_ARGON2_CHUKWA, argon2_test_input, 76, output, scratchPads);
         resultArgon2 = resultArgon2 && memcmp(output, argon2_chukwa_test_out, 32) == 0;
-    }
-    else if (algo == Options::ALGO_ARGON2_4096) {
-        argon2_select_impl(NULL, NULL);
     }
 
     for (size_t i = 0; i < MAX_NUM_HASH_BLOCKS; ++i) {
