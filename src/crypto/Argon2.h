@@ -28,10 +28,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define MEMORY_ARGON2_250 256000 /* 250 KiB in bytes */
 #define MEMORY_ARGON2_256 262144 /* 256 KiB in bytes */
-#define MEMORY_ARGON2_500 512000 /* 500 KiB in bytes */
 #define MEMORY_ARGON2_512 524288 /* 512 KiB in bytes */
-#define MEMORY_ARGON2_4096 4194304 /* 4 MiB in bytes */
 
 #endif /* __ARGON2_H__ */

@@ -84,20 +84,11 @@ void CpuImpl::optimizeParameters(size_t& threadsCount, size_t& hashFactor,
         case Options::ALGO_CRYPTONIGHT_HEAVY:
             algoBlocks = MEMORY_HEAVY/1024;
             break;
-        case Options::ALGO_ARGON2_250:
-            algoBlocks = MEMORY_ARGON2_250/1024;
-            break;
         case Options::ALGO_ARGON2_256:
             algoBlocks = MEMORY_ARGON2_256/1024;
             break;
-        case Options::ALGO_ARGON2_500:
-            algoBlocks = MEMORY_ARGON2_500/1024;
-            break;
         case Options::ALGO_ARGON2_512:
             algoBlocks = MEMORY_ARGON2_512/1024;
-            break;
-        case Options::ALGO_ARGON2_4096:
-            algoBlocks = MEMORY_ARGON2_4096/1024;
             break;
         case Options::ALGO_CRYPTONIGHT:
         default:
