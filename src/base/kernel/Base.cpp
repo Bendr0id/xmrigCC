@@ -74,6 +74,7 @@ class xmrig::BasePrivate
 public:
     inline BasePrivate(Process *process) :
         api(nullptr),
+        ccClient(nullptr),
         config(nullptr),
         process(process),
         watcher(nullptr)
