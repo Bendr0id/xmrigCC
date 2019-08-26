@@ -104,12 +104,12 @@ Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-con
   * Clone with `git clone https://github.com/Bendr0id/xmrigCC.git` :hammer: [Build instructions](https://github.com/Bendr0id/xmrigCC/wiki/Build-Debian%5CUbuntu).
 
 ## Usage
-### Basic example xmrigCCServer
+### Basic example XMRigCCServer
 ```
 xmrigCCServer --cc-port=3344 --cc-user=admin --cc-pass=pass --cc-access-token=SECRET_TOKEN_TO_ACCESS_CC_SERVER
 ```
 
-### Options xmrigCCServer
+### Options XMRigCCServer
 ```
         --cc-user=USERNAME                CC Server admin user
         --cc-pass=PASSWORD                CC Server admin pass
@@ -185,45 +185,6 @@ xmrigDaemon -o pool.minemonero.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC
 
 Also you can use configuration via config file, default **[config.json](https://github.com/Bendr0id/xmrigCC/wiki/Config-XMRigDaemon)**. You can load multiple config files and combine it with command line options.
 
-## Multihash (multihash-factor)
-With this option it is possible to increase the number of hashblocks calculated by a single thread in each round.
-Selecting multihash-factors greater than 1 increases the L3 cache demands relative to the multihash-factor.
-E.g. at multihash-factor 2, each Cryptonight thread requires 4MB and each Cryptonight-lite thread requires 2 MB of L3 cache.
-With multihash-factor 3, they need 6MB or 3MB respectively.
-
-Setting multihash-factor to 0 will allow automatic detection of the optimal value.
-Xmrig will then try to utilize as much of the L3 cache as possible for the selected number of threads.
-If the threads parameter has been set to auto, Xmrig will detect the optimal number of threads first.
-After that it finds the greatest possible multihash-factor.
-
-### Multihash for low power operation
-Depending the CPU and its L3 caches, it can make sense to replace multiple single hash threads with single multi-hash counterparts.
-This change might come at the price of a minor drop in effective hash-rate, yet it will also reduce heat production and power consumption of the used CPU.
-
-### Multihash for optimal CPU exploitation
-In certain environments (e.g. vServer) the system running xmrig can have access to relatively large amounts of L3 cache, but may has access to only a few CPU cores.
-In such cases, running xmrig with higher multihash-factors can lead to improvements.
-
-
-## Multihash thread Mask (only for multihash-factor > 1)
-With this option you can limit multihash to the given threads (mask).
-This can significantly improve your hashrate by using unused l3 cache.
-The default is to run the configured multihash-factor on all threads.
-
-
-```
-{
-...
-
-"multihash-factor":2,
-"multihash-thread-mask":"0x5", // in binary -> 0101
-"threads": 4,
-
-...
-}
-``` 
-This will limit multihash mode (multihash-factor = 2) to thread 0 and thread 2, thread 1 and thread 3 will run in single hashmode.
-
 
 ## Common Issues
 ### XMRigMiner
@@ -294,7 +255,7 @@ Here are some result reported by users. Feel free to share your results, i'll ad
 ## Donations
 * Default donation 5% (5 minutes in 100 minutes) can be reduced to 1% via command line option `--donate-level`. 
 
-##### BenDroid (xmrigCC):
+##### BenDroid (XMRigCC):
 XMR:  `4BEn3sSa2SsHBcwa9dNdKnGvvbyHPABr2JzoY7omn7DA2hPv84pVFvwDrcwMCWgz3dQVcrkw3gE9aTC9Mi5HxzkfF9ev1eH`
 
 AEON: `Wmtm4S2cQ8uEBBAVjvbiaVAPv2d6gA1mAUmBmjna4VF7VixLxLRUYag5cvsym3WnuzdJ9zvhQ3Xwa8gWxPDPRfcQ3AUkYra3W`

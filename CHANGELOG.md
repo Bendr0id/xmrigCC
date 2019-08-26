@@ -1,3 +1,13 @@
+# 2.0.0-beta1
+**Thx to @xmrig and @SChernykh awesome work!**
+* Full Rebase on XMRig 3.1.0 
+     * randomX/wow/XL
+     * NUMA support
+     * flexible multi algorithm configuration
+     * unlimited switching between incompatible algorithms at runtime
+* Argon2, UPX2 (Nice hashrate improvement) and CN-Conceal support integrated like in previous version
+* Fully compatible to XMRigCCServer 1.9.5
+**New XMRigCCServer will be integrated soon**
 # 1.9.5
 - Integrated CN-Conceal algo (algo: "cryptonight", variant: "conceal" or variant: "ccx") #259
 - Integrated Argon2-512 algo "chukwa" for upcoming trtl fork (algo: "argon2-512", variant: "auto" or "chukwa") #258 
