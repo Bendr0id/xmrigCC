@@ -125,7 +125,7 @@ double xmrig::Hashrate::calc(size_t threadId, size_t ms) const
         earliestHashCount = m_counts[threadId][idx];
     }
 
-    if (!haveFullSet || earliestStamp == 0 || lastestStamp == 0) {
+    if ((!haveFullSet && ms > Intervals::ShortInterval) || earliestStamp == 0 || lastestStamp == 0) {
         return nan("");
     }
 
