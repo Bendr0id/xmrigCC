@@ -67,6 +67,8 @@ xmrig::CCClient::CCClient(Base *base)
           m_timer(nullptr)
 {
     base->addListener(this);
+
+    m_timer = new Timer(this);
 }
 
 
@@ -77,16 +79,19 @@ xmrig::CCClient::~CCClient()
 
 void xmrig::CCClient::start()
 {
+	LOG_DEBUG("CCClient::start");
+	
     updateAuthorization();
     updateClientInfo();
 
-    m_timer = new Timer(this,
-                        static_cast<uint64_t>(m_base->config()->ccClient().updateInterval()*1000),
-                        static_cast<uint64_t>(m_base->config()->ccClient().updateInterval()*1000));
+    m_timer->start(static_cast<uint64_t>(m_base->config()->ccClient().updateInterval()*1000),
+                   static_cast<uint64_t>(m_base->config()->ccClient().updateInterval()*1000));
 }
 
 void xmrig::CCClient::updateAuthorization()
 {
+	LOG_DEBUG("CCClient::updateAuthorization");
+
     if (m_base->config()->ccClient().token() != nullptr) {
         m_authorization = std::string("Bearer ") + m_base->config()->ccClient().token();
     }
@@ -94,6 +99,8 @@ void xmrig::CCClient::updateAuthorization()
 
 void xmrig::CCClient::updateClientInfo()
 {
+	LOG_DEBUG("CCClient::updateClientInfo");
+
     std::string clientId;
     if (m_base->config()->ccClient().workerId()) {
         clientId = m_base->config()->ccClient().workerId();
@@ -137,6 +144,8 @@ void xmrig::CCClient::updateClientInfo()
 
 void xmrig::CCClient::stop()
 {
+	LOG_DEBUG("CCClient::stop");
+
     m_configPublishedOnStart = false;
 
     if (m_timer) {
@@ -146,6 +155,8 @@ void xmrig::CCClient::stop()
 
 void xmrig::CCClient::updateStatistics()
 {
+	LOG_DEBUG("CCClient::updateStatistics");
+
     for (IClientStatusListener *listener : m_ClientStatislisteners) {
         listener->onUpdateRequest(m_clientStatus);
     }
@@ -164,6 +175,8 @@ void xmrig::CCClient::updateStatistics()
 #ifdef TYPE_AMD_GPU
 void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
 {
+	LOG_DEBUG("CCClient::updateGpuInfo");
+
     if (m_self) {
         uv_mutex_lock(&m_mutex);
 
@@ -191,6 +204,8 @@ void CCClient::updateGpuInfo(const std::vector<GpuContext>& gpuContext)
 
 void xmrig::CCClient::publishClientStatusReport()
 {
+	LOG_DEBUG("CCClient::publishClientStatusReport");
+
     std::string requestUrl = "/client/setClientStatus?clientId=" + m_clientStatus.getClientId();
     std::string requestBuffer = m_clientStatus.toJsonString();
 
@@ -233,6 +248,8 @@ void xmrig::CCClient::publishClientStatusReport()
 
 void xmrig::CCClient::fetchConfig()
 {
+	LOG_DEBUG("CCClient::fetchConfig");
+
     std::string requestUrl = "/client/getConfig?clientId=" + m_clientStatus.getClientId();
     std::string requestBuffer;
 
@@ -272,6 +289,8 @@ void xmrig::CCClient::fetchConfig()
 
 void xmrig::CCClient::publishConfig()
 {
+	LOG_DEBUG("CCClient::publishConfig");
+
     std::string requestUrl = "/client/setClientConfig?clientId=" + m_clientStatus.getClientId();
 
     std::stringstream data;
@@ -312,6 +331,8 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
                                                                    const std::string& requestBuffer,
                                                                    const std::string& operation)
 {
+	LOG_DEBUG("CCClient::performRequest");
+
     std::shared_ptr<httplib::Client> cli;
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -350,33 +371,47 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
 
 void xmrig::CCClient::updateUptime()
 {
+	LOG_DEBUG("CCClient::updateUptime");
     m_clientStatus.setUptime(Chrono::currentMSecsSinceEpoch()-m_startTime);
 }
 
 void xmrig::CCClient::updateLog()
 {
+	LOG_DEBUG("CCClient::updateLog");
     m_clientStatus.setLog(RemoteLog::getRows());
 }
 
 void xmrig::CCClient::onConfigChanged(Config *config, Config *previousConfig)
 {
-    stop();
+	LOG_DEBUG("CCClient::onConfigChanged");
+    if (config->ccClient() != previousConfig->ccClient()) {
+        stop();
 
-    if (config->ccClient().enabled() && config->ccClient().host() && config->ccClient().port() > 0) {
-        start();
+        if (config->ccClient().enabled() && config->ccClient().host() && config->ccClient().port() > 0) {
+            start();
+        }
     }
 }
 
 void xmrig::CCClient::onTimer(const xmrig::Timer *timer)
 {
-    if (!m_configPublishedOnStart && m_base->config()->ccClient().uploadConfigOnStartup()) {
-        m_configPublishedOnStart = true;
-        publishConfig();
-    }
+	LOG_DEBUG("CCClient::onTimer");
+    std::thread(CCClient::publishThread, this).detach();
+}
 
-    updateUptime();
-    updateLog();
-    updateStatistics();
+void xmrig::CCClient::publishThread(CCClient* handle)
+{
+	LOG_DEBUG("CCClient::publishThread");
+	if (handle) {
+		if (!handle->m_configPublishedOnStart &&  handle->m_base->config()->ccClient().uploadConfigOnStartup()) {
+			handle->m_configPublishedOnStart = true;
+			handle->publishConfig();
+		}
 
-    publishClientStatusReport();
+		handle->updateUptime();
+		handle->updateLog();
+		handle->updateStatistics();
+
+		handle->publishClientStatusReport();
+	}
 }

@@ -105,3 +105,18 @@ bool xmrig::CCClientConfig::parseCCUrl(const char* url)
 
     return true;
 }
+
+bool xmrig::CCClientConfig::isEqual(const CCClientConfig &other) const
+{
+    return other.m_enabled                  == m_enabled &&
+           other.m_useTls                   == m_useTls &&
+           other.m_useRemoteLogging         == m_useRemoteLogging &&
+           other.m_uploadConfigOnStartup    == m_uploadConfigOnStartup &&
+           other.m_url                      == m_url &&
+           other.m_host                     == m_host &&
+           other.m_token                    == m_token &&
+           other.m_port                     == m_port &&
+           other.m_workerId                 == m_workerId &&
+           other.m_rebootCmd                == m_rebootCmd &&
+           other.m_updateInterval           == m_updateInterval;
+}

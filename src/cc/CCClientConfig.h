@@ -43,6 +43,11 @@ public:
     inline int updateInterval() const            { return m_updateInterval; }
     inline int port() const                      { return m_port; }
 
+    inline bool operator!=(const CCClientConfig &other) const    { return !isEqual(other); }
+    inline bool operator==(const CCClientConfig &other) const    { return isEqual(other); }
+
+    bool isEqual(const CCClientConfig &other) const;
+
 private:
     bool parseCCUrl(const char* url);
 

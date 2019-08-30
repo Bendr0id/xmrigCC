@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
     do {
         status = system(xmrigMinerPath.c_str());
 #if defined(_WIN32) || defined(WIN32)
-    } while (status != EINVAL && status != SIGHUP && status != SIGINT);
+    } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != 0);
 
 	if (status == EINVAL) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(3000));
