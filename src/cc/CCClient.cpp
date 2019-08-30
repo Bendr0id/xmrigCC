@@ -104,8 +104,6 @@ void xmrig::CCClient::updateClientInfo()
     std::string clientId;
     if (m_base->config()->ccClient().workerId()) {
         clientId = m_base->config()->ccClient().workerId();
-    } else if (m_base->config()->apiWorkerId()) {
-        clientId = m_base->config()->apiWorkerId();
     } else {
         char hostname[128];
         memset(hostname, 0, sizeof(hostname));

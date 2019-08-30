@@ -1,4 +1,4 @@
-# 2.0.0-beta1
+# 2.0.0
 **Thx to @xmrig and @SChernykh awesome work!**
 * Full Rebase on XMRig 3.1.0 
      * randomX/wow/XL
@@ -6,6 +6,7 @@
      * flexible multi algorithm configuration
      * unlimited switching between incompatible algorithms at runtime
 * Argon2, UPX2 (Nice hashrate improvement) and CN-Conceal support integrated like in previous version
+* 5-10% Hashrate improvement on ARMv8 CPUs when mining CN based algos compared to stock xmrig
 * Fully compatible to XMRigCCServer 1.9.5
 **New XMRigCCServer will be integrated soon**
 # 1.9.5
