@@ -80,7 +80,13 @@ xmrig::CCClient::~CCClient()
 void xmrig::CCClient::start()
 {
 	LOG_DEBUG("CCClient::start");
-	
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CSI "1;%dm%s",
+               "CC Server",
+               (m_base->config()->ccClient().useTLS() ? 32 : 36),
+               m_base->config()->ccClient().url()
+    );
+
     updateAuthorization();
     updateClientInfo();
 
