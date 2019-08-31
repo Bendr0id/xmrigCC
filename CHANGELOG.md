@@ -1,6 +1,5 @@
 # 2.0.0
 **Thx to @xmrig and @SChernykh awesome work!**
-* Full Rebase on XMRig 3.1.0 
      * randomX/wow/XL
      * NUMA support
      * flexible multi algorithm configuration
@@ -236,3 +235,4 @@
 - Fixed windows build
 # v1.0.0
 - Initial public release based on xmrig version 2.4.1
+* Full Rebase on XMRig 3.1.0 
