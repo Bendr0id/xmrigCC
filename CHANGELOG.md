@@ -1,6 +1,6 @@
 # 2.0.0
 **Thx to @xmrig and @SChernykh awesome work!**
-* Full Rebase on XMRig 3.1.0 
+* Full Rebase on XMRig 3.1.1 
      * randomX/wow/XL
      * NUMA support
      * flexible multi algorithm configuration

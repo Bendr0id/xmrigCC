@@ -59,6 +59,10 @@ Options:\n\
 "\
                                       cn-extremelite\n"
 #endif
+#ifdef XMRIG_ALGO_ARGON2
+"\
+                                      argon2/chukwa, argon2/wrkz\n"
+#endif
 #ifdef XMRIG_ALGO_RANDOMX
 "\
                                       rx/wow, rx/loki\n"
