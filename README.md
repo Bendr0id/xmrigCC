@@ -132,7 +132,7 @@ xmrigDaemon -o pool.hashvault.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_
                                       cn-pico
                                       cn-extremelite
                                       argon2/chukwa, argon2/wrkz
-                                      rx/wow, rx/loki
+                                      rx/wow, rx/loki, rx/arq
       --coin=COIN                   specify coin instead of algorithm                                      
   -o, --url=URL                     URL of mining server
   -O, --userpass=U:P                username:password pair for mining server
