@@ -40,23 +40,20 @@ xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 {
     switch (algorithm) {
-        case Algorithm::RX_WOW:
-            return &RandomX_WowneroConfig;
+    case Algorithm::RX_WOW:
+        return &RandomX_WowneroConfig;
 
-        case Algorithm::RX_LOKI:
-            return &RandomX_LokiConfig;
+    case Algorithm::RX_LOKI:
+        return &RandomX_LokiConfig;
 
-        case Algorithm::RX_ARQ:
-            return &RandomX_ArqmaConfig;
+    case Algorithm::RX_ARQ:
+        return &RandomX_ArqmaConfig;
 
-        case Algorithm::RX_SFX:
-            return &RandomX_SafexConfig;
+    case Algorithm::RX_SFX:
+        return &RandomX_SafexConfig;
 
-        case Algorithm::RX_V:
-            return &RandomX_VConfig;
-
-        default:
-            break;
+    default:
+        break;
     }
 
     return &RandomX_MoneroConfig;

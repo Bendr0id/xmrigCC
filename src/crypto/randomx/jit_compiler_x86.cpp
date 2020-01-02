@@ -36,6 +36,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "crypto/rx/Rx.h"
 
 #ifdef _MSC_VER
 #   include <intrin.h>
@@ -89,7 +90,6 @@ namespace randomx {
 	const uint8_t* codeLoopBegin = (uint8_t*)&randomx_program_loop_begin;
 	const uint8_t* codeLoopLoad = (uint8_t*)&randomx_program_loop_load;
 	const uint8_t* codeProgamStart = (uint8_t*)&randomx_program_start;
-	const uint8_t* codeReadDataset = (uint8_t*)&randomx_program_read_dataset;
 	const uint8_t* codeReadDatasetLightSshInit = (uint8_t*)&randomx_program_read_dataset_sshash_init;
 	const uint8_t* codeReadDatasetLightSshFin = (uint8_t*)&randomx_program_read_dataset_sshash_fin;
 	const uint8_t* codeDatasetInit = (uint8_t*)&randomx_dataset_init;
@@ -105,7 +105,6 @@ namespace randomx {
 	const int32_t prefetchScratchpadSize = codePrefetchScratchpadEnd - codePrefetchScratchpad;
 	const int32_t prologueSize = codeLoopBegin - codePrologue;
 	const int32_t loopLoadSize = codeProgamStart - codeLoopLoad;
-	const int32_t readDatasetSize = codeReadDatasetLightSshInit - codeReadDataset;
 	const int32_t readDatasetLightInitSize = codeReadDatasetLightSshFin - codeReadDatasetLightSshInit;
 	const int32_t readDatasetLightFinSize = codeLoopStore - codeReadDatasetLightSshFin;
 	const int32_t loopStoreSize = codeLoopEnd - codeLoopStore;
@@ -170,7 +169,8 @@ namespace randomx {
 	static const uint8_t REX_MAXPD[] = { 0x66, 0x41, 0x0f, 0x5f };
 	static const uint8_t REX_DIVPD[] = { 0x66, 0x41, 0x0f, 0x5e };
 	static const uint8_t SQRTPD[] = { 0x66, 0x0f, 0x51 };
-	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x44, 0x24, 0xFC, 0x0F, 0xAE, 0x54, 0x24, 0xFC };
+	static const uint8_t AND_OR_MOV_LDMXCSR[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
+	static const uint8_t AND_OR_MOV_LDMXCSR_RYZEN[] = { 0x25, 0x00, 0x60, 0x00, 0x00, 0x0D, 0xC0, 0x9F, 0x00, 0x00, 0x3B, 0x04, 0x24, 0x74, 0x07, 0x89, 0x04, 0x24, 0x0F, 0xAE, 0x14, 0x24 };
 	static const uint8_t ROL_RAX[] = { 0x48, 0xc1, 0xc0 };
 	static const uint8_t XOR_ECX_ECX[] = { 0x33, 0xC9 };
 	static const uint8_t REX_CMP_R32I[] = { 0x41, 0x81 };
@@ -230,18 +230,18 @@ namespace randomx {
 		return codePos < prologueSize ? 0 : codePos - prologueSize;
 	}
 
-	static inline void cpuid(uint32_t level, int32_t output[4])
-	{
-		memset(output, 0, sizeof(int32_t) * 4);
+    static inline void cpuid(uint32_t level, int32_t output[4])
+    {
+        memset(output, 0, sizeof(int32_t) * 4);
 
 #   ifdef _MSC_VER
-		__cpuid(output, static_cast<int>(level));
+        __cpuid(output, static_cast<int>(level));
 #   else
-		__cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
+        __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
 #   endif
-	}
+    }
 
-	// CPU-specific tweaks
+    // CPU-specific tweaks
 	void JitCompilerX86::applyTweaks() {
 		int32_t info[4];
 		cpuid(0, info);
@@ -290,6 +290,11 @@ namespace randomx {
 
 	JitCompilerX86::JitCompilerX86() {
 		applyTweaks();
+
+		int32_t info[4];
+		cpuid(1, info);
+		hasAVX = ((info[2] & (1 << 27)) != 0) && ((info[2] & (1 << 28)) != 0);
+
 		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2);
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(59 * 64) % CodeSize);
@@ -301,10 +306,24 @@ namespace randomx {
 		freePagedMemory(allocatedCode, CodeSize);
 	}
 
-	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg) {
+	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
+		vm_flags = flags;
+
 		generateProgramPrologue(prog, pcfg);
-		memcpy(code + codePos, RandomX_CurrentConfig.codeReadDatasetTweaked, readDatasetSize);
-		codePos += readDatasetSize;
+
+		uint8_t* p;
+		uint32_t n;
+		if (flags & RANDOMX_FLAG_RYZEN) {
+			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
+		}
+		else {
+			p = RandomX_CurrentConfig.codeReadDatasetTweaked;
+			n = RandomX_CurrentConfig.codeReadDatasetTweakedSize;
+		}
+		memcpy(code + codePos, p, n);
+		codePos += n;
+
 		generateProgramEpilogue(prog, pcfg);
 	}
 
@@ -361,6 +380,14 @@ namespace randomx {
 		code[codePos + 5] = 0xc0 + pcfg.readReg1;
 		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		if (hasAVX) {
+			uint32_t* p = (uint32_t*)(code + codePos + 32);
+			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
+		}
+
+#		ifdef XMRIG_FIX_RYZEN
+		xmrig::Rx::setMainLoopBounds(code + prologueSize, code + epilogueOffset);
+#		endif
 
 		codePos = prologueSize;
 		memcpy(code + codePos - 48, &pcfg.eMask, sizeof(pcfg.eMask));
@@ -421,94 +448,94 @@ namespace randomx {
 	void JitCompilerX86::generateSuperscalarCode(Instruction& instr, std::vector<uint64_t> &reciprocalCache) {
 		switch ((SuperscalarInstructionType)instr.opcode)
 		{
-			case randomx::SuperscalarInstructionType::ISUB_R:
-				emit(REX_SUB_RR, code, codePos);
-				emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IXOR_R:
-				emit(REX_XOR_RR, code, codePos);
-				emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IADD_RS:
-				emit(REX_LEA, code, codePos);
-				emitByte(0x04 + 8 * instr.dst, code, codePos);
-				genSIB(instr.getModShift(), instr.src, instr.dst, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IMUL_R:
-				emit(REX_IMUL_RR, code, codePos);
-				emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IROR_C:
-				emit(REX_ROT_I8, code, codePos);
-				emitByte(0xc8 + instr.dst, code, codePos);
-				emitByte(instr.getImm32() & 63, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IADD_C7:
-				emit(REX_81, code, codePos);
-				emitByte(0xc0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IXOR_C7:
-				emit(REX_XOR_RI, code, codePos);
-				emitByte(0xf0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IADD_C8:
-				emit(REX_81, code, codePos);
-				emitByte(0xc0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
+		case randomx::SuperscalarInstructionType::ISUB_R:
+			emit(REX_SUB_RR, code, codePos);
+			emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IXOR_R:
+			emit(REX_XOR_RR, code, codePos);
+			emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IADD_RS:
+			emit(REX_LEA, code, codePos);
+			emitByte(0x04 + 8 * instr.dst, code, codePos);
+			genSIB(instr.getModShift(), instr.src, instr.dst, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IMUL_R:
+			emit(REX_IMUL_RR, code, codePos);
+			emitByte(0xc0 + 8 * instr.dst + instr.src, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IROR_C:
+			emit(REX_ROT_I8, code, codePos);
+			emitByte(0xc8 + instr.dst, code, codePos);
+			emitByte(instr.getImm32() & 63, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IADD_C7:
+			emit(REX_81, code, codePos);
+			emitByte(0xc0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IXOR_C7:
+			emit(REX_XOR_RI, code, codePos);
+			emitByte(0xf0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IADD_C8:
+			emit(REX_81, code, codePos);
+			emitByte(0xc0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
 #ifdef RANDOMX_ALIGN
-				emit(NOP1, code, codePos);
+			emit(NOP1, code, codePos);
 #endif
-				break;
-			case randomx::SuperscalarInstructionType::IXOR_C8:
-				emit(REX_XOR_RI, code, codePos);
-				emitByte(0xf0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IXOR_C8:
+			emit(REX_XOR_RI, code, codePos);
+			emitByte(0xf0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
 #ifdef RANDOMX_ALIGN
-				emit(NOP1, code, codePos);
+			emit(NOP1, code, codePos);
 #endif
-				break;
-			case randomx::SuperscalarInstructionType::IADD_C9:
-				emit(REX_81, code, codePos);
-				emitByte(0xc0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IADD_C9:
+			emit(REX_81, code, codePos);
+			emitByte(0xc0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
 #ifdef RANDOMX_ALIGN
-				emit(NOP2, code, codePos);
+			emit(NOP2, code, codePos);
 #endif
-				break;
-			case randomx::SuperscalarInstructionType::IXOR_C9:
-				emit(REX_XOR_RI, code, codePos);
-				emitByte(0xf0 + instr.dst, code, codePos);
-				emit32(instr.getImm32(), code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IXOR_C9:
+			emit(REX_XOR_RI, code, codePos);
+			emitByte(0xf0 + instr.dst, code, codePos);
+			emit32(instr.getImm32(), code, codePos);
 #ifdef RANDOMX_ALIGN
-				emit(NOP2, code, codePos);
+			emit(NOP2, code, codePos);
 #endif
-				break;
-			case randomx::SuperscalarInstructionType::IMULH_R:
-				emit(REX_MOV_RR64, code, codePos);
-				emitByte(0xc0 + instr.dst, code, codePos);
-				emit(REX_MUL_R, code, codePos);
-				emitByte(0xe0 + instr.src, code, codePos);
-				emit(REX_MOV_R64R, code, codePos);
-				emitByte(0xc2 + 8 * instr.dst, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::ISMULH_R:
-				emit(REX_MOV_RR64, code, codePos);
-				emitByte(0xc0 + instr.dst, code, codePos);
-				emit(REX_MUL_R, code, codePos);
-				emitByte(0xe8 + instr.src, code, codePos);
-				emit(REX_MOV_R64R, code, codePos);
-				emitByte(0xc2 + 8 * instr.dst, code, codePos);
-				break;
-			case randomx::SuperscalarInstructionType::IMUL_RCP:
-				emit(MOV_RAX_I, code, codePos);
-				emit64(reciprocalCache[instr.getImm32()], code, codePos);
-				emit(REX_IMUL_RM, code, codePos);
-				emitByte(0xc0 + 8 * instr.dst, code, codePos);
-				break;
-			default:
-				UNREACHABLE;
+			break;
+		case randomx::SuperscalarInstructionType::IMULH_R:
+			emit(REX_MOV_RR64, code, codePos);
+			emitByte(0xc0 + instr.dst, code, codePos);
+			emit(REX_MUL_R, code, codePos);
+			emitByte(0xe0 + instr.src, code, codePos);
+			emit(REX_MOV_R64R, code, codePos);
+			emitByte(0xc2 + 8 * instr.dst, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::ISMULH_R:
+			emit(REX_MOV_RR64, code, codePos);
+			emitByte(0xc0 + instr.dst, code, codePos);
+			emit(REX_MUL_R, code, codePos);
+			emitByte(0xe8 + instr.src, code, codePos);
+			emit(REX_MOV_R64R, code, codePos);
+			emitByte(0xc2 + 8 * instr.dst, code, codePos);
+			break;
+		case randomx::SuperscalarInstructionType::IMUL_RCP:
+			emit(MOV_RAX_I, code, codePos);
+			emit64(reciprocalCache[instr.getImm32()], code, codePos);
+			emit(REX_IMUL_RM, code, codePos);
+			emitByte(0xc0 + 8 * instr.dst, code, codePos);
+			break;
+		default:
+			UNREACHABLE;
 		}
 	}
 
@@ -588,7 +615,7 @@ namespace randomx {
 	void JitCompilerX86::h_IADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<true>(instr, p, pos);
 			emit32(template_IADD_M[instr.dst], p, pos);
@@ -610,7 +637,7 @@ namespace randomx {
 	void JitCompilerX86::h_ISUB_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			emit(REX_SUB_RR, p, pos);
 			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
@@ -628,7 +655,7 @@ namespace randomx {
 	void JitCompilerX86::h_ISUB_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<true>(instr, p, pos);
 			emit(REX_SUB_RM, p, pos);
@@ -648,7 +675,7 @@ namespace randomx {
 	void JitCompilerX86::h_IMUL_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			emit(REX_IMUL_RR, p, pos);
 			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
@@ -666,7 +693,7 @@ namespace randomx {
 	void JitCompilerX86::h_IMUL_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<true>(instr, p, pos);
 			emit(REX_IMUL_RM, p, pos);
@@ -701,7 +728,7 @@ namespace randomx {
 	void JitCompilerX86::h_IMULH_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<false>(instr, p, pos);
 			emit(REX_MOV_RR64, p, pos);
@@ -725,7 +752,7 @@ namespace randomx {
 	void JitCompilerX86::h_ISMULH_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		emit(REX_MOV_RR64, p, pos);
 		emitByte(0xc0 + instr.dst, p, pos);
 		emit(REX_MUL_R, p, pos);
@@ -740,7 +767,7 @@ namespace randomx {
 	void JitCompilerX86::h_ISMULH_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<false>(instr, p, pos);
 			emit(REX_MOV_RR64, p, pos);
@@ -764,7 +791,7 @@ namespace randomx {
 	void JitCompilerX86::h_IMUL_RCP(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		uint64_t divisor = instr.getImm32();
 		if (!isZeroOrPowerOf2(divisor)) {
 			emit(MOV_RAX_I, p, pos);
@@ -780,7 +807,7 @@ namespace randomx {
 	void JitCompilerX86::h_INEG_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		emit(REX_NEG, p, pos);
 		emitByte(0xd8 + instr.dst, p, pos);
 
@@ -791,7 +818,7 @@ namespace randomx {
 	void JitCompilerX86::h_IXOR_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			emit(REX_XOR_RR, p, pos);
 			emitByte(0xc0 + 8 * instr.dst + instr.src, p, pos);
@@ -809,7 +836,7 @@ namespace randomx {
 	void JitCompilerX86::h_IXOR_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			genAddressReg<true>(instr, p, pos);
 			emit(REX_XOR_RM, p, pos);
@@ -829,7 +856,7 @@ namespace randomx {
 	void JitCompilerX86::h_IROR_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			emit(REX_MOV_RR, p, pos);
 			emitByte(0xc8 + instr.src, p, pos);
@@ -869,7 +896,7 @@ namespace randomx {
 	void JitCompilerX86::h_ISWAP_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		if (instr.src != instr.dst) {
 			emit(REX_XCHG, p, pos);
 			emitByte(0xc0 + instr.src + 8 * instr.dst, p, pos);
@@ -883,7 +910,7 @@ namespace randomx {
 	void JitCompilerX86::h_FSWAP_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		emit(SHUFPD, p, pos);
 		emitByte(0xc0 + 9 * instr.dst, p, pos);
 		emitByte(1, p, pos);
@@ -906,7 +933,7 @@ namespace randomx {
 	void JitCompilerX86::h_FADD_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		genAddressReg<true>(instr, p, pos);
 		emit(REX_CVTDQ2PD_XMM12, p, pos);
@@ -919,7 +946,7 @@ namespace randomx {
 	void JitCompilerX86::h_FSUB_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		const uint32_t src = instr.src % RegisterCountFlt;
 		emit(REX_SUBPD, p, pos);
@@ -931,7 +958,7 @@ namespace randomx {
 	void JitCompilerX86::h_FSUB_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		genAddressReg<true>(instr, p, pos);
 		emit(REX_CVTDQ2PD_XMM12, p, pos);
@@ -944,7 +971,7 @@ namespace randomx {
 	void JitCompilerX86::h_FSCAL_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		emit(REX_XORPS, p, pos);
 		emitByte(0xc7 + 8 * dst, p, pos);
@@ -955,7 +982,7 @@ namespace randomx {
 	void JitCompilerX86::h_FMUL_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		const uint32_t src = instr.src % RegisterCountFlt;
 		emit(REX_MULPD, p, pos);
@@ -967,7 +994,7 @@ namespace randomx {
 	void JitCompilerX86::h_FDIV_M(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		genAddressReg<true>(instr, p, pos);
 		emit(REX_CVTDQ2PD_XMM12, p, pos);
@@ -981,7 +1008,7 @@ namespace randomx {
 	void JitCompilerX86::h_FSQRT_R(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 		emit(SQRTPD, p, pos);
 		emitByte(0xe4 + 9 * dst, p, pos);
@@ -1000,7 +1027,12 @@ namespace randomx {
 			emit(ROL_RAX, p, pos);
 			emitByte(rotate, p, pos);
 		}
-		emit(AND_OR_MOV_LDMXCSR, p, pos);
+		if (vm_flags & RANDOMX_FLAG_RYZEN) {
+			emit(AND_OR_MOV_LDMXCSR_RYZEN, p, pos);
+		}
+		else {
+			emit(AND_OR_MOV_LDMXCSR, p, pos);
+		}
 
 		codePos = pos;
 	}
@@ -1008,7 +1040,7 @@ namespace randomx {
 	void JitCompilerX86::h_CBRANCH(const Instruction& instr) {
 		uint8_t* const p = code;
 		int pos = codePos;
-
+		
 		const int reg = instr.dst;
 		int32_t jmp_offset = registerUsage[reg] - (pos + 16);
 

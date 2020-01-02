@@ -108,7 +108,7 @@ namespace randomx {
 	class JitCompilerX86;
 	using JitCompiler = JitCompilerX86;
 #elif defined(__aarch64__)
-	#define RANDOMX_HAVE_COMPILER 0
+	#define RANDOMX_HAVE_COMPILER 1
 	class JitCompilerA64;
 	using JitCompiler = JitCompilerA64;
 #else
@@ -167,7 +167,5 @@ namespace randomx {
 	typedef void(ProgramFunc)(RegisterFile&, MemoryRegisters&, uint8_t* /* scratchpad */, uint64_t);
 	typedef void(DatasetInitFunc)(randomx_cache* cache, uint8_t* dataset, uint32_t startBlock, uint32_t endBlock);
 
-	typedef void(DatasetDeallocFunc)(randomx_dataset*);
-	typedef void(CacheDeallocFunc)(randomx_cache*);
 	typedef void(CacheInitializeFunc)(randomx_cache*, const void*, size_t);
 }

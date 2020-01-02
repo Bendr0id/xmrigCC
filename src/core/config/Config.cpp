@@ -65,10 +65,6 @@ bool xmrig::Config::isShouldSave() const
         return false;
     }
 
-    if (version() < kVersion) {
-        return true;
-    }
-
     return (m_shouldSave || m_upgrade || m_cpu.isShouldSave());
 }
 
@@ -79,7 +75,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_cpu.read(reader.getValue(kCPU), version());
+    m_cpu.read(reader.getValue(kCPU));
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (!m_rx.read(reader.getValue(kRandomX))) {
@@ -112,7 +108,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember("autosave",          isAutoSave(), allocator);
     doc.AddMember("version",           kVersion, allocator);
     doc.AddMember("background",        isBackground(), allocator);
-    doc.AddMember("colors",            Log::colors, allocator);
+    doc.AddMember("colors",            Log::isColors(), allocator);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     doc.AddMember(StringRef(kRandomX), m_rx.toJSON(doc), allocator);

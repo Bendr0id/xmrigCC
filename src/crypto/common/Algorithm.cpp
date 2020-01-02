@@ -24,24 +24,21 @@
  */
 
 
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "crypto/common/Algorithm.h"
 
 
 #include "crypto/cn/CnAlgo.h"
-#include "crypto/common/Algorithm.h"
 #include "rapidjson/document.h"
+
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 
 #ifdef _MSC_VER
 #   define strcasecmp  _stricmp
-#endif
-
-
-#ifndef ARRAY_SIZE
-#   define ARRAY_SIZE(arr) (sizeof(arr) / sizeof((arr)[0]))
 #endif
 
 
@@ -67,7 +64,6 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight_v8",            nullptr,            Algorithm::CN_2            },
     { "cryptonight/r",             "cn/r",             Algorithm::CN_R            },
     { "cryptonight_r",             nullptr,            Algorithm::CN_R            },
-    { "cryptonight/wow",           "cn/wow",           Algorithm::CN_WOW          },
     { "cryptonight/fast",          "cn/fast",          Algorithm::CN_FAST         },
     { "cryptonight/msr",           "cn/msr",           Algorithm::CN_FAST         },
     { "cryptonight/half",          "cn/half",          Algorithm::CN_HALF         },
@@ -107,6 +103,10 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO_0       },
     { "cryptonight-ultralite",     "cn-ultralite",     Algorithm::CN_PICO_0       },
     { "cryptonight_turtle",        "cn_turtle",        Algorithm::CN_PICO_0       },
+    { "cryptonight-pico/tlo",      "cn-pico/tlo",      Algorithm::CN_PICO_TLO     },
+    { "cryptonight/ultra",         "cn/ultra",         Algorithm::CN_PICO_TLO     },
+    { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_PICO_TLO     },
+    { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_PICO_TLO     },
 #   endif
 #   ifdef XMRIG_ALGO_CN_EXTREMELITE
     { "cryptonight-extremelite/upx2", "cn-extremelite/upx2", Algorithm::CN_EXTREMELITE_0 },
@@ -127,7 +127,6 @@ static AlgoName const algorithm_names[] = {
     { "RandomARQ",                 nullptr,            Algorithm::RX_ARQ          },
     { "randomx/sfx",               "rx/sfx",           Algorithm::RX_SFX          },
     { "RandomSFX",                 nullptr,            Algorithm::RX_SFX          },
-    { "RandomV",                   "rx/v",             Algorithm::RX_V          },
 #   endif
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
@@ -159,7 +158,6 @@ size_t xmrig::Algorithm::l2() const
     case RX_0:
     case RX_LOKI:
     case RX_SFX:
-    case RX_V:
         return 0x40000;
 
     case RX_WOW:
@@ -179,7 +177,9 @@ size_t xmrig::Algorithm::l2() const
 
 size_t xmrig::Algorithm::l3() const
 {
+#   if defined(XMRIG_ALGO_RANDOMX) || defined(XMRIG_ALGO_ARGON2)
     constexpr size_t oneMiB = 0x100000;
+#   endif
 
     const Family f = family();
     assert(f != UNKNOWN);
@@ -194,7 +194,6 @@ size_t xmrig::Algorithm::l3() const
         case RX_0:
         case RX_LOKI:
         case RX_SFX:
-        case RX_V:
             return oneMiB * 2;
 
         case RX_WOW:
@@ -259,7 +258,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_1:
     case CN_2:
     case CN_R:
-    case CN_WOW:
     case CN_FAST:
     case CN_HALF:
     case CN_XAO:
@@ -272,7 +270,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_GPU:
 #   endif
         return CN;
-
+        
 #   ifdef XMRIG_ALGO_CN_LITE
     case CN_LITE_0:
     case CN_LITE_1:
@@ -288,6 +286,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
 #   ifdef XMRIG_ALGO_CN_PICO
     case CN_PICO_0:
+    case CN_PICO_TLO:
         return CN_PICO;
 #   endif
 
@@ -302,7 +301,6 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_LOKI:
     case RX_ARQ:
     case RX_SFX:
-    case RX_V:
         return RANDOM_X;
 #   endif
 
@@ -312,9 +310,8 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
         return ARGON2;
 #   endif
 
-    case INVALID:
-    case MAX:
-        return UNKNOWN;
+    default:
+        break;
     }
 
     return UNKNOWN;
@@ -327,9 +324,9 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
         return INVALID;
     }
 
-    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
-        if ((strcasecmp(name, algorithm_names[i].name) == 0) || (algorithm_names[i].shortName != nullptr && strcasecmp(name, algorithm_names[i].shortName) == 0)) {
-            return algorithm_names[i].id;
+    for (const AlgoName &item : algorithm_names) {
+        if ((strcasecmp(name, item.name) == 0) || (item.shortName != nullptr && strcasecmp(name, item.shortName) == 0)) {
+            return item.id;
         }
     }
 
@@ -339,9 +336,9 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
 
 const char *xmrig::Algorithm::name(bool shortName) const
 {
-    for (size_t i = 0; i < ARRAY_SIZE(algorithm_names); i++) {
-        if (algorithm_names[i].id == m_id) {
-            return (shortName && algorithm_names[i].shortName) ? algorithm_names[i].shortName : algorithm_names[i].name;
+    for (const AlgoName &item : algorithm_names) {
+        if (item.id == m_id) {
+            return (shortName && item.shortName) ? item.shortName : item.name;
         }
     }
 

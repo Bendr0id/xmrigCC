@@ -39,13 +39,16 @@ namespace xmrig {
 class Algorithm
 {
 public:
+    // Changes in following file is required if this enum changed:
+    //
+    // src/backend/opencl/cl/cn/algorithm.cl
+    //
     enum Id : int {
         INVALID = -1,
         CN_0,          // "cn/0"             CryptoNight (original).
         CN_1,          // "cn/1"             CryptoNight variant 1 also known as Monero7 and CryptoNightV7.
         CN_2,          // "cn/2"             CryptoNight variant 2.
         CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
-        CN_WOW,        // "cn/wow"           CryptoNightR (Wownero).
         CN_FAST,       // "cn/fast"          CryptoNight variant 1 with half iterations.
         CN_HALF,       // "cn/half"          CryptoNight variant 2 with half iterations (Masari/Torque).
         CN_XAO,        // "cn/xao"           CryptoNight variant 0 (modified, Alloy only).
@@ -54,36 +57,22 @@ public:
         CN_ZLS,        // "cn/zls"           CryptoNight variant 2 with 3/4 iterations (Zelerius).
         CN_DOUBLE,     // "cn/double"        CryptoNight variant 2 with double iterations (X-CASH).
         CN_CONCEAL,    // "cn/conceal"       CryptoNight variant 0 (modified, Conceal only).
-#       ifdef XMRIG_ALGO_CN_GPU
         CN_GPU,        // "cn/gpu"           CryptoNight-GPU (Ryo).
-#       endif
-#       ifdef XMRIG_ALGO_CN_LITE
         CN_LITE_0,     // "cn-lite/0"        CryptoNight-Lite variant 0.
         CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
         CN_HEAVY_0,    // "cn-heavy/0"       CryptoNight-Heavy (4 MB).
         CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
         CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
-#       endif
-#       ifdef XMRIG_ALGO_CN_PICO
-        CN_PICO_0,     // "cn-pico"          CryptoNight Turtle (TRTL)
-#       endif
-#       ifdef XMRIG_ALGO_CN_EXTREMELITE
-        CN_EXTREMELITE_0, // "cn-extremelite" CryptoNight UPX
-#       endif
-#       ifdef XMRIG_ALGO_RANDOMX
+        CN_PICO_0,     // "cn-pico"          CryptoNight-Pico
+        CN_PICO_TLO,   // "cn-pico/tlo"      CryptoNight-Pico (TLO)
+        CN_EXTREMELITE_0,// "cn-extremelite" CryptoNight-Extremelite (UPX)
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_LOKI,       // "rx/loki"          RandomXL (Loki).
         RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
-        RX_SFX,        // "rx/sfx"           RandomSFX (Safex).
-        RX_V,          // "rx/v"             RandomV (MoneroV).
-#       endif
-#       ifdef XMRIG_ALGO_ARGON2
-        AR2_CHUKWA,    // "argon2/chukwa"
-        AR2_WRKZ,      // "argon2/wrkz"
-#       endif
+        RX_SFX,        // "rx/sfx"           RandomSFX (Safex Cash).
+        AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
+        AR2_WRKZ,      // "argon2/wrkz"      Argon2id (WRKZ)
         MAX
     };
 
@@ -98,10 +87,11 @@ public:
         ARGON2
     };
 
-    inline Algorithm()                                     {}
+    inline Algorithm() = default;
     inline Algorithm(const char *algo) : m_id(parse(algo)) {}
     inline Algorithm(Id id) : m_id(id)                     {}
 
+    inline bool isCN() const                          { auto f = family(); return f == CN || f == CN_LITE || f == CN_HEAVY || f == CN_PICO || f == CN_EXTREMELITE; }
     inline bool isEqual(const Algorithm &other) const { return m_id == other.m_id; }
     inline bool isValid() const                       { return m_id != INVALID; }
     inline const char *name() const                   { return name(false); }
@@ -130,7 +120,7 @@ private:
 };
 
 
-typedef std::vector<Algorithm> Algorithms;
+using Algorithms = std::vector<Algorithm>;
 
 
 } /* namespace xmrig */

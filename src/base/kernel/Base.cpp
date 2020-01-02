@@ -208,7 +208,7 @@ int xmrig::Base::init()
 #   endif
 
     if (config()->isBackground()) {
-        Log::background = true;
+        Log::setBackground(true);
     }
     else {
         Log::add(new ConsoleLog());

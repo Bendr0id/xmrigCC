@@ -24,7 +24,7 @@
  */
 
 
-#include <assert.h>
+#include <cassert>
 #include <thread>
 
 
@@ -43,37 +43,39 @@
 #   include "crypto/randomx/randomx.h"
 #endif
 
+
 namespace xmrig {
 
-static constexpr uint32_t kReserveCount = 4096;
+static constexpr uint32_t kReserveCount = 32768;
 
 } // namespace xmrig
 
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::CpuWorker(size_t index, const CpuLaunchData &data) :
-    Worker(index, data.affinity, data.priority),
+xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
+    Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
+    m_yield(data.yield),
     m_av(data.av()),
     m_miner(data.miner),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages);
+    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
 }
 
 
 template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
-    CnCtx::release(m_ctx, N);
-    delete m_memory;
-
 #   ifdef XMRIG_ALGO_RANDOMX
     delete m_vm;
 #   endif
+
+    CnCtx::release(m_ctx, N);
+    delete m_memory;
 }
 
 
@@ -94,7 +96,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
 
     if (!m_vm) {
-        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES);
+        m_vm = new RxVm(dataset, m_memory->scratchpad(), !m_hwAES, m_assembly);
     }
 }
 #endif
@@ -112,18 +114,17 @@ bool xmrig::CpuWorker<N>::selfTest()
     allocateCnCtx();
 
     if (m_algorithm.family() == Algorithm::CN) {
-        const bool rc = verify(Algorithm::CN_0,       test_output_v0)   &&
-                        verify(Algorithm::CN_1,       test_output_v1)   &&
-                        verify(Algorithm::CN_2,       test_output_v2)   &&
-                        verify(Algorithm::CN_FAST,    test_output_msr)  &&
-                        verify(Algorithm::CN_XAO,     test_output_xao)  &&
-                        verify(Algorithm::CN_RTO,     test_output_rto)  &&
-                        verify(Algorithm::CN_HALF,    test_output_half) &&
-                        verify2(Algorithm::CN_WOW,    test_output_wow)  &&
-                        verify2(Algorithm::CN_R,      test_output_r)    &&
-                        verify(Algorithm::CN_RWZ,     test_output_rwz)  &&
-                        verify(Algorithm::CN_ZLS,     test_output_zls)  &&
-                        verify(Algorithm::CN_DOUBLE,  test_output_double);
+        const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
+                        verify(Algorithm::CN_1,      test_output_v1)   &&
+                        verify(Algorithm::CN_2,      test_output_v2)   &&
+                        verify(Algorithm::CN_FAST,   test_output_msr)  &&
+                        verify(Algorithm::CN_XAO,    test_output_xao)  &&
+                        verify(Algorithm::CN_RTO,    test_output_rto)  &&
+                        verify(Algorithm::CN_HALF,   test_output_half) &&
+                        verify2(Algorithm::CN_R,     test_output_r)    &&
+                        verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
+                        verify(Algorithm::CN_ZLS,    test_output_zls)  &&
+                        verify(Algorithm::CN_DOUBLE, test_output_double);
 
 #       ifdef XMRIG_ALGO_CN_GPU
         if (!rc || N > 1) {
@@ -194,6 +195,9 @@ void xmrig::CpuWorker<N>::start()
         uint64_t storeStatsMask = 7;
 
 #       ifdef XMRIG_ALGO_RANDOMX
+        bool first = true;
+        uint64_t tempHash[8] = {};
+
         // RandomX is faster, we don't need to store stats so often
         if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
             storeStatsMask = 63;
@@ -211,26 +215,38 @@ void xmrig::CpuWorker<N>::start()
                 break;
             }
 
+            uint32_t current_job_nonces[N];
+            for (size_t i = 0; i < N; ++i) {
+                current_job_nonces[i] = *m_job.nonce(i);
+            }
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                randomx_calculate_hash(m_vm->get(), m_job.blob(), job.size(), m_hash);
+                if (first) {
+                    first = false;
+                    randomx_calculate_hash_first(m_vm->get(), tempHash, m_job.blob(), job.size());
+                }
+                m_job.nextRound(kReserveCount, 1);
+                randomx_calculate_hash_next(m_vm->get(), tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif
             {
                 fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                m_job.nextRound(kReserveCount, 1);
             }
 
             for (size_t i = 0; i < N; ++i) {
                 if (*reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24) < job.target()) {
-                    JobResults::submit(JobResult(job, *m_job.nonce(i), m_hash + (i * 32)));
+                    JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
                 }
             }
 
-            m_job.nextRound(kReserveCount);
             m_count += N;
 
-            std::this_thread::yield();
+            if (m_yield) {
+                std::this_thread::yield();
+            }
         }
 
         consumeJob();
@@ -314,7 +330,11 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
 template<size_t N>
 void xmrig::CpuWorker<N>::consumeJob()
 {
-    m_job.add(m_miner->job(), Nonce::sequence(Nonce::CPU), kReserveCount);
+    if (Nonce::sequence(Nonce::CPU) == 0) {
+        return;
+    }
+
+    m_job.add(m_miner->job(), kReserveCount, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {

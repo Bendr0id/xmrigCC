@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 project(xmrig)
 
-#set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Release")
 
 find_program(CCACHE_PROGRAM ccache)
 if(CCACHE_PROGRAM)
@@ -24,6 +24,7 @@ option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ZLIB            "Enabled gzip compression on CC (client/server)" OFF)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
+option(WITH_MSR             "Enable MSR support" ON)
 option(WITH_CC_CLIENT       "CC Client" ON)
 option(WITH_CC_SERVER       "CC Server" ON)
 option(WITH_HTTPLIB_POLL    "Use poll.h (recommended) instead of old plain sockets for HTTP" ON)
@@ -45,9 +46,9 @@ endif(NOT DAEMON_EXECUTABLE_NAME)
 
 include (CheckIncludeFile)
 include (cmake/cpu.cmake)
+include (cmake/os.cmake)
 include (src/base/base.cmake)
 include (src/backend/backend.cmake)
-
 
 set(HEADERS
     "${HEADERS_BASE}"
@@ -89,7 +90,9 @@ set(HEADERS_CRYPTO
     src/crypto/cn/soft_aes.h
     src/crypto/common/Algorithm.h
     src/crypto/common/Coin.h
+    src/crypto/common/HugePagesInfo.h
     src/crypto/common/keccak.h
+    src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
@@ -127,40 +130,58 @@ set(SOURCES_CRYPTO
     src/crypto/cn/CnHash.cpp
     src/crypto/common/Algorithm.cpp
     src/crypto/common/Coin.cpp
+    src/crypto/common/HugePagesInfo.cpp
     src/crypto/common/keccak.cpp
+    src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
+    src/crypto/common/Algorithm.cpp
    )
 
-if (WIN32)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+if (WITH_HWLOC)
+    list(APPEND HEADERS_CRYPTO
+            src/crypto/common/NUMAMemoryPool.h
+            )
+
+    list(APPEND SOURCES_CRYPTO
+            src/crypto/common/NUMAMemoryPool.cpp
+            src/crypto/common/VirtualMemory_hwloc.cpp
+            )
+endif()
+
+if (XMRIG_OS_WIN)
+    list(APPEND SOURCES_OS
         res/app.rc
         src/App_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
-    add_definitions(/DWIN32)
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
-elseif (APPLE)
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+elseif (XMRIG_OS_APPLE)
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 else()
-    set(SOURCES_OS
-        "${SOURCES_OS}"
+    list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
-    if (CMAKE_SYSTEM_NAME STREQUAL FreeBSD)
-        set(EXTRA_LIBS kvm pthread)
-    else()
+    if (XMRIG_OS_ANDROID)
+        set(EXTRA_LIBS pthread rt dl log)
+    elseif (XMRIG_OS_LINUX)
+        list(APPEND SOURCES_OS
+            src/crypto/common/LinuxMemory.h
+            src/crypto/common/LinuxMemory.cpp
+            )
+
         set(EXTRA_LIBS pthread rt dl)
+    elseif (XMRIG_OS_FREEBSD)
+        set(EXTRA_LIBS kvm pthread)
     endif()
 endif()
+
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     EXECUTE_PROCESS(COMMAND uname -o COMMAND tr -d '\n' OUTPUT_VARIABLE OPERATING_SYSTEM)

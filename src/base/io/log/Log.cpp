@@ -31,10 +31,10 @@
 
 
 #include <algorithm>
+#include <cstring>
+#include <ctime>
 #include <mutex>
-#include <string.h>
 #include <string>
-#include <time.h>
 #include <uv.h>
 #include <vector>
 
@@ -42,6 +42,7 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/ILogBackend.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -67,10 +68,10 @@ static const char *colors_map[] = {
 class LogPrivate
 {
 public:
-    inline LogPrivate() :
-        m_buf()
-    {
-    }
+    XMRIG_DISABLE_COPY_MOVE(LogPrivate)
+
+
+    LogPrivate() = default;
 
 
     inline ~LogPrivate()
@@ -91,7 +92,7 @@ public:
 
         std::lock_guard<std::mutex> lock(m_mutex);
 
-        if (Log::background && m_backends.empty()) {
+        if (Log::isBackground() && m_backends.empty()) {
             return;
         }
 
@@ -134,7 +135,7 @@ private:
 
         const uint64_t ms = Chrono::currentMSecsSinceEpoch();
         time_t now        = ms / 1000;
-        tm stime;
+        tm stime{};
 
 #       ifdef _WIN32
         localtime_s(&stime, &now);
@@ -188,15 +189,16 @@ private:
     }
 
 
-    char m_buf[4096];
+    char m_buf[4096]{};
     std::mutex m_mutex;
     std::vector<ILogBackend*> m_backends;
 };
 
 
-bool Log::background = false;
-bool Log::colors     = true;
-LogPrivate *Log::d   = new LogPrivate();
+bool Log::m_background    = false;
+bool Log::m_colors        = true;
+LogPrivate *Log::d      = new LogPrivate();
+uint32_t Log::m_verbose   = 0;
 
 
 } /* namespace xmrig */

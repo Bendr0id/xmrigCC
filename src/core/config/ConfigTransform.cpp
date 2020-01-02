@@ -134,6 +134,12 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::CPUMaxThreadsKey: /* --cpu-max-threads-hint */
         return set(doc, kCpu, "max-threads-hint", static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
+    case IConfig::MemoryPoolKey: /* --cpu-memory-pool */
+        return set(doc, kCpu, "memory-pool", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::YieldKey: /* --cpu-no-yield */
+        return set(doc, kCpu, "yield", false);
+
 #   ifndef XMRIG_NO_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, kCpu, "asm", arg);
@@ -145,6 +151,19 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXNumaKey: /* --randomx-no-numa */
         return set(doc, kRandomX, "numa", false);
+
+    case IConfig::RandomXModeKey: /* --randomx-mode */
+        return set(doc, kRandomX, "mode", arg);
+
+    case IConfig::RandomXWrmsrKey: /* --randomx-wrmsr */
+        if (arg == nullptr) {
+            return set(doc, kRandomX, "wrmsr", true);
+        }
+
+    return set(doc, kRandomX, "wrmsr", static_cast<int64_t>(strtol(arg, nullptr, 10)));
+
+    case IConfig::RandomXRdmsrKey: /* --randomx-no-rdmsr */
+        return set(doc, kRandomX, "rdmsr", false);
 #   endif
 
     default:

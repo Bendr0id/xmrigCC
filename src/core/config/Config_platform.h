@@ -82,11 +82,22 @@ static const option options[] = {
     { "asm",                   1, nullptr, IConfig::AssemblyKey           },
     { "daemon",                0, nullptr, IConfig::DaemonKey             },
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
+#   ifdef XMRIG_ALGO_RANDOMX
     { "randomx-init",          1, nullptr, IConfig::RandomXInitKey        },
     { "randomx-no-numa",       0, nullptr, IConfig::RandomXNumaKey        },
+    { "randomx-mode",          1, nullptr, IConfig::RandomXModeKey        },
+    { "randomx-1gb-pages",     0, nullptr, IConfig::RandomX1GbPagesKey    },
+    { "1gb-pages",             0, nullptr, IConfig::RandomX1GbPagesKey    },
+    { "randomx-wrmsr",         2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "wrmsr",                 2, nullptr, IConfig::RandomXWrmsrKey       },
+    { "randomx-no-rdmsr",      0, nullptr, IConfig::RandomXRdmsrKey       },
+    { "no-rdmsr",              0, nullptr, IConfig::RandomXRdmsrKey       },
+#   endif
     { "max-cpu-usage",         1, nullptr, IConfig::CPUMaxThreadsKey      },
     { "cpu-max-threads-hint",  1, nullptr, IConfig::CPUMaxThreadsKey      },
-    // xmrigCC related
+    { "cpu-memory-pool",       1, nullptr, IConfig::MemoryPoolKey         },
+    { "cpu-no-yield",          0, nullptr, IConfig::YieldKey              },
+  // xmrigCC related
     { "daemonized",            0, nullptr, IConfig::CCDaemonizedKey       },
     { "cc-disabled",           0, nullptr, IConfig::CCEnabledKey          },
     { "cc-use-tls",            0, nullptr, IConfig::CCUseTLS              },

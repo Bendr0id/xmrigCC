@@ -53,7 +53,7 @@ Options:\n\
 #endif
 #ifdef XMRIG_ALGO_CN_PICO
 "\
-                                      cn-pico\n"
+                                      cn-pico, cn-pico/tlo\n"
 #endif
 #ifdef XMRIG_ALGO_CN_EXTREMELITE
 "\
@@ -65,7 +65,7 @@ Options:\n\
 #endif
 #ifdef XMRIG_ALGO_RANDOMX
 "\
-                                      rx/wow, rx/loki\n"
+                                      rx/0, rx/wow, rx/loki, rx/arq\n"
 #endif
 "\
       --coin=COIN                   specify coin instead of algorithm\n\
@@ -94,6 +94,8 @@ Options:\n\
       --cpu-affinity                set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n\
       --cpu-priority                set process priority (0 idle, 2 normal to 5 highest)\n\
       --cpu-max-threads-hint=N      maximum CPU threads count (in percentage) hint for autoconfig\n\
+      --cpu-memory-pool=N           number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n\
+      --cpu-no-yield                prefer maximum hashrate rather than system response/stability\n\
       --no-huge-pages               disable huge pages support\n\
       --no-color                    disable colored output\n\
       --donate-level=N              donate level, default 5%% (5 minutes in 100 minutes)\n\
@@ -121,7 +123,11 @@ Options:\n\
 #ifdef XMRIG_ALGO_RANDOMX
 "\
       --randomx-init=N              threads count to initialize RandomX dataset\n\
-      --randomx-no-numa             disable NUMA support for RandomX\n"
+      --randomx-no-numa             disable NUMA support for RandomX\n\
+      --randomx-mode=MODE           RandomX mode: auto, fast, light\n\
+      --randomx-1gb-pages           use 1GB hugepages for dataset (Linux only)\n\
+      --randomx-wrmsr=N             write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)\n\
+      --randomx-no-rdmsr            disable reverting initial MSR values on exit\n"
 #endif
 #ifdef XMRIG_FEATURE_HWLOC
 "\

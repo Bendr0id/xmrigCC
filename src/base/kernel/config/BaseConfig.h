@@ -45,7 +45,7 @@ class IJsonReader;
 class BaseConfig : public IConfig
 {
 public:
-    BaseConfig();
+    BaseConfig() = default;
 
     inline bool isAutoSave() const                 { return m_autoSave; }
     inline bool isBackground() const               { return m_background; }
@@ -100,6 +100,8 @@ protected:
 
 private:
     inline void setPrintTime(uint32_t printTime) { if (printTime <= 3600) { m_printTime = printTime; } }
+
+    void setVerbose(const rapidjson::Value &value);
 };
 
 

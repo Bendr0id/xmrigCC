@@ -94,22 +94,7 @@ RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 
 RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 {
-	ArgonIterations = 3;
 	ArgonSalt = "RandomSFX\x01";
-	ProgramIterations = 2048;
-	ProgramCount = 8;
-	ScratchpadL2_Size = 262144;
-	ScratchpadL3_Size = 2097152;
-}
-
-RandomX_ConfigurationV::RandomX_ConfigurationV()
-{
-    ArgonIterations = 3;
-    ArgonSalt = "RandomV\x03";
-    ProgramIterations = 2048;
-    ProgramCount = 8;
-    ScratchpadL2_Size = 262144;
-    ScratchpadL3_Size = 2097152;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -177,8 +162,15 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	}
 	{
 		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset;
-		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_sshash_init;
+		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_ryzen;
 		memcpy(codeReadDatasetTweaked, a, b - a);
+		codeReadDatasetTweakedSize = b - a;
+	}
+	{
+		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset_ryzen;
+		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_sshash_init;
+		memcpy(codeReadDatasetRyzenTweaked, a, b - a);
+		codeReadDatasetRyzenTweakedSize = b - a;
 	}
 	{
 		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset_sshash_init;
@@ -211,10 +203,11 @@ void RandomX_ConfigurationBase::Apply()
 
 #if defined(_M_X64) || defined(__x86_64__)
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
-	const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
-	*(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+	// Not needed right now because all variants use default dataset base size
+	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
+	//*(uint32_t*)(codeReadDatasetTweaked + 9) = DatasetBaseMask;
+	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
+	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
 	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
@@ -280,236 +273,206 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
-RandomX_ConfigurationV RandomX_VConfig;
+
 RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 extern "C" {
 
-randomx_cache *randomx_alloc_cache(randomx_flags flags) {
-	randomx_cache *cache = nullptr;
-
-	try {
-		cache = new randomx_cache();
-		switch (flags & (RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES)) {
-			case RANDOMX_FLAG_DEFAULT:
-				cache->dealloc = &randomx::deallocCache<randomx::DefaultAllocator>;
-				cache->jit = nullptr;
-				cache->initialize = &randomx::initCache;
-				cache->datasetInit = &randomx::initDataset;
-				cache->memory = (uint8_t*)randomx::DefaultAllocator::allocMemory(RANDOMX_CACHE_MAX_SIZE);
-				break;
-
-			case RANDOMX_FLAG_JIT:
-				cache->dealloc = &randomx::deallocCache<randomx::DefaultAllocator>;
-				cache->jit = new randomx::JitCompiler();
-				cache->initialize = &randomx::initCacheCompile;
-				cache->datasetInit = cache->jit->getDatasetInitFunc();
-				cache->memory = (uint8_t*)randomx::DefaultAllocator::allocMemory(RANDOMX_CACHE_MAX_SIZE);
-				break;
-
-			case RANDOMX_FLAG_LARGE_PAGES:
-				cache->dealloc = &randomx::deallocCache<randomx::LargePageAllocator>;
-				cache->jit = nullptr;
-				cache->initialize = &randomx::initCache;
-				cache->datasetInit = &randomx::initDataset;
-				cache->memory = (uint8_t*)randomx::LargePageAllocator::allocMemory(RANDOMX_CACHE_MAX_SIZE);
-				break;
-
-			case RANDOMX_FLAG_JIT | RANDOMX_FLAG_LARGE_PAGES:
-				cache->dealloc = &randomx::deallocCache<randomx::LargePageAllocator>;
-				cache->jit = new randomx::JitCompiler();
-				cache->initialize = &randomx::initCacheCompile;
-				cache->datasetInit = cache->jit->getDatasetInitFunc();
-				cache->memory = (uint8_t*)randomx::LargePageAllocator::allocMemory(RANDOMX_CACHE_MAX_SIZE);
-				break;
-
-			default:
-				UNREACHABLE;
+	randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
 		}
-	}
-	catch (std::exception &ex) {
-		if (cache != nullptr) {
-			randomx_release_cache(cache);
-			cache = nullptr;
+
+		randomx_cache *cache = nullptr;
+
+		try {
+			cache = new randomx_cache();
+			switch (flags & RANDOMX_FLAG_JIT) {
+				case RANDOMX_FLAG_DEFAULT:
+					cache->jit          = nullptr;
+					cache->initialize   = &randomx::initCache;
+					cache->datasetInit  = &randomx::initDataset;
+					cache->memory       = memory;
+					break;
+
+				case RANDOMX_FLAG_JIT:
+					cache->jit          = new randomx::JitCompiler();
+					cache->initialize   = &randomx::initCacheCompile;
+					cache->datasetInit  = cache->jit->getDatasetInitFunc();
+					cache->memory       = memory;
+					break;
+
+				default:
+					UNREACHABLE;
+			}
 		}
+		catch (std::exception &ex) {
+			if (cache != nullptr) {
+				randomx_release_cache(cache);
+				cache = nullptr;
+			}
+		}
+
+		return cache;
 	}
 
-	return cache;
-}
-
-void randomx_init_cache(randomx_cache *cache, const void *key, size_t keySize) {
-	assert(cache != nullptr);
-	assert(keySize == 0 || key != nullptr);
-	cache->initialize(cache, key, keySize);
-}
-
-void randomx_release_cache(randomx_cache* cache) {
-	assert(cache != nullptr);
-	cache->dealloc(cache);
-	delete cache;
-}
-
-randomx_dataset *randomx_alloc_dataset(randomx_flags flags) {
-	randomx_dataset *dataset = nullptr;
-
-	try {
-		dataset = new randomx_dataset();
-		if (flags & RANDOMX_FLAG_LARGE_PAGES) {
-			dataset->dealloc = &randomx::deallocDataset<randomx::LargePageAllocator>;
-			dataset->memory = (uint8_t*)randomx::LargePageAllocator::allocMemory(RANDOMX_DATASET_MAX_SIZE);
-		}
-		else {
-			dataset->dealloc = &randomx::deallocDataset<randomx::DefaultAllocator>;
-			dataset->memory = (uint8_t*)randomx::DefaultAllocator::allocMemory(RANDOMX_DATASET_MAX_SIZE);
-		}
-	}
-	catch (std::exception &ex) {
-		if (dataset != nullptr) {
-			randomx_release_dataset(dataset);
-			dataset = nullptr;
-		}
+	void randomx_init_cache(randomx_cache *cache, const void *key, size_t keySize) {
+		assert(cache != nullptr);
+		assert(keySize == 0 || key != nullptr);
+		cache->initialize(cache, key, keySize);
 	}
 
-	return dataset;
-}
-
-#define DatasetItemCount ((RandomX_CurrentConfig.DatasetBaseSize + RandomX_CurrentConfig.DatasetExtraSize) / RANDOMX_DATASET_ITEM_SIZE)
-
-unsigned long randomx_dataset_item_count() {
-	return DatasetItemCount;
-}
-
-void randomx_init_dataset(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount) {
-	assert(dataset != nullptr);
-	assert(cache != nullptr);
-	assert(startItem < DatasetItemCount && itemCount <= DatasetItemCount);
-	assert(startItem + itemCount <= DatasetItemCount);
-	cache->datasetInit(cache, dataset->memory + startItem * randomx::CacheLineSize, startItem, startItem + itemCount);
-}
-
-void *randomx_get_dataset_memory(randomx_dataset *dataset) {
-	assert(dataset != nullptr);
-	return dataset->memory;
-}
-
-void randomx_release_dataset(randomx_dataset *dataset) {
-	assert(dataset != nullptr);
-	dataset->dealloc(dataset);
-	delete dataset;
-}
-
-randomx_vm *randomx_create_vm(randomx_flags flags, randomx_cache *cache, randomx_dataset *dataset, uint8_t *scratchpad) {
-	assert(cache != nullptr || (flags & RANDOMX_FLAG_FULL_MEM));
-	assert(cache == nullptr || cache->isInitialized());
-	assert(dataset != nullptr || !(flags & RANDOMX_FLAG_FULL_MEM));
-
-	randomx_vm *vm = nullptr;
-
-	try {
-		switch (flags & (RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES)) {
-			case RANDOMX_FLAG_DEFAULT:
-				vm = new randomx::InterpretedLightVmDefault();
-				break;
-
-			case RANDOMX_FLAG_FULL_MEM:
-				vm = new randomx::InterpretedVmDefault();
-				break;
-
-			case RANDOMX_FLAG_JIT:
-				vm = new randomx::CompiledLightVmDefault();
-				break;
-
-			case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT:
-				vm = new randomx::CompiledVmDefault();
-				break;
-
-			case RANDOMX_FLAG_HARD_AES:
-				vm = new randomx::InterpretedLightVmHardAes();
-				break;
-
-			case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_HARD_AES:
-				vm = new randomx::InterpretedVmHardAes();
-				break;
-
-			case RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES:
-				vm = new randomx::CompiledLightVmHardAes();
-				break;
-
-			case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES:
-				vm = new randomx::CompiledVmHardAes();
-				break;
-
-			default:
-				UNREACHABLE;
-		}
-
-		if (cache != nullptr) {
-			vm->setCache(cache);
-		}
-
-		if (dataset != nullptr) {
-			vm->setDataset(dataset);
-		}
-
-		vm->setScratchpad(scratchpad);
-	}
-	catch (std::exception &ex) {
-		delete vm;
-		vm = nullptr;
+	void randomx_release_cache(randomx_cache* cache) {
+		delete cache;
 	}
 
-	return vm;
-}
+	randomx_dataset *randomx_create_dataset(uint8_t *memory) {
+		if (!memory) {
+			return nullptr;
+		}
 
-void randomx_vm_set_cache(randomx_vm *machine, randomx_cache* cache) {
-	assert(machine != nullptr);
-	assert(cache != nullptr && cache->isInitialized());
-	machine->setCache(cache);
-}
+		auto dataset = new randomx_dataset();
+		dataset->memory = memory;
 
-void randomx_vm_set_dataset(randomx_vm *machine, randomx_dataset *dataset) {
-	assert(machine != nullptr);
-	assert(dataset != nullptr);
-	machine->setDataset(dataset);
-}
+		return dataset;
+	}
 
-void randomx_destroy_vm(randomx_vm *machine) {
-	assert(machine != nullptr);
-	delete machine;
-}
+	#define DatasetItemCount ((RandomX_CurrentConfig.DatasetBaseSize + RandomX_CurrentConfig.DatasetExtraSize) / RANDOMX_DATASET_ITEM_SIZE)
 
-void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
-	assert(machine != nullptr);
-	assert(inputSize == 0 || input != nullptr);
-	assert(output != nullptr);
-	alignas(16) uint64_t tempHash[8];
-	rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
-	machine->initScratchpad(&tempHash);
-	machine->resetRoundingMode();
-	for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+	unsigned long randomx_dataset_item_count() {
+		return DatasetItemCount;
+	}
+
+	void randomx_init_dataset(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount) {
+		assert(dataset != nullptr);
+		assert(cache != nullptr);
+		assert(startItem < DatasetItemCount && itemCount <= DatasetItemCount);
+		assert(startItem + itemCount <= DatasetItemCount);
+		cache->datasetInit(cache, dataset->memory + startItem * randomx::CacheLineSize, startItem, startItem + itemCount);
+	}
+
+	void *randomx_get_dataset_memory(randomx_dataset *dataset) {
+		assert(dataset != nullptr);
+		return dataset->memory;
+	}
+
+	void randomx_release_dataset(randomx_dataset *dataset) {
+		delete dataset;
+	}
+
+	randomx_vm *randomx_create_vm(randomx_flags flags, randomx_cache *cache, randomx_dataset *dataset, uint8_t *scratchpad) {
+		assert(cache != nullptr || (flags & RANDOMX_FLAG_FULL_MEM));
+		assert(cache == nullptr || cache->isInitialized());
+		assert(dataset != nullptr || !(flags & RANDOMX_FLAG_FULL_MEM));
+
+		randomx_vm *vm = nullptr;
+
+		try {
+			switch (flags & (RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES)) {
+				case RANDOMX_FLAG_DEFAULT:
+					vm = new randomx::InterpretedLightVmDefault();
+					break;
+
+				case RANDOMX_FLAG_FULL_MEM:
+					vm = new randomx::InterpretedVmDefault();
+					break;
+
+				case RANDOMX_FLAG_JIT:
+					vm = new randomx::CompiledLightVmDefault();
+					break;
+
+				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT:
+					vm = new randomx::CompiledVmDefault();
+					break;
+
+				case RANDOMX_FLAG_HARD_AES:
+					vm = new randomx::InterpretedLightVmHardAes();
+					break;
+
+				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_HARD_AES:
+					vm = new randomx::InterpretedVmHardAes();
+					break;
+
+				case RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES:
+					vm = new randomx::CompiledLightVmHardAes();
+					break;
+
+				case RANDOMX_FLAG_FULL_MEM | RANDOMX_FLAG_JIT | RANDOMX_FLAG_HARD_AES:
+					vm = new randomx::CompiledVmHardAes();
+					break;
+
+				default:
+					UNREACHABLE;
+			}
+
+			if (cache != nullptr) {
+				vm->setCache(cache);
+			}
+
+			if (dataset != nullptr) {
+				vm->setDataset(dataset);
+			}
+
+			vm->setScratchpad(scratchpad);
+			vm->setFlags(flags);
+		}
+		catch (std::exception &ex) {
+			delete vm;
+			vm = nullptr;
+		}
+
+		return vm;
+	}
+
+	void randomx_vm_set_cache(randomx_vm *machine, randomx_cache* cache) {
+		assert(machine != nullptr);
+		assert(cache != nullptr && cache->isInitialized());
+		machine->setCache(cache);
+	}
+
+	void randomx_vm_set_dataset(randomx_vm *machine, randomx_dataset *dataset) {
+		assert(machine != nullptr);
+		assert(dataset != nullptr);
+		machine->setDataset(dataset);
+	}
+
+	void randomx_destroy_vm(randomx_vm *machine) {
+		assert(machine != nullptr);
+		delete machine;
+	}
+
+	void randomx_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
+		assert(machine != nullptr);
+		assert(inputSize == 0 || input != nullptr);
+		assert(output != nullptr);
+		alignas(16) uint64_t tempHash[8];
+		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		machine->initScratchpad(&tempHash);
+		machine->resetRoundingMode();
+		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			machine->run(&tempHash);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		}
 		machine->run(&tempHash);
-		rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
 	}
-	machine->run(&tempHash);
-	machine->getFinalResult(output, RANDOMX_HASH_SIZE);
-}
 
-void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-	rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
-	machine->initScratchpad(tempHash);
-}
+	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
+		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		machine->initScratchpad(tempHash);
+	}
 
-void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
-	machine->resetRoundingMode();
-	for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		machine->resetRoundingMode();
+		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			machine->run(&tempHash);
+			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+		}
 		machine->run(&tempHash);
-		rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
-	}
-	machine->run(&tempHash);
 
-	// Finish current hash and fill the scratchpad for the next hash at the same time
-	rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
-	machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
-}
+		// Finish current hash and fill the scratchpad for the next hash at the same time
+		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
+		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+	}
 
 }

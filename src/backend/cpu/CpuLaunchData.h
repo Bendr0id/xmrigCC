@@ -54,10 +54,13 @@ public:
     inline bool operator!=(const CpuLaunchData &other) const    { return !isEqual(other); }
     inline bool operator==(const CpuLaunchData &other) const    { return isEqual(other); }
 
+    static const char *tag();
+
     const Algorithm algorithm;
     const Assembly assembly;
     const bool hugePages;
     const bool hwAES;
+    const bool yield;
     const int priority;
     const int64_t affinity;
     const Miner *miner;

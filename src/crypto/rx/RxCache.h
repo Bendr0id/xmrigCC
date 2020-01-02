@@ -28,9 +28,12 @@
 #define XMRIG_RX_CACHE_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
+#include "base/tools/Buffer.h"
+#include "base/tools/Object.h"
+#include "crypto/common/HugePagesInfo.h"
 #include "crypto/randomx/configuration.h"
 
 
@@ -44,26 +47,29 @@ namespace xmrig
 class RxCache
 {
 public:
-    RxCache(bool hugePages = true);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxCache)
+
+    RxCache(bool hugePages, uint32_t nodeId);
+    RxCache(uint8_t *memory);
     ~RxCache();
 
-    inline bool isHugePages() const         { return m_flags & 1; }
-    inline bool isJIT() const               { return m_flags & 8; }
-    inline const uint8_t *seed() const      { return m_seed; }
+    inline bool isJIT() const               { return m_jit; }
+    inline const Buffer &seed() const       { return m_seed; }
     inline randomx_cache *get() const       { return m_cache; }
-    inline uint64_t initCount() const       { return m_initCount; }
+    inline size_t size() const              { return maxSize(); }
 
-    bool init(const uint8_t *seed);
+    bool init(const Buffer &seed);
+    HugePagesInfo hugePages() const;
 
-    static inline constexpr size_t size() { return RANDOMX_CACHE_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_CACHE_MAX_SIZE; }
 
 private:
-    bool isReady(const uint8_t *seed) const;
+    void create(uint8_t *memory);
 
-    int m_flags            = 0;
-    randomx_cache *m_cache = nullptr;
-    uint64_t m_initCount   = 0;
-    uint8_t m_seed[32];
+    bool m_jit              = true;
+    Buffer m_seed;
+    randomx_cache *m_cache  = nullptr;
+    VirtualMemory *m_memory = nullptr;
 };
 
 

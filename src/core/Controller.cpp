@@ -25,12 +25,12 @@
 
 #include <assert.h>
 
-
-#include "backend/cpu/Cpu.h"
 #include "core/Controller.h"
+#include "backend/cpu/Cpu.h"
+#include "core/config/Config.h"
 #include "core/Miner.h"
+#include "crypto/common/VirtualMemory.h"
 #include "net/Network.h"
-
 
 xmrig::Controller::Controller(Process *process) :
     Base(process)
@@ -58,6 +58,8 @@ int xmrig::Controller::init()
     if (rc != 0) {
         return rc;
     }
+
+    VirtualMemory::init(config()->cpu().memPoolSize(), config()->cpu().isHugePages());
 
     m_network = new Network(this);
     return 0;

@@ -28,9 +28,12 @@
 
 #include <vector>
 
+
+#include "backend/common/interfaces/IRxListener.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
+#include "base/tools/Object.h"
 #include "base/cc/interfaces/IClientStatusListener.h"
 #include "crypto/common/Algorithm.h"
 
@@ -44,9 +47,11 @@ class MinerPrivate;
 class IBackend;
 
 
-class Miner : public ITimerListener, public IBaseListener, public IApiListener, public IClientStatusListener
+class Miner : public ITimerListener, public IBaseListener, public IApiListener, public IRxListener, public IClientStatusListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Miner)
+
     Miner(Controller *controller);
     ~Miner() override;
 
@@ -55,6 +60,7 @@ public:
     const Algorithms &algorithms() const;
     const std::vector<IBackend *> &backends() const;
     Job job() const;
+    void execCommand(char command);
     void pause();
     void printHashrate(bool details);
     void setEnabled(bool enabled);
@@ -71,6 +77,10 @@ protected:
 
 #   ifdef XMRIG_FEATURE_CC_CLIENT
     void onUpdateRequest(ClientStatus& clientStatus) override;
+#   endif
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    void onDatasetReady() override;
 #   endif
 
 private:

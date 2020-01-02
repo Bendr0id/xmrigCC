@@ -51,10 +51,14 @@ protected:
 
 private:
     bool isSupported() const;
+
+    uv_tty_t *m_tty = nullptr;
+
+#   ifdef XMRIG_OS_WIN
     bool isWritable() const;
 
     uv_stream_t *m_stream = nullptr;
-    uv_tty_t *m_tty       = nullptr;
+#   endif
 };
 
 

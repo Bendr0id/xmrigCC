@@ -49,8 +49,8 @@ struct CoinName
 static CoinName const coin_names[] = {
     { "monero",     Coin::MONERO },
     { "xmr",        Coin::MONERO },
-    { "arqma",      Coin::ARQMA },
-    { "arq",        Coin::ARQMA },
+    { "arqma",      Coin::ARQMA  },
+    { "arq",        Coin::ARQMA  }
 };
 
 
@@ -61,14 +61,14 @@ static CoinName const coin_names[] = {
 xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
 {
     switch (id()) {
-        case MONERO:
-            return (blobVersion >= 12) ? Algorithm::RX_0 : Algorithm::CN_R;
+    case MONERO:
+        return (blobVersion >= 12) ? Algorithm::RX_0 : Algorithm::CN_R;
 
-        case ARQMA:
-            return (blobVersion >= 15) ? Algorithm::RX_ARQ : Algorithm::CN_PICO_0;
+    case ARQMA:
+        return (blobVersion >= 15) ? Algorithm::RX_ARQ : Algorithm::CN_PICO_0;
 
-        case INVALID:
-            break;
+    case INVALID:
+        break;
     }
 
     return Algorithm::INVALID;

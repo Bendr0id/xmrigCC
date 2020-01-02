@@ -28,8 +28,12 @@
 #define XMRIG_RX_DATASET_H
 
 
+#include "base/tools/Object.h"
 #include "crypto/common/Algorithm.h"
+#include "crypto/common/HugePagesInfo.h"
 #include "crypto/randomx/configuration.h"
+#include "crypto/randomx/randomx.h"
+#include "crypto/rx/RxConfig.h"
 
 
 struct randomx_dataset;
@@ -39,29 +43,42 @@ namespace xmrig
 {
 
 
+class Buffer;
 class RxCache;
+class VirtualMemory;
 
 
 class RxDataset
 {
 public:
-    RxDataset(bool hugePages = true);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxDataset)
+
+    RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode, uint32_t node);
+    RxDataset(RxCache *cache);
     ~RxDataset();
 
-    inline bool isHugePages() const     { return m_flags & 1; }
-    inline randomx_dataset *get() const { return m_dataset; }
-    inline RxCache *cache() const       { return m_cache; }
+    inline randomx_dataset *get() const     { return m_dataset; }
+    inline RxCache *cache() const           { return m_cache; }
+    inline void setCache(RxCache *cache)    { m_cache = cache; }
 
-    bool init(const uint8_t *seed, uint32_t numThreads);
-    std::pair<size_t, size_t> hugePages() const;
+    bool init(const Buffer &seed, uint32_t numThreads, int priority);
+    bool isHugePages() const;
+    bool isOneGbPages() const;
+    HugePagesInfo hugePages(bool cache = true) const;
+    size_t size(bool cache = true) const;
+    void *raw() const;
+    void setRaw(const void *raw);
 
-    static inline constexpr size_t size() { return RANDOMX_DATASET_MAX_SIZE; }
+    static inline constexpr size_t maxSize() { return RANDOMX_DATASET_MAX_SIZE; }
 
 private:
-    Algorithm m_algorithm;
-    int m_flags                = 0;
-    randomx_dataset *m_dataset = nullptr;
-    RxCache *m_cache           = nullptr;
+    void allocate(bool hugePages, bool oneGbPages);
+
+    const RxConfig::Mode m_mode = RxConfig::FastMode;
+    const uint32_t m_node;
+    randomx_dataset *m_dataset  = nullptr;
+    RxCache *m_cache            = nullptr;
+    VirtualMemory *m_memory     = nullptr;
 };
 
 

@@ -29,8 +29,8 @@
 
 
 #include <algorithm>
-#include <hwloc.h>
 #include <cmath>
+#include <hwloc.h>
 
 
 #if HWLOC_API_VERSION < 0x00010b00
@@ -38,7 +38,7 @@
 #   define HWLOC_OBJ_NUMANODE HWLOC_OBJ_NODE
 #endif
 
-#include "crypto/cn/CnAlgo.h"
+
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 
@@ -46,7 +46,6 @@
 namespace xmrig {
 
 
-std::vector<uint32_t> HwlocCpuInfo::m_nodeIndexes;
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
@@ -128,9 +127,7 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
 } // namespace xmrig
 
 
-xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
-    m_backend(),
-    m_cache()
+xmrig::HwlocCpuInfo::HwlocCpuInfo()
 {
     m_threads = 0;
 
@@ -150,7 +147,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 #   endif
 
     const std::vector<hwloc_obj_t> packages = findByType(hwloc_get_root_obj(m_topology), HWLOC_OBJ_PACKAGE);
-    if (packages.size()) {
+    if (!packages.empty()) {
         const char *value = hwloc_obj_get_info_by_name(packages[0], "CPUModel");
         if (value) {
             strncpy(m_brand, value, 64);
@@ -179,7 +176,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 
     m_threads   = countByType(m_topology, HWLOC_OBJ_PU);
     m_cores     = countByType(m_topology, HWLOC_OBJ_CORE);
-    m_nodes     = std::max<size_t>(countByType(m_topology, HWLOC_OBJ_NUMANODE), 1);
+    m_nodes     = std::max(hwloc_bitmap_weight(hwloc_topology_get_complete_nodeset(m_topology)), 1);
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
 
     if (m_nodes > 1) {
@@ -187,11 +184,11 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
             m_features |= SET_THISTHREAD_MEMBIND;
         }
 
-        m_nodeIndexes.reserve(m_nodes);
+        m_nodeset.reserve(m_nodes);
         hwloc_obj_t node = nullptr;
 
         while ((node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) != nullptr) {
-            m_nodeIndexes.emplace_back(node->os_index);
+            m_nodeset.emplace_back(node->os_index);
         }
     }
 }
@@ -200,6 +197,20 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo() : BasicCpuInfo(),
 xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 {
     hwloc_topology_destroy(m_topology);
+}
+
+
+bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+{
+    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+        return false;
+    }
+
+#   if HWLOC_API_VERSION >= 0x20000
+    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+#   else
+    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+#   endif
 }
 
 
@@ -251,7 +262,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
-    constexpr size_t oneMiB = 1024u * 1024u;
+    constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
     if (PUs == 0) {
@@ -306,11 +317,6 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         intensity = 2;
     }
 #   endif
-
-    if (algorithm == Algorithm::CN_CONCEAL) {
-        intensity = std::min<uint32_t >(static_cast<const uint32_t &>(cacheHashes / PUs), algorithm.maxIntensity());
-    }
-
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {

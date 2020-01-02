@@ -74,8 +74,6 @@ int xmrig::App::exec()
 
     background();
 
-    VirtualMemory::init(m_controller->config()->cpu().isHugePages());
-
     Summary::print(m_controller);
 
     if (m_controller->config()->isDryRun()) {

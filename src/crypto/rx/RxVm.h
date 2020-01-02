@@ -28,10 +28,14 @@
 #define XMRIG_RX_VM_H
 
 
-#include <stdint.h>
+#include "base/tools/Object.h"
+#include "backend/cpu/Cpu.h"
 
 
-struct randomx_vm;
+#include <cstdint>
+
+
+class randomx_vm;
 
 
 namespace xmrig
@@ -44,7 +48,9 @@ class RxDataset;
 class RxVm
 {
 public:
-    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes);
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxVm);
+
+    RxVm(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly);
     ~RxVm();
 
     inline randomx_vm *get() const       { return m_vm; }
@@ -58,4 +64,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_RX_CACHE_H */
+#endif /* XMRIG_RX_VM_H */

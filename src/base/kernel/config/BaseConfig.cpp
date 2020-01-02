@@ -23,10 +23,18 @@
  */
 
 
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "base/kernel/config/BaseConfig.h"
+#include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/interfaces/IJsonReader.h"
+#include "rapidjson/document.h"
+#include "version.h"
+
+
+#include <cassert>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <uv.h>
 
 
@@ -61,11 +69,6 @@
 #include "rapidjson/filewritestream.h"
 #include "rapidjson/prettywriter.h"
 #include "version.h"
-
-
-xmrig::BaseConfig::BaseConfig()
-{
-}
 
 
 void xmrig::BaseConfig::printVersions()
@@ -132,11 +135,11 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_daemonized   = reader.getBool("daemonized", m_daemonized);
     m_syslog       = reader.getBool("syslog", m_syslog);
     m_watch        = reader.getBool("watch", m_watch);
-    Log::colors    = reader.getBool("colors", Log::colors);
     m_logFile      = reader.getString("log-file");
     m_userAgent    = reader.getString("user-agent");
     m_version      = reader.getUint("version");
 
+    Log::setColors(reader.getBool("colors", Log::isColors()));
     setPrintTime(reader.getUint("print-time", 60));
 
     const rapidjson::Value &api = reader.getObject("api");
@@ -167,4 +170,14 @@ bool xmrig::BaseConfig::save()
     }
 
     return false;
+}
+
+void xmrig::BaseConfig::setVerbose(const rapidjson::Value &value)
+{
+    if (value.IsBool()) {
+        Log::setVerbose(value.GetBool() ? 1 : 0);
+    }
+    else if (value.IsUint()) {
+        Log::setVerbose(value.GetUint());
+    }
 }

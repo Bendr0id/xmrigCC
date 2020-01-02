@@ -29,7 +29,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
-* **Support of RandomV variant (algo: "rx/v")**
+* **Support of CN-Talleo variant (algo: "cn-pico/tlo")**
 * **Support of RandomSFX variant (algo: "rx/sfx")**
 * **Support of RandomARQ variant (algo: "rx/arq")**
 * **Support of UPX2 variant (algo: "cn-extremelite/upx2")**
@@ -132,11 +132,11 @@ xmrigDaemon -o pool.hashvault.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_
                                       cn/rwz, cn/zls, cn/xao, cn/rto, cn/conceal,
                                       cn-lite/1,
                                       cn-heavy/xhv, cn-heavy/tube, cn-heavy/0,
-                                      cn-pico
+                                      cn-pico, cn-pico/tlo
                                       cn-extremelite
                                       argon2/chukwa, argon2/wrkz
-                                      rx/wow, rx/loki, rx/arq, rx/sfx, rx/v
-      --coin=COIN                   specify coin instead of algorithm                                      
+                                      rx/0, rx/wow, rx/loki, rx/arq
+      --coin=COIN                   specify coin instead of algorithm
   -o, --url=URL                     URL of mining server
   -O, --userpass=U:P                username:password pair for mining server
   -u, --user=USERNAME               username for mining server
@@ -174,6 +174,10 @@ xmrigDaemon -o pool.hashvault.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_
       --http-no-restricted          enable full remote access to HTTP API (only if access token set)
       --randomx-init=N              threads count to initialize RandomX dataset
       --randomx-no-numa             disable NUMA support for RandomX
+      --randomx-mode=MODE           RandomX mode: auto, fast, light
+      --randomx-1gb-pages           use 1GB hugepages for dataset (Linux only)
+      --randomx-wrmsr=N             write custom value (0-15) to Intel MSR register 0x1a4 or disable MSR mod (-1)
+      --randomx-no-rdmsr            disable reverting initial MSR values on exit
       --export-topology             export hwloc topology to a XML file and exit
       --cc-disabled                 disable CC Client feature
       --cc-url=URL                  url of the CC Server

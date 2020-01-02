@@ -36,6 +36,7 @@ PUBLIC randomx_program_loop_begin
 PUBLIC randomx_program_loop_load
 PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
+PUBLIC randomx_program_read_dataset_ryzen
 PUBLIC randomx_program_read_dataset_sshash_init
 PUBLIC randomx_program_read_dataset_sshash_fin
 PUBLIC randomx_dataset_init
@@ -80,6 +81,11 @@ randomx_program_prologue_first_load PROC
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
+	sub rsp, 24
+	stmxcsr dword ptr [rsp]
+	nop
+	nop
+	nop
 	jmp randomx_program_loop_begin
 randomx_program_prologue_first_load ENDP
 
@@ -102,6 +108,10 @@ randomx_program_start ENDP
 randomx_program_read_dataset PROC
 	include asm/program_read_dataset.inc
 randomx_program_read_dataset ENDP
+
+randomx_program_read_dataset_ryzen PROC
+	include asm/program_read_dataset_ryzen.inc
+randomx_program_read_dataset_ryzen ENDP
 
 randomx_program_read_dataset_sshash_init PROC
 	include asm/program_read_dataset_sshash_init.inc

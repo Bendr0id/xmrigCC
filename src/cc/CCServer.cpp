@@ -38,7 +38,7 @@ CCServer::CCServer(cxxopts::ParseResult& parseResult)
 
   if (!m_config->background())
   {
-    xmrig::Log::colors = m_config->colors();
+    xmrig::Log::setColors(m_config->colors());
     xmrig::Log::add(new xmrig::ConsoleLog());
     m_console = std::make_shared<xmrig::Console>(this);
   }
