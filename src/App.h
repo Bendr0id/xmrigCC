@@ -55,7 +55,7 @@ public:
 protected:
     void onConsoleCommand(char command) override;
     void onSignal(int signum) override;
-    void onCommandReceived(const ControlCommand& controlCommand) override;
+    void onCommandReceived(ControlCommand::Command command) override;
 
 private:
     void background();

@@ -33,7 +33,6 @@
 
 #include "CCClient.h"
 #include "App.h"
-#include "ControlCommand.h"
 #include "version.h"
 
 #ifdef TYPE_AMD_GPU
@@ -174,6 +173,11 @@ void xmrig::CCClient::stop()
   {
     m_timer->stop();
   }
+
+  if (m_thread.joinable())
+  {
+    m_thread.join();
+  }
 }
 
 void xmrig::CCClient::updateStatistics()
@@ -280,9 +284,9 @@ void xmrig::CCClient::publishClientStatusReport()
         LOG_WARN(CLEAR "%s " YELLOW("Command: REBOOT received -> trigger reboot"), tag);
       }
 
-      for (ICommandListener* listener : m_Commandlisteners)
+      for (ICommandListener *listener : m_Commandlisteners)
       {
-        listener->onCommandReceived(controlCommand);
+        listener->onCommandReceived(controlCommand.getCommand());
       }
     }
     else
@@ -472,7 +476,12 @@ void xmrig::CCClient::onConfigChanged(Config* config, Config* previousConfig)
 void xmrig::CCClient::onTimer(const xmrig::Timer* timer)
 {
   LOG_DEBUG("CCClient::onTimer");
-  std::thread(CCClient::publishThread, this).detach();
+
+  if (!m_thread.joinable())
+  {
+    m_thread = std::thread(CCClient::publishThread, this);
+    m_thread.detach();
+  }
 }
 
 void xmrig::CCClient::publishThread(CCClient* handle)

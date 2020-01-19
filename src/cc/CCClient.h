@@ -25,6 +25,7 @@
 
 #include "ClientStatus.h"
 #include "version.h"
+#include "ControlCommand.h"
 
 #ifdef TYPE_AMD_GPU
 #include "amd/GpuContext.h"
@@ -92,7 +93,8 @@ private:
     std::string m_authorization;
     bool m_configPublishedOnStart;
 
-    Timer *m_timer;
+    Timer* m_timer;
+    std::thread m_thread;
     std::vector<ICommandListener *> m_Commandlisteners;
     std::vector<IClientStatusListener *> m_ClientStatislisteners;
 };

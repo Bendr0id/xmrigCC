@@ -89,11 +89,7 @@ xmrig::Network::~Network()
     JobResults::stop();
 
     delete m_timer;
-
-    if (m_donate) {
-        delete m_donate;
-    }
-
+    delete m_donate;
     delete m_strategy;
 }
 

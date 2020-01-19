@@ -128,10 +128,11 @@ static void print_commands(Config *)
     if (Log::isColors()) {
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BOLD("h") WHITE_BOLD("ashrate, ")
                                                                      MAGENTA_BOLD("p") WHITE_BOLD("ause, ")
-                                                                     MAGENTA_BOLD("r") WHITE_BOLD("esume"));
+                                                                     MAGENTA_BOLD("r") WHITE_BOLD("esume")
+                                                                     MAGENTA_BOLD("q") WHITE_BOLD("uit"));
     }
     else {
-        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume");
+        Log::print(" * COMMANDS     'h' hashrate, 'p' pause, 'r' resume, 'q' quit");
     }
 }
 

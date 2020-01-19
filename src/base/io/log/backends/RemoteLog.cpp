@@ -43,23 +43,13 @@ void xmrig::RemoteLog::print(int, const char *line, size_t, size_t size, bool co
         return;
     }
 
-#   ifdef _WIN32
-    uv_buf_t buf = uv_buf_init(strdup(line), static_cast<unsigned int>(size));
-#   else
-    uv_buf_t buf = uv_buf_init(strdup(line), size);
-#   endif
-
-    m_mutex.lock();
+    std::lock_guard<std::mutex> lock(m_mutex);
 
     if (m_rows.size() >= m_maxRows) {
         m_rows.pop_front();
     }
 
-    m_rows.push_back(std::string(buf.base));
-
-    m_mutex.unlock();
-
-    delete[](buf.base);
+    m_rows.emplace_back(line, size);
 }
 
 std::string xmrig::RemoteLog::getRows()
@@ -67,14 +57,12 @@ std::string xmrig::RemoteLog::getRows()
     std::stringstream data;
 
     if (m_self) {
-        m_self->m_mutex.lock();
+        std::lock_guard<std::mutex> lock(m_self->m_mutex);
 
         for (auto& m_row : m_self->m_rows) {
             data << m_row.c_str();
         }
         m_self->m_rows.clear();
-
-        m_self->m_mutex.unlock();
     }
 
     return data.str();

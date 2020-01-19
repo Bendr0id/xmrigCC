@@ -115,6 +115,10 @@ void xmrig::App::onConsoleCommand(char command)
         m_controller->miner()->setEnabled(true);
         break;
 
+    case 'q':
+        close(false);
+        break;
+
     case 3:
         LOG_WARN("Ctrl+C received, exiting");
         close(false);
@@ -149,10 +153,10 @@ void xmrig::App::onSignal(int signum)
     close(false);
 }
 
-void xmrig::App::onCommandReceived(const ControlCommand& controlCommand)
+void xmrig::App::onCommandReceived(ControlCommand::Command command)
 {
 #   ifdef XMRIG_FEATURE_CC_CLIENT
-    switch (controlCommand.getCommand()) {
+    switch (command) {
         case ControlCommand::START:
             m_controller->miner()->setEnabled(true);
             break;

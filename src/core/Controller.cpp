@@ -41,6 +41,8 @@ xmrig::Controller::Controller(Process *process) :
 xmrig::Controller::~Controller()
 {
     delete m_network;
+
+    VirtualMemory::destroy();
 }
 
 
