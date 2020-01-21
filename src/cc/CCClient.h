@@ -24,7 +24,6 @@
 #include <3rdparty/cpp-httplib/httplib.h>
 
 #include "ClientStatus.h"
-#include "Timer.h"
 #include "version.h"
 #include "ControlCommand.h"
 
@@ -45,7 +44,7 @@ class Base;
 class IClientStatusListener;
 class ICommandListener;
 
-class CCClient : public IBaseListener
+class CCClient : public IBaseListener, public ITimerListener
 {
 public:
 #ifdef TYPE_AMD_GPU
@@ -65,8 +64,11 @@ public:
 
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
+    void onTimer(const Timer *timer) override;
 
 private:
+    void publishThread();
+
     void publishClientStatusReport();
     void updateAuthorization();
     void updateClientInfo();
@@ -91,7 +93,8 @@ private:
     std::string m_authorization;
     bool m_configPublishedOnStart;
 
-    std::shared_ptr<::Timer> m_timer;
+    Timer* m_timer;
+    std::thread m_thread;
     std::vector<ICommandListener *> m_Commandlisteners;
     std::vector<IClientStatusListener *> m_ClientStatuslisteners;
 };
