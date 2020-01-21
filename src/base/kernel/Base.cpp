@@ -265,14 +265,14 @@ void xmrig::Base::start()
 
 void xmrig::Base::stop()
 {
-#   ifdef XMRIG_FEATURE_API
-    api()->stop();
-#   endif
-
 #   ifdef XMRIG_FEATURE_CC_CLIENT
     ccClient()->stop();
     delete d_ptr->ccClient;
     d_ptr->ccClient = nullptr;
+#   endif
+
+#   ifdef XMRIG_FEATURE_API
+    api()->stop();
 #   endif
 
     delete d_ptr->watcher;

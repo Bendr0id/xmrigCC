@@ -185,7 +185,7 @@ void xmrig::CCClient::updateStatistics()
 {
   LOG_DEBUG("CCClient::updateStatistics");
 
-  for (IClientStatusListener* listener : m_ClientStatislisteners)
+  for (IClientStatusListener* listener : m_ClientStatuslisteners)
   {
     listener->onUpdateRequest(m_clientStatus);
   }

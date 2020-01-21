@@ -57,7 +57,7 @@ public:
 
     ~CCClient();
 
-    inline void addClientStatusListener(IClientStatusListener *listener) { m_ClientStatislisteners.push_back(listener); }
+    inline void addClientStatusListener(IClientStatusListener *listener) { m_ClientStatuslisteners.push_back(listener); }
     inline void addCommandListener(ICommandListener *listener) { m_Commandlisteners.push_back(listener); }
 
     void start();
@@ -93,7 +93,7 @@ private:
 
     std::shared_ptr<::Timer> m_timer;
     std::vector<ICommandListener *> m_Commandlisteners;
-    std::vector<IClientStatusListener *> m_ClientStatislisteners;
+    std::vector<IClientStatusListener *> m_ClientStatuslisteners;
 };
 }
 
