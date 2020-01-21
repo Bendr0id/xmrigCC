@@ -271,6 +271,8 @@ void xmrig::Base::stop()
 
 #   ifdef XMRIG_FEATURE_CC_CLIENT
     ccClient()->stop();
+    delete d_ptr->ccClient;
+    d_ptr->ccClient = nullptr;
 #   endif
 
     delete d_ptr->watcher;

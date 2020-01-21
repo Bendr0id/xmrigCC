@@ -479,26 +479,23 @@ void xmrig::CCClient::onTimer(const xmrig::Timer* timer)
 
   if (!m_thread.joinable())
   {
-    m_thread = std::thread(CCClient::publishThread, this);
+    m_thread = std::thread(&CCClient::publishThread, this);
     m_thread.detach();
   }
 }
 
-void xmrig::CCClient::publishThread(CCClient* handle)
+void xmrig::CCClient::publishThread()
 {
-  LOG_DEBUG("CCClient::publishThread");
-  if (handle)
+  LOG_DEBUG("CCClient::publishThread()");
+  if (!m_configPublishedOnStart && m_base->config()->ccClient().uploadConfigOnStartup())
   {
-    if (!handle->m_configPublishedOnStart && handle->m_base->config()->ccClient().uploadConfigOnStartup())
-    {
-      handle->m_configPublishedOnStart = true;
-      handle->publishConfig();
-    }
-
-    handle->updateUptime();
-    handle->updateLog();
-    handle->updateStatistics();
-
-    handle->publishClientStatusReport();
+    m_configPublishedOnStart = true;
+    publishConfig();
   }
+
+  updateUptime();
+  updateLog();
+  updateStatistics();
+
+  publishClientStatusReport();
 }

@@ -67,7 +67,7 @@ protected:
     void onTimer(const Timer *timer) override;
 
 private:
-    static void publishThread(CCClient* handle);
+    void publishThread();
 
     void publishClientStatusReport();
     void updateAuthorization();
