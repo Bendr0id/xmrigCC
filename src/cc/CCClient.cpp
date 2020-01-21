@@ -23,7 +23,6 @@
 #include <crypto/common/VirtualMemory.h>
 
 #include "backend/cpu/Cpu.h"
-#include "base/tools/Timer.h"
 #include "base/tools/Chrono.h"
 #include "base/kernel/Base.h"
 #include "base/kernel/Platform.h"
@@ -76,19 +75,15 @@ xmrig::CCClient::CCClient(Base* base)
 #endif
   : m_base(base),
     m_startTime(Chrono::currentMSecsSinceEpoch()),
-    m_configPublishedOnStart(false),
-    m_timer(nullptr)
+    m_configPublishedOnStart(false)
 {
   base->addListener(this);
-
-  m_timer = new Timer(this);
 }
 
 
 xmrig::CCClient::~CCClient()
 {
   LOG_DEBUG("CCClient::~CCCLient()");
-  delete m_timer;
 }
 
 void xmrig::CCClient::start()
@@ -104,8 +99,22 @@ void xmrig::CCClient::start()
   updateAuthorization();
   updateClientInfo();
 
-  m_timer->start(static_cast<uint64_t>(m_base->config()->ccClient().updateInterval() * 1000),
-                 static_cast<uint64_t>(m_base->config()->ccClient().updateInterval() * 1000));
+  m_timer = std::make_shared<::Timer>([&]()
+  {
+    LOG_DEBUG("CCClient::onTimer()");
+    if (!m_configPublishedOnStart && m_base->config()->ccClient().uploadConfigOnStartup())
+    {
+      m_configPublishedOnStart = true;
+      publishConfig();
+    }
+
+    updateUptime();
+    updateLog();
+    updateStatistics();
+
+    publishClientStatusReport();
+  }, m_base->config()->ccClient().updateInterval() * 1000);
+  m_timer->start();
 }
 
 void xmrig::CCClient::updateAuthorization()
@@ -169,11 +178,7 @@ void xmrig::CCClient::stop()
   LOG_DEBUG("CCClient::stop");
 
   m_configPublishedOnStart = false;
-
-  if (m_timer)
-  {
-    m_timer->stop();
-  }
+  m_timer->stop();
 }
 
 void xmrig::CCClient::updateStatistics()
@@ -467,26 +472,4 @@ void xmrig::CCClient::onConfigChanged(Config* config, Config* previousConfig)
       start();
     }
   }
-}
-
-void xmrig::CCClient::onTimer(const xmrig::Timer* timer)
-{
-  LOG_DEBUG("CCClient::onTimer");
-  std::thread(&CCClient::publishThread, this).detach();
-}
-
-void xmrig::CCClient::publishThread()
-{
-  LOG_DEBUG("CCClient::publishThread()");
-  if (!m_configPublishedOnStart && m_base->config()->ccClient().uploadConfigOnStartup())
-  {
-    m_configPublishedOnStart = true;
-    publishConfig();
-  }
-
-  updateUptime();
-  updateLog();
-  updateStatistics();
-
-  publishClientStatusReport();
 }
