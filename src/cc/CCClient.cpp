@@ -87,6 +87,7 @@ xmrig::CCClient::CCClient(Base* base)
 
 xmrig::CCClient::~CCClient()
 {
+  LOG_DEBUG("CCClient::~CCCLient()");
   delete m_timer;
 }
 
@@ -97,7 +98,7 @@ void xmrig::CCClient::start()
   Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CSI "1;%dm%s",
              "CC Server",
              (m_base->config()->ccClient().useTLS() ? 32 : 36),
-             m_base->config()->ccClient().url()
+              m_base->config()->ccClient().url()
   );
 
   updateAuthorization();
@@ -172,11 +173,6 @@ void xmrig::CCClient::stop()
   if (m_timer)
   {
     m_timer->stop();
-  }
-
-  if (m_thread.joinable())
-  {
-    m_thread.join();
   }
 }
 
@@ -476,12 +472,7 @@ void xmrig::CCClient::onConfigChanged(Config* config, Config* previousConfig)
 void xmrig::CCClient::onTimer(const xmrig::Timer* timer)
 {
   LOG_DEBUG("CCClient::onTimer");
-
-  if (!m_thread.joinable())
-  {
-    m_thread = std::thread(&CCClient::publishThread, this);
-    m_thread.detach();
-  }
+  std::thread(&CCClient::publishThread, this).detach();
 }
 
 void xmrig::CCClient::publishThread()
