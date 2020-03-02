@@ -100,6 +100,7 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 {
 	ArgonSalt = "RandomKV\x01";
+	ScratchpadL2_Size = 131072;
 	ScratchpadL3_Size = 1048576;
 }
 
