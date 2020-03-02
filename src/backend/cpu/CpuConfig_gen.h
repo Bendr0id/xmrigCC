@@ -136,6 +136,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
 
     count += generate("rx", threads, Algorithm::RX_0, limit);
     count += generate("rx/loki", threads, Algorithm::RX_0, limit);
+    count += generate("rx/keva", threads, Algorithm::RX_0, limit);
 
     return count;
 }
