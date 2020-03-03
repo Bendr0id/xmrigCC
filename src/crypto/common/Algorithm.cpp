@@ -163,6 +163,7 @@ size_t xmrig::Algorithm::l2() const
         return 0x40000;
 
     case RX_WOW:
+    case RX_KEVA:
         return 0x20000;
 
     case RX_ARQ:
