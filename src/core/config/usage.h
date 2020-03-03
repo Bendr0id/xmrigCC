@@ -65,7 +65,7 @@ Options:\n\
 #endif
 #ifdef XMRIG_ALGO_RANDOMX
 "\
-                                      rx/0, rx/wow, rx/loki, rx/arq\n"
+                                      rx/0, rx/wow, rx/loki, rx/arq, rx/keva\n"
 #endif
 "\
       --coin=COIN                   specify coin instead of algorithm\n\

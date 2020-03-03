@@ -12,6 +12,7 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
+| `rx/keva` | 1 MB | 2.6.0+ | RandomKEVA. |
 | `rx/0` | 2 MB | 2.1.0+ | RandomX (Monero). |
 | `rx/wow` | 1 MB | 2.0.0+ | RandomWOW. |
 | `rx/loki` | 2 MB | 2.0.0+ | RandomXL. |

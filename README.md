@@ -29,6 +29,7 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 ## Additional features of XMRigCC (on top of XMRig)
 
 Check the [Coin Configuration](https://github.com/Bendr0id/xmrigCC/wiki/Coin-configurations) guide
+* **Support of RandomKEVA variant (algo: "rx/keva")**
 * **Support of CN-Talleo variant (algo: "cn-pico/tlo")**
 * **Support of RandomSFX variant (algo: "rx/sfx")**
 * **Support of RandomARQ variant (algo: "rx/arq")**
@@ -135,7 +136,7 @@ xmrigDaemon -o pool.hashvault.pro:5555 -u YOUR_WALLET -p x -k --cc-url=IP_OF_CC_
                                       cn-pico, cn-pico/tlo
                                       cn-extremelite
                                       argon2/chukwa, argon2/wrkz
-                                      rx/0, rx/wow, rx/loki, rx/arq
+                                      rx/0, rx/wow, rx/loki, rx/arq, rx/keva
       --coin=COIN                   specify coin instead of algorithm
   -o, --url=URL                     URL of mining server
   -O, --userpass=U:P                username:password pair for mining server
