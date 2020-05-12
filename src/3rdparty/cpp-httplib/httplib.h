@@ -1494,6 +1494,13 @@ socket_t create_socket(const char *host, int port, Fn fn,
                sizeof(yes));
 #endif
 
+    struct timeval timeout;
+    timeout.tv_sec = CPPHTTPLIB_READ_TIMEOUT_SECOND;
+    timeout.tv_usec = CPPHTTPLIB_READ_TIMEOUT_USECOND;
+
+    setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+    setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout, sizeof(timeout));
+
     if (rp->ai_family == AF_INET6) {
       int no = 0;
       setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<char *>(&no),
