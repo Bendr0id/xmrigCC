@@ -853,5 +853,10 @@ void Service::updateStatistics(uint64_t now)
         break;
       }
     }
+
+    if (algoStatistic.second.empty())
+    {
+      m_statistics.erase(algoStatistic.first);
+    }
   }
 }
