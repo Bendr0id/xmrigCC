@@ -411,13 +411,13 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   if (m_base->config()->ccClient().useTLS())
   {
     cli = std::make_shared<httplib::SSLClient>(m_base->config()->ccClient().host(),
-                                               m_base->config()->ccClient().port(), 10);
+                                               m_base->config()->ccClient().port());
   }
   else
   {
 #   endif
     cli = std::make_shared<httplib::Client>(m_base->config()->ccClient().host(),
-                                            m_base->config()->ccClient().port(), 10);
+                                            m_base->config()->ccClient().port());
 #   ifdef XMRIG_FEATURE_TLS
   }
 #   endif
