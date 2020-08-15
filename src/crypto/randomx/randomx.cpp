@@ -108,6 +108,33 @@ RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 	ScratchpadL3_Size = 1048576;
 }
 
+RandomX_ConfigurationScala::RandomX_ConfigurationScala()
+{
+  ArgonMemory       = 131072;
+  ArgonIterations   = 2;
+  ArgonSalt         = "DefyXScala\x13";
+  CacheAccesses     = 2;
+  DatasetBaseSize   = 33554432;
+  ProgramSize       = 64;
+  ProgramIterations = 1024;
+  ProgramCount      = 4;
+  ScratchpadL3_Size = 262144;
+  ScratchpadL2_Size = 131072;
+  ScratchpadL1_Size = 65536;
+
+  RANDOMX_FREQ_IADD_RS = 25;
+  RANDOMX_FREQ_CBRANCH = 16;
+
+  // Begin of DefyX/Panthera DATASET
+  const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
+  *(uint32_t*)(codeReadDatasetRyzenTweaked + 9) = DatasetBaseMask;
+  *(uint32_t*)(codeReadDatasetRyzenTweaked + 24) = DatasetBaseMask;
+  *(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
+  *(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
+  *(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+  // End of DefyX/Panthera DATASET
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
 	, ArgonIterations(3)
@@ -310,13 +337,38 @@ RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
+RandomX_ConfigurationScala RandomX_ScalaConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 static std::mutex vm_pool_mutex;
 
-extern "C" {
 
+
+extern "C" {
+#include "panthera/yespower.h"
+#include "panthera/KangarooTwelve.h"
+  int yespower_hash(const void *data, size_t length, void *hash)
+  {
+    yespower_params_t params = {
+      .version = YESPOWER_1_0,
+      .N = 2048,
+      .r = 8,
+      .pers = NULL
+    };
+
+    int finale_yespower = yespower_tls((const uint8_t *) data, length, &params, (yespower_binary_t *) hash);
+    return finale_yespower; //0 for success
+  }
+
+  int k12(const void *data, size_t length, void *hash)
+  {
+    int kDo = KangarooTwelve((const unsigned char *) data, length, (unsigned char *) hash, 32, 0, 0);
+    return kDo;
+  }
+}
+
+extern "C" {
 	randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory) {
 		if (!memory) {
 			return nullptr;
@@ -549,4 +601,43 @@ extern "C" {
 		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
 	}
 
+  void panthera_calculate_hash(randomx_vm *machine, const void *input, size_t inputSize, void *output) {
+    assert(machine != nullptr);
+    assert(inputSize == 0 || input != nullptr);
+    assert(output != nullptr);
+    alignas(16) uint64_t tempHash[8];
+    rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, 0, 0);
+    yespower_hash(tempHash, sizeof(tempHash), tempHash);
+    k12(tempHash, sizeof(tempHash), tempHash);
+    machine->initScratchpad(&tempHash);
+    machine->resetRoundingMode();
+    for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+      machine->run(&tempHash);
+      rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+    }
+    machine->run(&tempHash);
+    machine->getFinalResult(output, RANDOMX_HASH_SIZE);
+  }
+
+  void panthera_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
+    rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, 0, 0);
+    yespower_hash(tempHash, sizeof(tempHash), tempHash);
+    k12(tempHash, sizeof(tempHash), tempHash);
+    machine->initScratchpad(tempHash);
+  }
+
+  void panthera_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+    machine->resetRoundingMode();
+    for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+      machine->run(&tempHash);
+      rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+    }
+    machine->run(&tempHash);
+
+    // Finish current hash and fill the scratchpad for the next hash at the same time
+    rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, 0, 0);
+    yespower_hash(tempHash, sizeof(tempHash), tempHash);
+    k12(tempHash, sizeof(tempHash), tempHash);
+    machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+  }
 }

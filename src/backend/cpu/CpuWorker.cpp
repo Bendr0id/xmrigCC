@@ -254,14 +254,22 @@ void xmrig::CpuWorker<N>::start()
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    if (job.algorithm() == Algorithm::RX_XLA) {
+                      panthera_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    } else {
+                      randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    }
                 }
 
                 if (!nextRound(m_job)) {
                     break;
                 }
 
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                if (job.algorithm() == Algorithm::RX_XLA) {
+                  panthera_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                } else {
+                  randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                }
             }
             else
 #           endif

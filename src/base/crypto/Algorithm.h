@@ -72,6 +72,7 @@ public:
         RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
         RX_SFX,        // "rx/sfx"           RandomSFX (Safex Cash).
         RX_KEVA,       // "rx/keva"          RandomKV (Keva).
+        RX_XLA,        // "rx/xla"           RandomX-Panthera (Scala)
         AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_CHUKWA_LITE,// "argon2/chukwa-lite" Argon2id (Chukwa-Lite).
         ASTROBWT_DERO, // "astrobwt/dero"    AstroBWT (Dero)

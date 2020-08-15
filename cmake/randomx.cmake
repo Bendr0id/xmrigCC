@@ -33,6 +33,11 @@ if (WITH_RANDOMX)
         src/crypto/randomx/vm_compiled.cpp
         src/crypto/randomx/vm_interpreted_light.cpp
         src/crypto/randomx/vm_interpreted.cpp
+        src/crypto/randomx/panthera/sha256.c
+        src/crypto/randomx/panthera/KangarooTwelve.c
+        src/crypto/randomx/panthera/KeccakP-1600-reference.c
+        src/crypto/randomx/panthera/KeccakSpongeWidth1600.c
+        src/crypto/randomx/panthera/yespower-opt.c
         src/crypto/rx/Rx.cpp
         src/crypto/rx/RxAlgo.cpp
         src/crypto/rx/RxBasicStorage.cpp

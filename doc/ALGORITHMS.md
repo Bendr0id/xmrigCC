@@ -3,7 +3,7 @@
 Algorithm can be defined in 3 ways:
 
 1. By pool, using algorithm negotiation, in this case no need specify algorithm on miner side.
-2. Per pool `coin` option, currently only usable value for this option is `monero`, `aqrma`, `dero`, `keva`, `pengo`
+2. Per pool `coin` option, currently only usable value for this option is `monero`, `aqrma`, `dero`, `keva`
 3. Per pool `algo` option.
 
 Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
@@ -12,11 +12,11 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
-| `pengo` | 256 KB | 2.7.0+ | Chukwa variant PengolinCoin. |
+| `panthera` | 256 KB | 2.8.0+ | RandomX variant Panthera (Scala [XLA]). |
 | `ninja` | 256 KB | 2.7.0+ | Chukwa variant NinjaCoin. |
 | `astroBWT` | 20 MB | 2.6.0+ | AstroBWT. |
 | `rx/keva` | 1 MB | 2.6.0+ | RandomKEVA. |
-| `cn-pico/tlo` | 256 KB | 2.5.0+ | CryptoNight-Pico. (Talleo) |
+| `cn-pico/tlo` | 256 KB | 2.5.0+ | CryptoNight-Pico (Talleo). |
 | `rx/sfx` | 2 MB | 2.2.1+ | RandomX (Safex). |
 | `rx/arq` | 256 KB | 2.2.0+ | RandomX (Arqma). |
 | `rx/0` | 2 MB | 2.1.0+ | RandomX (Monero). |

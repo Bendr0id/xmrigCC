@@ -24,9 +24,9 @@ PushOver or Telegram automatically so that you dont need to watch your miners al
 
 Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XMRigCCServer.
 
-## Last integrated algos to XMRigCC
+## Last integrated algos in XMRigCC:
 
-* **pengolincoin** variant (algo: "pengo")
+* **Panthera (XLA)** variant (algo: "panthera")
 * **ninjacoin** variant (algo: "ninja")
 * **AstroBWT** variant (algo: "astrobwt")
 * **RandomKEVA** variant (algo: "rx/keva")
@@ -34,7 +34,8 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 * **UPX2** variant (algo: "cn-extremelite/upx2")
 * **CN-Conceal** variant (algo: "cn/conceal")
 
-## XMRigCC features
+## XMRigCC features:
+
 * Better performance on ARMv8 CPUs
 * Full SSL/TLS support
 * NUMA support

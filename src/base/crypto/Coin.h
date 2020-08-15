@@ -42,8 +42,7 @@ public:
         MONERO,
         ARQMA,
         DERO,
-        KEVA,
-        PENGO
+        KEVA
     };
 
 

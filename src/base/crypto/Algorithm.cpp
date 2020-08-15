@@ -129,6 +129,8 @@ static AlgoName const algorithm_names[] = {
     { "RandomSFX",                 nullptr,            Algorithm::RX_SFX          },
     { "randomx/keva",              "rx/keva",          Algorithm::RX_KEVA         },
     { "RandomKEVA",                nullptr,            Algorithm::RX_KEVA         },
+    { "Panthera",                  "panthera",         Algorithm::RX_XLA          },
+    { "randomx/xla",               "rx/xla",           Algorithm::RX_XLA          },
 #   endif
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
@@ -140,8 +142,6 @@ static AlgoName const algorithm_names[] = {
     { "ar2-256",                   nullptr,            Algorithm::AR2_CHUKWA_LITE },
     { "argon2/ninja",              nullptr,            Algorithm::AR2_CHUKWA_LITE },
     { "ninja",                     nullptr,            Algorithm::AR2_CHUKWA_LITE },
-    { "argon2/pengo",              nullptr,            Algorithm::AR2_CHUKWA_LITE },
-    { "pengo",                     nullptr,            Algorithm::AR2_CHUKWA_LITE },
 #   endif
 #   ifdef XMRIG_ALGO_ASTROBWT
     { "astrobwt",                  nullptr,            Algorithm::ASTROBWT_DERO   },
@@ -172,6 +172,7 @@ size_t xmrig::Algorithm::l2() const
 
     case RX_WOW:
     case RX_KEVA:
+    case RX_XLA:
         return 0x20000;
 
     case RX_ARQ:
@@ -212,6 +213,7 @@ size_t xmrig::Algorithm::l3() const
             return oneMiB;
 
         case RX_ARQ:
+        case RX_XLA:
             return oneMiB / 4;
 
         default:
@@ -335,6 +337,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case RX_ARQ:
     case RX_SFX:
     case RX_KEVA:
+    case RX_XLA:
         return RANDOM_X;
 #   endif
 

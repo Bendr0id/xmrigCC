@@ -1,3 +1,6 @@
+# 2.8.0
+* Integrated Randomx variant "Panthera" used by Scala[XLA] algo (`panthera` or `rx/panthera`)
+* Removed obsolete PengolinCoin chukwa variant 
 # 2.7.0
 * Integrated pengolincoin algo (`pengo`) or coin (`pengo` for autoswitch) for upcoming hardfork 
 * Integrated ninjacoin algo (`ninja`)
