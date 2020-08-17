@@ -49,16 +49,24 @@
  * no slowdown from the prefixes is generally observed on AMD CPUs supporting
  * XOP, some slowdown is sometimes observed on Intel CPUs with AVX.
  */
-#ifdef __XOP__
-#warning "Note: XOP is enabled.  That's great."
-#elif defined(__AVX__)
-#warning "Note: AVX is enabled.  That's OK."
-#elif defined(__SSE2__)
-#warning "Note: AVX and XOP are not enabled.  That's OK."
-#elif defined(__x86_64__) || defined(__i386__)
-#warning "SSE2 not enabled.  Expect poor performance."
+
+#ifdef _MSC_VER
+#  pragma message ( WARN_MESSAGE )
+#  define __thread __declspec(thread)
 #else
-#warning "Note: building generic code for non-x86.  That's OK."
+#  warning WARN_MESSAGE
+#endif
+
+#ifdef __XOP__
+#define WARN_MESSAGE "Note: XOP is enabled.  That's great."
+#elif defined(__AVX__)
+#define WARN_MESSAGE "Note: AVX is enabled.  That's OK."
+#elif defined(__SSE2__)
+#define WARN_MESSAGE "Note: AVX and XOP are not enabled.  That's OK."
+#elif defined(__x86_64__) || defined(__i386__)
+#define WARN_MESSAGE "SSE2 not enabled.  Expect poor performance."
+#else
+#define WARN_MESSAGE "Note: building generic code for non-x86.  That's OK."
 #endif
 
 /*
@@ -527,7 +535,7 @@ static volatile uint64_t Smask2var = Smask2;
 /* 64-bit without AVX.  This relies on out-of-order execution and register
  * renaming.  It may actually be fastest on CPUs with AVX(2) as well - e.g.,
  * it runs great on Haswell. */
-#warning "Note: using x86-64 inline assembly for pwxform.  That's great."
+#define WARN_MESSAGE "Note: using x86-64 inline assembly for pwxform.  That's great."
 #undef MAYBE_MEMORY_BARRIER
 #define MAYBE_MEMORY_BARRIER \
 	__asm__("" : : : "memory");
