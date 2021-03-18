@@ -138,7 +138,6 @@ set(SOURCES_CRYPTO
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
-    src/base/crypto/Algorithm.cpp
    )
 
 if (WITH_HWLOC)
