@@ -169,6 +169,7 @@
                     {data: "client_status.hash_factor", visible: false},
                     {data: "client_status.total_pages", visible: false},
                     {data: "client_status.total_hugepages", visible: false},
+                    {data: null, render: clientHPpercent, visible: false},
                     {data: "client_status.current_threads", visible: false},
                     {data: "client_status.cpu_sockets", visible: false},
                     {data: "client_status.cpu_cores", visible: false},
@@ -718,6 +719,10 @@
                 table.ajax.reload();
             }, RELOAD_INTERVAL_IN_MS);
         });
+        
+        function clientHPpercent(data, type, row) {
+            return Math.round(100 * row.client_status.total_hugepages / row.client_status.total_pages);   
+        }
 
         function sendAction(action, clientId) {
             $.ajax({
@@ -996,6 +1001,7 @@
             <th>External IP</th>
             <th>Hugepages Available</th>
             <th>Hugepages Enabled</th>
+            <th>Hugepages %</th>
             <th>CPU is x64</th>
             <th>CPU has aes</th>
             <th>Hashfactor</th>
@@ -1028,6 +1034,7 @@
         <tr>
             <th class="center" width="2%"><i class="fa fa-square-o" id="selectAllBottom"></i></th>
             <th class="left">Total:</th>
+            <th></th>
             <th></th>
             <th></th>
             <th></th>
