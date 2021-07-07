@@ -202,6 +202,11 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
     }
 
     params.AddMember("algo", algo, allocator);
+
+    Value feature(kArrayType);
+    feature.PushBack("signing", allocator);
+
+    params.AddMember("supports", feature, allocator);
 }
 
 

@@ -87,6 +87,7 @@ R"===(
             "tls": false,
             "tls-fingerprint": null,
             "daemon": false,
+            "spend-secret-key": null,
             "socks5": null,
             "self-select": null
         }

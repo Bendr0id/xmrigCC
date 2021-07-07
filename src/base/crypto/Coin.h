@@ -44,7 +44,8 @@ public:
         DERO,
         KEVA,
         TURTLE,
-        YADA
+        YADA,
+        WOWNERO
     };
 
 

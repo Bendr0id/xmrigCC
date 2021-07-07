@@ -31,6 +31,7 @@
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/tools/Object.h"
+#include "base/tools/cryptonote/BlockTemplate.h"
 
 
 #include <memory>
@@ -83,12 +84,14 @@ private:
     } m_apiVersion;
 
     std::shared_ptr<IHttpListener> m_httpListener;
-    String m_blocktemplate;
+    String m_blocktemplateStr;
     String m_blockhashingblob;
     String m_prevHash;
     String m_tlsFingerprint;
     String m_tlsVersion;
     Timer *m_timer;
+
+    BlockTemplate m_blocktemplate;
 };
 
 

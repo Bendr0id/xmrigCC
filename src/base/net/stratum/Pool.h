@@ -70,6 +70,7 @@ public:
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
+    static const char* kSpendSecretKey;
 
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
@@ -82,6 +83,7 @@ public:
          uint16_t port,
          const char *user       = nullptr,
          const char *password   = nullptr,
+         const char* spendSecretKey = nullptr,
          int keepAlive          = 0,
          bool nicehash          = false,
          bool tls               = false
@@ -99,6 +101,7 @@ public:
     inline const String &rigId() const                  { return m_rigId; }
     inline const String &url() const                    { return m_url.url(); }
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
+    inline const String &spendSecretKey() const         { return m_spendSecretKey; }
     inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline Mode mode() const                            { return m_mode; }
@@ -144,6 +147,7 @@ private:
     String m_password;
     String m_rigId;
     String m_user;
+    String m_spendSecretKey;
     uint64_t m_pollInterval         = kDefaultPollInterval;
     Url m_daemon;
     Url m_url;

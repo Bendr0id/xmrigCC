@@ -64,19 +64,20 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 {
     uint8_t hash[200];
 
-    const auto &user = controller->config()->pools().data().front().user();
+    const auto pools = controller->config()->pools().data();
+    const auto &user = pools.empty() ? Pool::kDefaultUser : pools.front().user();
     keccak(reinterpret_cast<const uint8_t *>(user.data()), user.size(), hash);
 
     Cvt::toHex(m_userId, sizeof(m_userId), hash, 32);
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHost, 443, m_userId, nullptr, 0, true, true);
-    m_pools.emplace_back(kDonateHost, 4000, m_userId, nullptr, 0, true, true);
-    m_pools.emplace_back(kDonateFallback, 443, m_userId, nullptr, 0, true, true);
+    m_pools.emplace_back(kDonateHost, 443, m_userId, nullptr, nullptr, 0, true, true);
+    m_pools.emplace_back(kDonateHost, 4000, m_userId, nullptr, nullptr, 0, true, true);
+    m_pools.emplace_back(kDonateFallback, 443, m_userId, nullptr, nullptr, 0, true, true);
 #   endif
-    m_pools.emplace_back(kDonateHost, 80, m_userId, nullptr, 0, true);
-    m_pools.emplace_back(kDonateHost, 4100, m_userId, nullptr, 0, true);
-    m_pools.emplace_back(kDonateFallback, 80, m_userId, nullptr, 0, true);
+    m_pools.emplace_back(kDonateHost, 80, m_userId, nullptr, nullptr, 0, true);
+    m_pools.emplace_back(kDonateHost, 4100, m_userId, nullptr, nullptr, 0, true);
+    m_pools.emplace_back(kDonateFallback, 80, m_userId, nullptr, nullptr, 0, true);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 5, this, true);
@@ -210,6 +211,14 @@ void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjs
 void xmrig::DonateStrategy::onLogin(IStrategy *, IClient *, rapidjson::Document &doc, rapidjson::Value &params)
 {
     setAlgorithms(doc, params);
+
+    using namespace rapidjson;
+    auto &allocator = doc.GetAllocator();
+
+    Value feature(kArrayType);
+    feature.PushBack("signing", allocator);
+
+    params.AddMember("supports", feature, allocator);
 }
 
 

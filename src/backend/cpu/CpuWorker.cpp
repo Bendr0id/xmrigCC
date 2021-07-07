@@ -261,10 +261,17 @@ void xmrig::CpuWorker<N>::start()
 
             bool valid = true;
 
+            uint8_t miner_signature_saved[64];
+            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
+                    if (job.hasMinerSignature()) {
+                      job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+                    }
+
                     if (job.algorithm() == Algorithm::RX_XLA) {
                       panthera_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
                     } else {
@@ -274,6 +281,11 @@ void xmrig::CpuWorker<N>::start()
 
                 if (!nextRound()) {
                     break;
+                }
+
+                if (job.hasMinerSignature()) {
+                  memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
+                  job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                 }
 
                 if (job.algorithm() == Algorithm::RX_XLA) {
@@ -305,7 +317,7 @@ void xmrig::CpuWorker<N>::start()
                 for (size_t i = 0; i < N; ++i) {
                     const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
                     if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
+                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
                     }
                 }
                 m_count += N;

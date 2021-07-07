@@ -75,6 +75,7 @@ public:
         SelfSelectKey        = 1028,
         DataDirKey           = 1035,
         HugePageSizeKey      = 1050,
+        SpendSecretKey       = 1055,
 
         // xmrig common
         CPUPriorityKey       = 1021,
