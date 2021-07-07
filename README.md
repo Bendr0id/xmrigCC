@@ -11,6 +11,8 @@ XMRigCC is a high performance RandomX, CryptoNight, Argon2 and AstroBWT CPU mine
 [![Github downloads latest](https://img.shields.io/github/downloads/bendr0id/xmrigCC/latest/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![Github downloads total](https://img.shields.io/github/downloads/bendr0id/xmrigCC/total.svg)](https://github.com/bendr0id/xmrigCC/releases)
 [![GitHub stars](https://img.shields.io/github/stars/bendr0id/xmrigCC.svg)](https://github.com/bendr0id/xmrigCC/stargazers)
+[![chat on Discord](https://img.shields.io/discord/454197671528366100?logo=discord)](https://discord.gg/r3rCKTB)
+
 
 ![XMRigCC Logo](https://i.imgur.com/7mi0WCe.png)
 
@@ -27,15 +29,16 @@ Full Windows/Linux compatible, and you can mix Linux and Windows miner on one XM
 
 ## Last integrated algos in XMRigCC:
 
-* **CXCHE** variant (algo: "cn/cache_hash")
+* **Yadacoin** RX variant (Algo: "rx/yada")
+* **CXCHE** CN variant (algo: "cn/cache_hash")
 * **Turtlecoin** argon2 chukwa variant 2 (algo: "argon2/chukwav2")
-* **Panthera (XLA)** variant (algo: "panthera")
+* **Panthera (XLA)** RX variant (algo: "panthera")
 * **ninjacoin** variant (algo: "ninja")
 * **AstroBWT** variant (algo: "astrobwt")
-* **RandomKEVA** variant (algo: "rx/keva")
-* **CN-Talleo** variant (algo: "cn-pico/tlo")
-* **UPX2** variant (algo: "cn-extremelite/upx2")
-* **CN-Conceal** variant (algo: "cn/conceal")
+* **RandomKEVA** RX variant (algo: "rx/keva")
+* **CN-Talleo** CN variant (algo: "cn-pico/tlo")
+* **UPX2** CN variant (algo: "cn-extremelite/upx2")
+* **CN-Conceal** CN variant (algo: "cn/conceal")
 
 ## XMRigCC features:
 
