@@ -243,6 +243,8 @@ void xmrig::CCClient::publishClientStatusReport()
   }
   else
   {
+    LOG_DEBUG("CCClient::publishClientStatusReport received: '%s'", res->body.c_str());
+
     ControlCommand controlCommand;
     if (controlCommand.parseFromJsonString(res->body))
     {
@@ -313,6 +315,8 @@ void xmrig::CCClient::fetchConfig()
   }
   else
   {
+    LOG_DEBUG("CCClient::fetchConfig received: '%s'", res->body.c_str());
+
     rapidjson::Document document;
     if (!document.Parse(res->body.c_str()).HasParseError())
     {
@@ -384,6 +388,10 @@ void xmrig::CCClient::publishConfig()
         LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http://%s:%d%s"), Tags::cc(), res->status, m_base->config()->ccClient().host(),
                 m_base->config()->ccClient().port(), requestUrl.c_str());
       }
+      else
+      {
+        LOG_DEBUG("CCClient::publishConfig received: '%s'", res->body.c_str());
+      }
     }
     else
     {
@@ -401,8 +409,6 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
                                                                    const std::string& requestBuffer,
                                                                    const std::string& operation)
 {
-  LOG_DEBUG("CCClient::performRequest");
-
   std::shared_ptr<httplib::Client> cli;
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -424,6 +430,8 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   hostHeader << m_base->config()->ccClient().host()
              << ":"
              << m_base->config()->ccClient().port();
+
+  LOG_DEBUG("CCClient::performRequest %s -> [%s%s] send: '%.2048s'", operation.c_str(), hostHeader.str().c_str(), requestUrl.c_str(), requestBuffer.c_str());
 
   httplib::Request req;
   req.method = operation;
@@ -480,7 +488,6 @@ void xmrig::CCClient::onConfigChanged(Config* config, Config* previousConfig)
 void xmrig::CCClient::onTimer(const xmrig::Timer* timer)
 {
   LOG_DEBUG("CCClient::onTimer");
-
   if (!m_thread.joinable())
   {
     m_thread = std::thread(&CCClient::publishThread, this);

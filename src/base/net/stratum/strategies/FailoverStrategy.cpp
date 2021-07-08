@@ -77,7 +77,9 @@ int64_t xmrig::FailoverStrategy::submit(const JobResult &result)
 
 void xmrig::FailoverStrategy::connect()
 {
-    m_pools[m_index]->connect();
+    if (!m_pools.empty()) {
+        m_pools[m_index]->connect();
+    }
 }
 
 

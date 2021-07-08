@@ -79,10 +79,6 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     }
 #   endif
 
-#   ifdef XMRIG_FEATURE_CC_CLIENT
-    m_ccClient.read(reader.getValue(kCCClient));
-#   endif
-
     return true;
 }
 

@@ -137,7 +137,7 @@ private:
             return config.release();
         }
 
-        chain.addFile(Process::location(Process::ExeLocation, "config.json"));
+        chain.addFile(Process::location(Process::ExeLocation, BaseConfig::kDefaultConfigFilename));
 
         if (read(chain, config)) {
             return config.release();

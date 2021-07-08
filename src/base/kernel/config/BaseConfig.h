@@ -46,6 +46,8 @@ class IJsonReader;
 class BaseConfig : public IConfig
 {
 public:
+    static const String kDefaultConfigFilename;
+
     static const char *kApi;
     static const char *kApiId;
     static const char *kApiWorkerId;
@@ -83,7 +85,7 @@ public:
 #   endif
 
     inline bool isWatch() const override                   { return m_watch && !m_fileName.isNull(); }
-    inline const String &fileName() const override         { return m_fileName; }
+    inline const String &fileName() const override         { return !m_fileName.isNull()? m_fileName : kDefaultConfigFilename; }
     inline void setFileName(const char *fileName) override { m_fileName = fileName; }
 
     bool read(const IJsonReader &reader, const char *fileName) override;

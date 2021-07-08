@@ -36,7 +36,7 @@ public:
     static const char *kRebootCmd;
     static const char *kUpdateInterval;
 
-    bool read(const rapidjson::Value &value);
+    bool load(const rapidjson::Value &value);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     void print() const;
 

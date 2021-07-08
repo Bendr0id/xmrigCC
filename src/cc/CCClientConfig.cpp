@@ -63,7 +63,7 @@ rapidjson::Value xmrig::CCClientConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-bool xmrig::CCClientConfig::read(const rapidjson::Value &value)
+bool xmrig::CCClientConfig::load(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
         m_enabled = Json::getBool(value, kEnabled, m_enabled);
@@ -80,7 +80,7 @@ bool xmrig::CCClientConfig::read(const rapidjson::Value &value)
 
         parseCCUrl(m_url);
 
-        return true;
+        return !m_host.isEmpty() && !m_token.isEmpty();
     }
 
     return false;

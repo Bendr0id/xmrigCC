@@ -50,6 +50,7 @@
 
 namespace xmrig {
 
+const String BaseConfig::kDefaultConfigFilename = "config.json";
 
 const char *BaseConfig::kApi            = "api";
 const char *BaseConfig::kApiId          = "id";
@@ -102,7 +103,11 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_http.load(reader.getObject(kHttp));
     m_pools.load(reader);
 
+#   ifdef XMRIG_FEATURE_CC_CLIENT
+    return m_ccClient.load(reader.getObject(kCCClient)) || m_pools.active() > 0;
+#   else
     return m_pools.active() > 0;
+#   endif
 }
 
 
