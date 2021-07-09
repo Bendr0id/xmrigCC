@@ -37,6 +37,25 @@
 #include "version.h"
 #include "Service.h"
 
+namespace
+{
+    std::string htmlEncode(const std::string& data)
+    {
+        auto result = std::regex_replace(data, std::regex("&"), "&amp;");
+        result = std::regex_replace(result, std::regex("<"), "&lt;");
+        result = std::regex_replace(result, std::regex(">"), "&gt;");
+
+        return result;
+    }
+
+    std::string sanitize(const std::string& data)
+    {
+        return std::regex_replace(data, std::regex(R"([\W])"), "_");
+    }
+};
+
+constexpr static char DEFAULT_MINER[] = "default_miner";
+
 Service::Service(std::shared_ptr<CCServerConfig> config)
   : m_config(std::move(config))
 {
@@ -109,8 +128,8 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
 {
   int resultCode = HTTP_NOT_FOUND;
 
-  std::string clientId = req.get_param_value("clientId");
-  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
+  const auto clientId = sanitize(req.get_param_value("clientId"));
+  const auto removeAddr = req.get_header_value("REMOTE_ADDR");
 
   LOG_INFO("[%s] GET %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
 
@@ -168,8 +187,8 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
 
   int resultCode = HTTP_NOT_FOUND;
 
-  std::string clientId = req.get_param_value("clientId");
-  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
+  const auto clientId = sanitize(req.get_param_value("clientId"));
+  const auto removeAddr = req.get_header_value("REMOTE_ADDR");
 
   LOG_INFO("[%s] POST %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
 
@@ -323,10 +342,12 @@ int Service::setClientStatus(const httplib::Request& req, const std::string& cli
 {
   int resultCode = HTTP_BAD_REQUEST;
 
-  std::string remoteAddr = req.get_header_value("REMOTE_ADDR");
+  const auto remoteAddr = req.get_header_value("REMOTE_ADDR");
+
+  auto payload = htmlEncode(req.body);
 
   rapidjson::Document respDocument;
-  if (!respDocument.Parse(req.body.c_str()).HasParseError())
+  if (!respDocument.Parse(payload.c_str()).HasParseError())
   {
     ClientStatus clientStatus;
     clientStatus.parseFromJson(respDocument);
@@ -482,7 +503,8 @@ int Service::getClientConfig(const std::string& clientId, httplib::Response& res
   }
   else
   {
-    std::ifstream defaultConfig("default_miner_config.json");
+    std::string defaultConfigFileName = getClientConfigFileName(DEFAULT_MINER);
+    std::ifstream defaultConfig(defaultConfigFileName);
     if (defaultConfig)
     {
       data << defaultConfig.rdbuf();
@@ -552,32 +574,43 @@ int Service::setClientConfig(const httplib::Request& req, const std::string& cli
 {
   int resultCode = HTTP_BAD_REQUEST;
 
+  std::string remoteAddr = req.get_header_value("REMOTE_ADDR");
+
   rapidjson::Document respDocument;
   if (!respDocument.Parse(req.body.c_str()).HasParseError())
   {
     std::string clientConfigFileName = getClientConfigFileName(clientId);
-    std::ofstream clientConfigFile(clientConfigFileName);
+    std::string defaultMinerConfigFileName = getClientConfigFileName(DEFAULT_MINER);
 
-    if (clientConfigFile)
+    if (clientConfigFileName != defaultMinerConfigFileName)
     {
-      rapidjson::StringBuffer buffer(0, 4096);
-      rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
-      writer.SetMaxDecimalPlaces(10);
-      respDocument.Accept(writer);
+        std::ofstream clientConfigFile(clientConfigFileName);
 
-      clientConfigFile << buffer.GetString();
-      clientConfigFile.close();
+        if (clientConfigFile)
+        {
+            rapidjson::StringBuffer buffer(0, 4096);
+            rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
+            writer.SetMaxDecimalPlaces(10);
+            respDocument.Accept(writer);
 
-      resultCode = HTTP_OK;
+            clientConfigFile << buffer.GetString();
+            clientConfigFile.close();
+
+            resultCode = HTTP_OK;
+        }
+        else
+        {
+            LOG_ERR("[%s] Not able to store client config to file %s.", remoteAddr.c_str(), clientConfigFileName.c_str());
+        }
     }
     else
     {
-      LOG_ERR("Not able to store client config to file %s.", clientConfigFileName.c_str());
+        LOG_WARN("[%s] Someone is trying to override our %s file. Rejected!", remoteAddr.c_str(), defaultMinerConfigFileName.c_str());
     }
   }
   else
   {
-    LOG_ERR("Not able to store client config. The received client config for client %s is broken!", clientId.c_str());
+    LOG_ERR("[%s] Not able to store client config. The received client config for client %s is broken!", remoteAddr.c_str(), clientId.c_str());
   }
 
   return resultCode;
@@ -803,7 +836,7 @@ void Service::triggerPush(const std::string& title, const std::string& message)
 
 void Service::sendViaPushover(const std::string& title, const std::string& message)
 {
-  std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
+  auto cli = std::make_shared<httplib::SSLClient>("api.pushover.net", 443);
 
   httplib::Params params;
   params.emplace("token", m_config->pushoverApiToken());
@@ -820,7 +853,7 @@ void Service::sendViaPushover(const std::string& title, const std::string& messa
 
 void Service::sendViaTelegram(const std::string& title, const std::string& message)
 {
-  std::shared_ptr<httplib::Client> cli = std::make_shared<httplib::SSLClient>("api.telegram.org", 443);
+  auto cli = std::make_shared<httplib::SSLClient>("api.telegram.org", 443);
 
   std::string text = "<b>" + title + "</b>\n\n" + message;
   std::string path = std::string("/bot") + m_config->telegramBotToken() + std::string("/sendMessage");
