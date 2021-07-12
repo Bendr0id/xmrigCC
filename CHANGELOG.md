@@ -1,3 +1,5 @@
+# 2.9.6
+
 # 2.9.5
 * Added wownero solo mining (upstream 6.13.1) support
 * Added support to start xmrigDaemon/Miner with nothing but `--cc-url` and `--cc-token` params to remote push the config
