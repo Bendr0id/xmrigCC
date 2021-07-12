@@ -39,19 +39,19 @@
 
 namespace
 {
-    std::string htmlEncode(const std::string& data)
-    {
-        auto result = std::regex_replace(data, std::regex("&"), "&amp;");
-        result = std::regex_replace(result, std::regex("<"), "&lt;");
-        result = std::regex_replace(result, std::regex(">"), "&gt;");
+  std::string htmlEncode(const std::string& data)
+  {
+    auto result = std::regex_replace(data, std::regex("&"), "&amp;");
+    result = std::regex_replace(result, std::regex("<"), "&lt;");
+    result = std::regex_replace(result, std::regex(">"), "&gt;");
 
-        return result;
-    }
+    return result;
+  }
 
-    std::string sanitize(const std::string& data)
-    {
-        return std::regex_replace(data, std::regex(R"([\W])"), "_");
-    }
+  std::string sanitize(const std::string& data)
+  {
+    return std::regex_replace(data, std::regex(R"([\W])"), "_");
+  }
 };
 
 constexpr static char DEFAULT_MINER[] = "default_miner";
@@ -128,7 +128,7 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
 {
   int resultCode = HTTP_NOT_FOUND;
 
-  const auto clientId = sanitize(req.get_param_value("clientId"));
+  const auto clientId = req.get_param_value("clientId");
   const auto removeAddr = req.get_header_value("REMOTE_ADDR");
 
   LOG_INFO("[%s] GET %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
@@ -187,7 +187,7 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
 
   int resultCode = HTTP_NOT_FOUND;
 
-  const auto clientId = sanitize(req.get_param_value("clientId"));
+  const auto clientId = req.get_param_value("clientId");
   const auto removeAddr = req.get_header_value("REMOTE_ADDR");
 
   LOG_INFO("[%s] POST %s%s%s", removeAddr.c_str(), req.path.c_str(), clientId.empty() ? "" : "/?clientId=", clientId.c_str());
@@ -678,7 +678,7 @@ std::string Service::getClientConfigFileName(const std::string& clientId)
 #       endif
   }
 
-  clientConfigFileName += clientId + std::string("_config.json");
+  clientConfigFileName += sanitize(clientId) + std::string("_config.json");
 
   return clientConfigFileName;
 }

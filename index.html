@@ -576,7 +576,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/admin/getClientConfig?clientId=" + clientId,
+                    url: "/admin/getClientConfig?clientId=" + htmlDecode(clientId),
                     dataType: "json",
                     success: function (jsonClientConfig) {
                         var htmlContent = "<div class='form-group' id='editor' data-value='" + clientId + "'>" +
@@ -596,7 +596,7 @@
             });
 
             $('#minerEditorSave').click(function (event) {
-                var clientId = $('#minerEditor').find('.form-group')["0"].dataset.value;
+                var clientId = htmlEncode($('#minerEditor').find('.form-group')["0"].dataset.value);
                 var clientConfig = $('#config').val();
 
                 setClientConfig(clientId, clientConfig);
@@ -659,7 +659,7 @@
 
                 $.ajax({
                     type: "GET",
-                    url: "/admin/getClientLog?clientId=" + clientId,
+                    url: "/admin/getClientLog?clientId=" + htmlDecode(clientId),
                     dataType: "json",
                     success: function (data) {
                         var htmlContent = "<div class='form-group' id='viewer' data-value='" + clientId + "'>" +
@@ -677,7 +677,7 @@
             });
 
             $('#minerLogRefresh').click(function (event) {
-                var clientId = $('#minerLog').find('.form-group')["0"].dataset.value;
+                var clientId = htmlEncode($('#minerLog').find('.form-group')["0"].dataset.value);
 
                 table.rows().eq(0).each(function (index) {
                     var row = table.row(index);
@@ -685,7 +685,7 @@
 
                     $.ajax({
                         type: "GET",
-                        url: "/admin/getClientLog?clientId=" + clientId,
+                        url: "/admin/getClientLog?clientId=" + htmlDecode(clientId),
                         dataType: "json",
                         success: function (data) {
                             $('#log').val(data.client_log);
@@ -727,7 +727,7 @@
                             if ($('#mergeTemplate').prop('checked')) {
                                 setMergedClientConfig(jsonTemplate, clientId);
                             } else {
-                                jsonTemplate['cc-client']['worker-id'] = clientId
+                                jsonTemplate['cc-client']['worker-id'] = htmlDecode(clientId);
 
                                 clientConfig = JSON.stringify(jsonTemplate, undefined, 2);
 
@@ -920,16 +920,17 @@
         }
 
         function sendAction(action, clientId, payload) {
+            var payloadContent = payload == null ? '' : ' [payload=\'' + payload +'\']';
             $.ajax({
                 type: "POST",
-                url: "/admin/setClientCommand?clientId=" + clientId,
+                url: "/admin/setClientCommand?clientId=" + htmlDecode(clientId),
                 dataType: "text",
                 data: '{"control_command":{"command": "' + action + '", "payload": "' + payload + '"}}',
                 success: function (data) {
-                    setSuccess('<strong>Successfully send ' + action + ' to ' + clientId + ' [payload=\'' + payload +'\']</strong> - It can take up to 30s until the command is processed.');
+                    setSuccess('<strong>Successfully send ' + action + ' to ' + clientId + payloadContent + '</strong> - It can take up to 30s until the command is processed.');
                 },
                 error: function (data) {
-                    setError('<strong>Failed to send ' + action + ' to ' + clientId + ' [payload=\'' + payload +'\']</strong> \nError: ' + JSON.stringify(data, undefined, 2));
+                    setError('<strong>Failed to send ' + action + ' to ' + clientId + + payloadContent +'</strong> \nError: ' + JSON.stringify(data, undefined, 2));
                 }
             });
         }
@@ -966,7 +967,7 @@
         function setMergedClientConfig(template, clientId) {
             $.ajax({
                 type: "GET",
-                url: "/admin/getClientConfig?clientId=" + clientId,
+                url: "/admin/getClientConfig?clientId=" + htmlDecode(clientId),
                 dataType: "json",
                 success: function (clientConfig) {
                     $.extend(true, clientConfig, template);
@@ -1129,7 +1130,7 @@
 
         function setClientConfig(clientId, clientConfig) {
             $.ajax({
-                url: "/admin/setClientConfig?clientId=" + clientId,
+                url: "/admin/setClientConfig?clientId=" + htmlDecode(clientId),
                 type: 'POST',
                 dataType: "text",
                 data: clientConfig,
@@ -1213,6 +1214,17 @@
                 minerChart.data.datasets = minerDatasets;
                 minerChart.update();
             });
+        }
+
+        function htmlDecode(input) {
+            var doc = new DOMParser().parseFromString(input, "text/html");
+            return doc.documentElement.textContent;
+        }
+
+        function htmlEncode(input) {
+            return input.replaceAll("&", "&amp;")
+                        .replaceAll("<", "&lt;")
+                        .replaceAll(">", "&gt;");
         }
     </script>
 
