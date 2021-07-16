@@ -395,7 +395,14 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         job.setAlgorithm(algo);
     }
     else if (m_pool.coin().isValid()) {
-        job.setAlgorithm(m_pool.coin().algorithm(job.blob()[0]));
+        auto blob = params["blob"].GetString();
+        if (strlen(blob) > 2) {
+            auto version = Cvt::fromHex(blob, 2);
+            if (!version.empty())
+            {
+                job.setAlgorithm(m_pool.coin().algorithm(version[0]));
+            }
+        }
     }
 
 #   ifdef XMRIG_FEATURE_HTTP

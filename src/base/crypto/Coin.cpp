@@ -82,7 +82,7 @@ xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
         return (blobVersion >= 7) ? Algorithm::AR2_CHUKWA_V2 : Algorithm::AR2_CHUKWA;
 
     case YADA:
-        return (blobVersion >= 12) ? Algorithm::RX_YADA : Algorithm::CN_R;
+        return Algorithm::RX_YADA;
 
     case WOWNERO:
         return Algorithm::RX_WOW;
