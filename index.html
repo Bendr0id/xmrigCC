@@ -603,7 +603,7 @@
             });
 
             $('#templateEditorSave').click(function (event) {
-                var templateId = $('#templateSelector').val();
+                var templateId = htmlEncode($('#templateSelector').val());
                 var template = $('#template').val();
 
                 setTemplateConfig(templateId, template);
@@ -618,7 +618,7 @@
             });
 
             $('#templateEditorSaveAs').click(function (event) {
-                var templateId = $('#templateName').val();
+                var templateId = htmlEncode($('#templateName').val());
                 var template = $('#template').val();
 
                 setTemplateConfig(templateId, template);
@@ -627,7 +627,7 @@
             });
 
             $('#templateEditorDelete').click(function (event) {
-                var templateId = $('#templateSelector').val();
+                var templateId = htmlEncode($('#templateSelector').val());
 
                 deleteTemplateConfig(templateId, template);
             });
@@ -732,7 +732,7 @@
                                 clientConfig = JSON.stringify(jsonTemplate, undefined, 2);
 
                                 if ($('#replaceWorkerId').prop('checked')) {
-                                    clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                                    clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), htmlDecode(clientId)).trim();
                                 }
 
                                 setClientConfig(clientId, clientConfig);
@@ -975,7 +975,7 @@
                     clientConfig = JSON.stringify(clientConfig, undefined, 2)
 
                     if ($('#replaceWorkerId').prop('checked')) {
-                        clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), clientId).trim();
+                        clientConfig = clientConfig.replace(new RegExp("@WORKER-ID@", 'g'), htmlDecode(clientId)).trim();
                     }
 
                     setClientConfig(clientId, clientConfig);
@@ -1145,7 +1145,7 @@
 
         function setTemplateConfig(templateId, templateConfig) {
             $.ajax({
-                url: "/admin/setClientConfig?clientId=template_" + templateId,
+                url: "/admin/setClientConfig?clientId=template_" + htmlDecode(templateId),
                 type: 'POST',
                 dataType: "text",
                 data: templateConfig,

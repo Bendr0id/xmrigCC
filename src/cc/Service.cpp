@@ -50,7 +50,7 @@ namespace
 
   std::string sanitize(const std::string& data)
   {
-    return std::regex_replace(data, std::regex(R"([\W])"), "_");
+    return std::regex_replace(data, std::regex(R"(([^\x20-~]+)|([\\/:?"<>|~;]+))"), "_");
   }
 };
 
