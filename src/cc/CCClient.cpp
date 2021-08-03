@@ -409,7 +409,7 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
                                                                    const std::string& requestBuffer,
                                                                    const std::string& operation)
 {
-  std::shared_ptr<httplib::Client> cli;
+  std::shared_ptr<httplib::ClientImpl> cli;
 
 #   ifdef XMRIG_FEATURE_TLS
   if (m_base->config()->ccClient().useTLS())
@@ -420,8 +420,8 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   else
   {
 #   endif
-    cli = std::make_shared<httplib::Client>(m_base->config()->ccClient().host(),
-                                            m_base->config()->ccClient().port());
+    cli = std::make_shared<httplib::ClientImpl>(m_base->config()->ccClient().host(),
+                                                m_base->config()->ccClient().port());
 #   ifdef XMRIG_FEATURE_TLS
   }
 #   endif
@@ -453,8 +453,9 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   }
 
   auto res = std::make_shared<httplib::Response>();
+  httplib::Error err;
 
-  return cli->send(req, *res) ? res : nullptr;
+  return cli->send(req, *res, err) ? res : nullptr;
 }
 
 void xmrig::CCClient::updateUptime()
