@@ -230,16 +230,18 @@ void xmrig::CCClient::publishClientStatusReport()
   std::string requestUrl = "/client/setClientStatus?clientId=" + m_clientStatus.getClientId();
   std::string requestBuffer = m_clientStatus.toJsonString();
 
+  auto config = m_base->config()->ccClient();
+
   auto res = performRequest(requestUrl, requestBuffer, "POST");
   if (!res)
   {
-    LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST -> http://%s:%d%s"), Tags::cc(),
-            m_base->config()->ccClient().host(), m_base->config()->ccClient().port(), requestUrl.c_str());
+    LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST -> http%s://%s:%d%s"), Tags::cc(),
+            config.useTLS() ? "s":"", config.host(), config.port(), requestUrl.c_str());
   }
   else if (res->status != 200)
   {
-    LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http://%s:%d%s"), Tags::cc(), res->status, m_base->config()->ccClient().host(),
-            m_base->config()->ccClient().port(), requestUrl.c_str());
+    LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http%s://%s:%d%s"), Tags::cc(), res->status,
+            config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
   }
   else
   {
@@ -299,19 +301,21 @@ void xmrig::CCClient::fetchConfig()
 {
   LOG_DEBUG("CCClient::fetchConfig");
 
+  auto config = m_base->config()->ccClient();
+
   std::string requestUrl = "/client/getConfig?clientId=" + m_clientStatus.getClientId();
   std::string requestBuffer;
 
   auto res = performRequest(requestUrl, requestBuffer, "GET");
   if (!res)
   {
-    LOG_ERR(CLEAR "%s" RED("error:unable to performRequest GET -> http://%s:%d%s"), Tags::cc(),
-            m_base->config()->ccClient().host(), m_base->config()->ccClient().port(), requestUrl.c_str());
+    LOG_ERR(CLEAR "%s" RED("error:unable to performRequest GET -> http%s://%s:%d%s"), Tags::cc(),
+            config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
   }
   else if (res->status != 200)
   {
-    LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http://%s:%d%s"), Tags::cc(), res->status, m_base->config()->ccClient().host(),
-            m_base->config()->ccClient().port(), requestUrl.c_str());
+    LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http%s://%s:%d%s"), Tags::cc(), res->status,
+            config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
   }
   else
   {
@@ -354,6 +358,8 @@ void xmrig::CCClient::publishConfig()
 {
   LOG_DEBUG("CCClient::publishConfig");
 
+  auto config = m_base->config()->ccClient();
+
   std::string requestUrl = "/client/setClientConfig?clientId=" + m_clientStatus.getClientId();
 
   std::stringstream data;
@@ -380,13 +386,13 @@ void xmrig::CCClient::publishConfig()
       auto res = performRequest(requestUrl, buffer.GetString(), "POST");
       if (!res)
       {
-        LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST -> http://%s:%d%s"), Tags::cc(),
-                m_base->config()->ccClient().host(), m_base->config()->ccClient().port(), requestUrl.c_str());
+        LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST -> http%s://%s:%d%s"), Tags::cc(),
+                config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
       }
       else if (res->status != 200)
       {
-        LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http://%s:%d%s"), Tags::cc(), res->status, m_base->config()->ccClient().host(),
-                m_base->config()->ccClient().port(), requestUrl.c_str());
+        LOG_ERR(CLEAR "%s" RED("error:\"%d\" -> http%s://%s:%d%s"), Tags::cc(), res->status, config.host(),
+                config.useTLS() ? "s" : "", config.port(), requestUrl.c_str());
       }
       else
       {
@@ -411,25 +417,28 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
 {
   std::shared_ptr<httplib::ClientImpl> cli;
 
+  auto config = m_base->config()->ccClient();
+
 #   ifdef XMRIG_FEATURE_TLS
-  if (m_base->config()->ccClient().useTLS())
+  if (config.useTLS())
   {
-    cli = std::make_shared<httplib::SSLClient>(m_base->config()->ccClient().host(),
-                                               m_base->config()->ccClient().port());
+    cli = std::make_shared<httplib::SSLClient>(config.host(),
+                                               config.port());
+    cli->enable_server_certificate_verification(false);
   }
   else
   {
 #   endif
-    cli = std::make_shared<httplib::ClientImpl>(m_base->config()->ccClient().host(),
-                                                m_base->config()->ccClient().port());
+    cli = std::make_shared<httplib::ClientImpl>(config.host(),
+                                                config.port());
 #   ifdef XMRIG_FEATURE_TLS
   }
 #   endif
 
   std::stringstream hostHeader;
-  hostHeader << m_base->config()->ccClient().host()
+  hostHeader << config.host()
              << ":"
-             << m_base->config()->ccClient().port();
+             << config.port();
 
   LOG_DEBUG("CCClient::performRequest %s -> [%s%s] send: '%.2048s'", operation.c_str(), hostHeader.str().c_str(), requestUrl.c_str(), requestBuffer.c_str());
 
@@ -453,7 +462,8 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   }
 
   auto res = std::make_shared<httplib::Response>();
-  httplib::Error err;
+
+  httplib::Error err = httplib::Error::Success;
 
   return cli->send(req, *res, err) ? res : nullptr;
 }
