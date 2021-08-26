@@ -1,5 +1,7 @@
 # 2.9.6
-
+* Added rx variant GRAFT algo (`rx/graft`)
+* Fixed freeze in CC Server / CC communication
+* Fixed --coin option algo detection
 # 2.9.5
 * Added wownero solo mining (upstream 6.13.1) support
 * Added support to start xmrigDaemon/Miner with nothing but `--cc-url` and `--cc-token` params to remote push the config

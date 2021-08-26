@@ -12,6 +12,7 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name | Memory | Version | Notes |
 |------|--------|---------|-------|
+| `rx/graft` | 2 MB | 2.9.6+ | RandomGRAFT. |
 | `rx/yada` | 2 MB | 2.9.3+ | RandomYADA. |
 | `cn/superfast` | 2 MB | 2.9.1+ | CryptoNight variant 0 (modified) |
 | `cn/cache_hash` | 2 MB | 2.8.4+ | CryptoNight variant 0 (modified) | 
