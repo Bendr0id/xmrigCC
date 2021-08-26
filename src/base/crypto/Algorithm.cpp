@@ -357,12 +357,12 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 
   #   ifdef XMRIG_ALGO_RANDOMX
       case RX_0:
-      case RX_YADA:
       case RX_WOW:
       case RX_ARQ:
       case RX_SFX:
       case RX_KEVA:
       case RX_XLA:
+      case RX_YADA:
       case RX_GRAFT:
           return RANDOM_X;
   #   endif
