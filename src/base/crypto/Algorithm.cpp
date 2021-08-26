@@ -130,6 +130,8 @@ static AlgoName const algorithm_names[] = {
     { "randomx/xla",               "rx/xla",           Algorithm::RX_XLA          },
     { "randomx/yada",              "rx/yada",          Algorithm::RX_YADA         },
     { "RandomYADA",                nullptr,            Algorithm::RX_YADA         },
+    { "randomx/graft",             "rx/graft",         Algorithm::RX_GRAFT        },
+    { "RandomX-Graft",             nullptr,            Algorithm::RX_GRAFT        },
 #   endif
 #   ifdef XMRIG_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
@@ -181,6 +183,7 @@ size_t xmrig::Algorithm::l2() const
     case RX_0:
     case RX_SFX:
     case RX_YADA:
+    case RX_GRAFT:
         return 0x40000;
 
     case RX_WOW:
@@ -233,6 +236,7 @@ size_t xmrig::Algorithm::l3() const
         case RX_0:
         case RX_SFX:
         case RX_YADA:
+        case RX_GRAFT:
             return oneMiB * 2;
 
         case RX_WOW:
@@ -359,6 +363,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
       case RX_SFX:
       case RX_KEVA:
       case RX_XLA:
+      case RX_GRAFT:
           return RANDOM_X;
   #   endif
 

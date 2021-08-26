@@ -131,6 +131,17 @@ RandomX_ConfigurationYada::RandomX_ConfigurationYada()
     ArgonIterations = 4;
 }
 
+RandomX_ConfigurationGraft::RandomX_ConfigurationGraft()
+{
+    ArgonIterations = 3;
+    ArgonLanes = 2;
+    ArgonSalt = "RandomX-Graft\x01";
+    ProgramIterations = 2048;
+    ProgramSize = 280;
+    RANDOMX_FREQ_IROR_R = 7;
+    RANDOMX_FREQ_IROL_R = 3;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: SuperscalarLatency(170)
 	, ArgonMemory(262144)
@@ -396,6 +407,7 @@ RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationScala RandomX_ScalaConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
+RandomX_ConfigurationGraft RandomX_GraftConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

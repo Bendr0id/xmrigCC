@@ -74,6 +74,7 @@ public:
         RX_SFX,        // "rx/sfx"           RandomSFX (Safex Cash).
         RX_KEVA,       // "rx/keva"          RandomKV (Keva).
         RX_XLA,        // "rx/xla"           RandomX-Panthera (Scala).
+        RX_GRAFT,      // "rx/graft"         RandomX-Graft
         AR2_CHUKWA,    // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_CHUKWA_V2, // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_CHUKWA_LITE,// "argon2/chukwa-lite" Argon2id (Chukwa-Lite).
