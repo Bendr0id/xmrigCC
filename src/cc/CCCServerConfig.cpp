@@ -76,6 +76,7 @@ CCServerConfig::CCServerConfig(cxxopts::ParseResult& parseResult)
     m_pushoverUserKey = getParseResult(parseResult, "pushover-user-key", m_pushoverUserKey);
     m_telegramBotToken = getParseResult(parseResult, "telegram-bot-token", m_telegramBotToken);
     m_telegramChatId = getParseResult(parseResult, "telegram-chat-id", m_telegramChatId);
+    m_discordWebhookUrl = getParseResult(parseResult, "discord-webhook-url", m_discordWebhookUrl);
     m_pushOfflineMiners = getParseResult(parseResult, "push-miner-offline-info", m_pushOfflineMiners);
     m_pushZeroHashrateMiners = getParseResult(parseResult, "push-miner-zero-hash-info", m_pushZeroHashrateMiners);
     m_pushPeriodicStatus = getParseResult(parseResult, "push-periodic-mining-status", m_pushPeriodicStatus);
@@ -116,6 +117,7 @@ bool CCServerConfig::read(const xmrig::IJsonReader& reader)
   m_pushoverUserKey = reader.getString("pushover-user-key", m_pushoverUserKey.c_str());
   m_telegramBotToken = reader.getString("telegram-bot-token", m_telegramBotToken.c_str());
   m_telegramChatId = reader.getString("telegram-chat-id", m_telegramChatId.c_str());
+  m_discordWebhookUrl = reader.getString("discord-webhook-url", m_discordWebhookUrl.c_str());
   m_pushOfflineMiners = reader.getBool("push-miner-offline-info", m_pushOfflineMiners);
   m_pushZeroHashrateMiners = reader.getBool("push-miner-zero-hash-info", m_pushZeroHashrateMiners);
   m_pushPeriodicStatus = reader.getBool("push-periodic-mining-status", m_pushPeriodicStatus);

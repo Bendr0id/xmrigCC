@@ -32,15 +32,31 @@ public:
 public:
   bool read(const xmrig::IJsonReader& reader);
 
-  inline bool colors() const
-  {
-    return m_colors;
-  }
+  inline bool colors() const                      { return m_colors; }
+  inline bool background() const                  { return m_background; }
+  inline bool syslog() const                      { return m_syslog; }
+  inline bool useTLS() const                      { return m_useTLS; }
+  inline bool usePushover() const                 { return !m_pushoverUserKey.empty() && !m_pushoverApiToken.empty(); }
+  inline bool useTelegram() const                 { return !m_telegramBotToken.empty() && !m_telegramChatId.empty(); }
+  inline bool useDiscord() const                  { return !m_discordWebhookUrl.empty(); }
+  inline bool pushOfflineMiners() const           { return m_pushOfflineMiners; }
+  inline bool pushZeroHashrateMiners() const      { return m_pushZeroHashrateMiners; }
+  inline bool pushPeriodicStatus() const          { return m_pushPeriodicStatus; }
 
-  inline bool background() const
-  {
-    return m_background;
-  }
+  inline std::string bindIp() const               { return m_bindIp; }
+  inline std::string adminUser() const            { return m_adminUser; }
+  inline std::string adminPass() const            { return m_adminPass; }
+  inline std::string token() const                { return m_token; }
+  inline std::string customDashboard() const      { return m_customDashboard; }
+  inline std::string clientConfigFolder() const   { return m_clientConfigFolder; }
+  inline std::string logFile() const              { return m_logFile; }
+  inline std::string keyFile() const              { return m_keyFile; }
+  inline std::string certFile() const             { return m_certFile; }
+  inline std::string pushoverApiToken() const     { return m_pushoverApiToken; }
+  inline std::string pushoverUserKey() const      { return m_pushoverUserKey; }
+  inline std::string telegramBotToken() const     { return m_telegramBotToken; }
+  inline std::string telegramChatId() const       { return m_telegramChatId; }
+  inline std::string discordWebhookUrl() const    { return m_discordWebhookUrl; }
 
   inline bool syslog() const
   {
@@ -191,6 +207,7 @@ private:
   std::string m_pushoverUserKey;
   std::string m_telegramBotToken;
   std::string m_telegramChatId;
+  std::string m_discordWebhookUrl;
 };
 
 #endif /* XMRIG_CC_SERVER_CONFIG_H */

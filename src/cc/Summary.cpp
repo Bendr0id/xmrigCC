@@ -59,14 +59,37 @@ static void printCommands()
 
 static void printPushinfo(const std::shared_ptr<CCServerConfig>& config)
 {
-  if (config->usePushover() || config->useTelegram())
+  if (config->usePushover() || config->useTelegram() || config->useDiscord())
   {
 #ifdef XMRIG_FEATURE_TLS
-    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s%s%s"), "PUSHSERVICE",
-                      config->usePushover() ? "Pushover" : "",
-                      config->usePushover() && config->useTelegram() ? ", " : "",
-                      config->useTelegram() ? "Telegram" : "");
+    std::string pushServices;
 
+    if (config->usePushover())
+    {
+      pushServices = "Pushover";
+    }
+
+    if (config->useTelegram())
+    {
+      if (!pushServices.empty())
+      {
+        pushServices += ", ";
+      }
+
+      pushServices += "Telegram";
+    }
+
+    if (config->useDiscord())
+    {
+      if (!pushServices.empty())
+      {
+        pushServices += ", ";
+      }
+
+      pushServices += "Discord";
+    }
+
+    xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s"), "PUSHSERVICE", pushServices.c_str());
 #else
     xmrig::Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") RED_BOLD("Unavailable requires TLS"), "PUSHSERVICE");
 #endif

@@ -88,6 +88,7 @@ private:
   void triggerPush(const std::string& title, const std::string& message);
   void sendViaPushover(const std::string& title, const std::string& message);
   void sendViaTelegram(const std::string& title, const std::string& message);
+  void sendViaDiscord(const std::string& title, const std::string& message);
   void updateStatistics(uint64_t now);
 
 private:

@@ -23,14 +23,14 @@
 #define APP_ID        "XMRigCC"
 #define APP_NAME      "XMRigCC"
 #define APP_DESC      "XMRigCC miner"
-#define APP_VERSION   "3.0.1-dev"
+#define APP_VERSION   "3.1.1-dev"
 #define APP_DOMAIN    ""
 #define APP_SITE      "https://github.com/BenDr0id/xmrigCC/"
 #define APP_COPYRIGHT "Copyright (C) 2017- XMRigCC"
 #define APP_KIND      "miner"
 
 #define APP_VER_MAJOR  3
-#define APP_VER_MINOR  0
+#define APP_VER_MINOR  1
 #define APP_VER_PATCH  1
 
 #ifndef NDEBUG
@@ -40,7 +40,9 @@
 #endif
 
 #ifdef _MSC_VER
-#   if (_MSC_VER >= 1920)
+#   if (_MSC_VER >= 1930)
+#       define MSVC_VERSION 2022
+#   elif (_MSC_VER >= 1920 && _MSC_VER < 1930)
 #       define MSVC_VERSION 2019
 #   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
 #       define MSVC_VERSION 2017

@@ -26,10 +26,12 @@ PushOver or Telegram automatically so that you dont need to watch your miners al
 
 Full Windows/Linux/OSx/Android compatible, and you can mix all on a single XMRigCC-Server.
 
-## Last integrated algos in XMRigCC:
+## Latest integrated algos in XMRigCC:
 
 List of all supported algos can be found [here](doc/ALGORITHMS.md)
 
+* **Lozzax** RX variant (Algo: "rx/lozz")
+* **Conceal (CCX), Equilibria (XEQ), ...** CN variant (Algo: "cn/gpu")
 * **Ghostrider (Raptoreum)** (Algo: "gr")
 * **KawPow (Ravencoin)** (Algo: "kawpow")
 * **Graft** RX variant (Algo: "rx/graft")
@@ -61,7 +63,9 @@ List of all supported algos can be found [here](doc/ALGORITHMS.md)
 ## Mining backends
 - **CPU** (x64/ARMv8)
 - **OpenCL** for AMD GPUs.
-- **CUDA** for NVIDIA GPUs via XMRig's official [CUDA plugin](https://github.com/xmrig/xmrig-cuda).
+- **CUDA** for NVIDIA GPUs use: 
+     - XMRig's official [CUDA plugin](https://github.com/xmrig/xmrig-cuda/releases) 
+     - MoneroOcean's [CUDA plugin](https://github.com/MoneroOcean/xmrig-cuda/releases) **with CN/GPU** support
 
 **XMRigCC Miner**
 
@@ -295,4 +299,5 @@ ETH:  `0x799611a12F196848967E9002B7bF1d01872D88F8`
 * ben [at] graef.in
 * [telegram](https://t.me/XMRigCC)
 * [discord](https://discord.gg/r3rCKTB)
+* [twitter](https://twitter.com/XMRigCC)
 * [reddit](https://www.reddit.com/user/BenDr0id/)

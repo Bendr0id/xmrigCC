@@ -52,7 +52,12 @@ char *xmrig::Platform::createUserAgent()
     constexpr const size_t max = 256;
 
     char *buf = new char[max]();
+
+#   ifdef defined(__FreeBSD__)
+    int length = snprintf(buf, max, "%s/%s (FreeBSD ", APP_NAME, APP_VERSION);
+#   else
     int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
+#   endif
 
 #   if defined(__x86_64__)
     length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());

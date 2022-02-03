@@ -41,6 +41,7 @@ public:
         RAVEN,
         WOWNERO,
         YADA,
+        LOZZAX,
         MAX
     };
 

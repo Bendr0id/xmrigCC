@@ -21,6 +21,7 @@
     // Telegram Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Telegram
     "telegram-bot-token" : "",                  // telegram bot token to use for telegram notifications
     "telegram-chat-id" : "",                    // telegram chat-id to used for telegram notifications
+    "discord-webhook-url" : "",                 // discord webhook url used for discord notifications
     "push-miner-offline-info" : true,           // push notification for offline miners
     "push-miner-zero-hash-info" : true,         // push notification when miner reports 0 hashrate
     "push-periodic-mining-status" : true        // push periodic status notification (every hour)

@@ -20,6 +20,7 @@
 #include <cstring>
 #include <iostream>
 #include <utility>
+#include <regex>
 
 #ifdef WIN32
 #include "win_ports/dirent.h"
@@ -38,6 +39,7 @@
 #include "base/io/log/Log.h"
 #include "version.h"
 #include "Service.h"
+#include "fmt/format.h"
 
 namespace
 {
@@ -77,7 +79,7 @@ bool Service::start()
     auto now = static_cast<uint64_t>(std::chrono::system_clock::to_time_t(time_point) * 1000);
 
 #ifdef XMRIG_FEATURE_TLS
-    if (m_config->usePushover() || m_config->useTelegram())
+    if (m_config->usePushover() || m_config->useTelegram() || m_config->useDiscord())
     {
       if (m_config->pushOfflineMiners())
       {
@@ -872,6 +874,11 @@ void Service::triggerPush(const std::string& title, const std::string& message)
   {
     sendViaTelegram(title, message);
   }
+
+  if (m_config->useDiscord())
+  {
+    sendViaDiscord(title, message);
+  }
 }
 
 void Service::sendViaPushover(const std::string& title, const std::string& message)
@@ -917,6 +924,42 @@ void Service::sendViaTelegram(const std::string& title, const std::string& messa
   else
   {
     LOG_ERR("Failed to connect to the Telegram API");
+  }
+}
+
+void Service::sendViaDiscord(const std::string& title, const std::string& message)
+{
+  std::smatch matcher;
+
+  auto webHookUrl = m_config->discordWebhookUrl();
+  if (std::regex_match(webHookUrl, matcher, std::regex(R"((?:(https?):)?(?://(discord.com:\[([\d:]+)\]|([^:/?#]+))(?::(\d+))?)?([^?#]*(?:\?[^#]*)?)(?:#.*)?)")))
+  {
+    auto cli = std::make_shared<httplib::SSLClient>("discord.com", 443);
+    cli->enable_server_certificate_verification(false);
+
+    auto description = std::regex_replace(message, std::regex("\n"), "\\n");
+    auto body = fmt::format(R"({{"username": "{}", "embeds": [{{ "title": "{}", "description": "{}"}}]}})",
+                               APP_NAME,
+                               title,
+                               description);
+
+    auto path = matcher[5].str();
+    if (!path.empty())
+    {
+      auto res = cli->Post(path.c_str(), body, CONTENT_TYPE_JSON);
+      if (res)
+      {
+        LOG_WARN("Discord response: %s [%d]", res->body.c_str(), res->status);
+      }
+      else
+      {
+        LOG_ERR("Failed to connect to the Discord API");
+      }
+    }
+  }
+  else
+  {
+    LOG_ERR("Malformed Discord WebHook URL");
   }
 }
 
