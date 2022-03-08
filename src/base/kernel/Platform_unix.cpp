@@ -53,7 +53,7 @@ char *xmrig::Platform::createUserAgent()
 
     char *buf = new char[max]();
 
-#   ifdef defined(__FreeBSD__)
+#   if defined(__FreeBSD__)
     int length = snprintf(buf, max, "%s/%s (FreeBSD ", APP_NAME, APP_VERSION);
 #   else
     int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
