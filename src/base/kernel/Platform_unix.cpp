@@ -85,7 +85,7 @@ char *xmrig::Platform::createUpdateType()
 
     char *buf = new char[max]();
 
-#   ifdef defined(__FreeBSD__)
+#   if defined(__FreeBSD__)
     int length = snprintf(buf, max, "freebsd");
 #   else
     int length = snprintf(buf, max, "linux");

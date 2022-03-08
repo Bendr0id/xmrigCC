@@ -204,8 +204,6 @@ void xmrig::CCClient::publishClientStatusReport()
       else if (controlCommand.getCommand() == ControlCommand::REBOOT)
       {
         LOG_WARN(CLEAR "%s" YELLOW("Command: REBOOT received"), Tags::cc());
-        fetchUpdate();
-        return;
       }
       else if (controlCommand.getCommand() == ControlCommand::EXECUTE)
       {
@@ -378,9 +376,10 @@ void xmrig::CCClient::fetchUpdate()
   //LOG_DEBUG("CCClient::performRequest %s [%s%s] send: '%.2048s'", operation.c_str(), hostHeader.str().c_str(),
   //          requestUrl.c_str(), requestBuffer.c_str());
 
-  httplib::Headers headers = {
-    { "Host", hostHeader.str().c_str() },
-    { "User-Agent", Platform::userAgent().data() }
+  httplib::Headers headers =
+  {
+    {"Host",       hostHeader.str().c_str()},
+    {"User-Agent", Platform::userAgent().data()}
   };
 
   std::string path = std::string("/client/updates/") + Platform::updateType().data() + "/xmrigMiner";
@@ -390,8 +389,9 @@ void xmrig::CCClient::fetchUpdate()
     cli->set_bearer_token_auth(config.token());
   }
 
-  std::uint32_t lastProgress {0};
-  auto res = cli->Get(path.c_str(), headers, [&hostHeader, &path, &lastProgress](uint64_t len, uint64_t total) {
+  std::uint32_t lastProgress{0};
+  auto res = cli->Get(path.c_str(), headers, [&hostHeader, &path, &lastProgress](uint64_t len, uint64_t total)
+  {
     if (total > 0)
     {
       auto progress = static_cast<uint32_t>(static_cast<float>(len) / static_cast<float>(total) * 100);
@@ -403,6 +403,8 @@ void xmrig::CCClient::fetchUpdate()
     }
     return true;
   });
+
+
 }
 
 

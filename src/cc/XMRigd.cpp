@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
 #if defined(_WIN32) || defined(WIN32)
   int pos = ownPath.rfind('\\');
-  std::string minerBinaryName( VALUE(MINER_EXECUTABLE_NAME) ".exe");
+  std::string minerBinaryName(VALUE(MINER_EXECUTABLE_NAME) ".exe");
 #else
   int pos = ownPath.rfind('/');
   std::string minerBinaryName(VALUE(MINER_EXECUTABLE_NAME));
@@ -61,7 +61,7 @@ int main(int argc, char** argv)
   std::string fullMinerBinaryPath = ownPath.substr(0, pos + 1) + minerBinaryName;
 
 #if defined(_WIN32) || defined(WIN32)
-  xmrigMinerPath = "\"" + xmrigMinerPath + "\"";
+  fullMinerBinaryPath = "\"" + fullMinerBinaryPath + "\"";
 #endif
 
   std::string params = " --daemonized";
