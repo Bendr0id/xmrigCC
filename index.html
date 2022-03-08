@@ -254,6 +254,19 @@
                         }
                     },
                     {
+                        text: '<i class="fa fa-recycle"> Update miner</i>',
+                        className: 'btn-danger',
+                        enabled: false,
+                        action: function () {
+                            table.rows({selected: true}).eq(0).each(function (index) {
+                                var row = table.row(index);
+                                var data = row.data();
+
+                                sendAction("UPDATE", data.client_status.client_id);
+                            });
+                        }
+                    },
+                    {
                         text: '<i class="fa fa-play"> Start</i>',
                         className: 'btn-success',
                         enabled: false,
@@ -280,8 +293,16 @@
                         }
                     },
                     {
+                        text: '<i class="fa fa-sign-out"> Stop</i>',
+                        className: 'btn-danger',
+                        enabled: false,
+                        action: function () {
+                            $('#commandDialogStop').modal('show');
+                        }
+                    },
+                    {
                         text: '<i class="fa fa-repeat"> Restart</i>',
-                        className: 'btn-info',
+                        className: 'btn-warning',
                         enabled: false,
                         action: function () {
                             table.rows({selected: true}).eq(0).each(function (index) {
@@ -290,14 +311,6 @@
 
                                 sendAction("RESTART", data.client_status.client_id);
                             });
-                        }
-                    },
-                    {
-                        text: '<i class="fa fa-sign-out"> Stop</i>',
-                        className: 'btn-danger',
-                        enabled: false,
-                        action: function () {
-                            $('#commandDialogStop').modal('show');
                         }
                     },
                     {
@@ -315,7 +328,7 @@
                     },
                     {
                         text: '<i class="fa fa-rocket"> Execute</i>',
-                        className: 'btn-success',
+                        className: 'btn-warning',
                         enabled: false,
                         action: function () {
                             $('#commandExecuteDialog').modal('show');
@@ -323,7 +336,7 @@
                     },
                     {
                         text: '<i class="fa fa-table"> Assign template</i>',
-                        className: 'btn-info',
+                        className: 'btn-primary',
                         enabled: false,
                         action: function () {
                             $.ajax({
@@ -357,7 +370,7 @@
                     },
                     {
                         text: '<i class="fa fa-edit"> Template Editor</i>',
-                        className: 'btn-primary',
+                        className: 'btn-info',
                         enabled: true,
                         action: function () {
                             $.ajax({

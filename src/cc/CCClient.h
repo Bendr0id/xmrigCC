@@ -67,7 +67,6 @@ private:
   void publishThread();
   void publishClientStatusReport();
 
-  void updateAuthorization();
   void updateClientInfo();
   void updateUptime();
   void updateLog();
@@ -86,13 +85,14 @@ private:
   const uint64_t m_startTime;
   ClientStatus m_clientStatus;
 
-  std::string m_authorization;
   bool m_configPublishedOnStart;
 
   Timer* m_timer;
   std::thread m_thread;
   std::vector<ICommandListener*> m_Commandlisteners;
   std::vector<IClientStatusListener*> m_ClientStatuslisteners;
+
+  void fetchUpdate();
 };
 }
 

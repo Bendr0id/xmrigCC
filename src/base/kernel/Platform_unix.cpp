@@ -79,6 +79,38 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
+char *xmrig::Platform::createUpdateType()
+{
+    constexpr const size_t max = 256;
+
+    char *buf = new char[max]();
+
+#   ifdef defined(__FreeBSD__)
+    int length = snprintf(buf, max, "freebsd");
+#   else
+    int length = snprintf(buf, max, "linux");
+#   endif
+
+#   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+    length += snprintf(buf + length, max - length, "-dynamic");
+#   else
+    length += snprintf(buf + length, max - length, "-static");
+#   endif
+
+#   if defined(__x86_64__)
+    length += snprintf(buf + length, max - length, "-amd64");
+#   elif defined(__aarch64__)
+    length += snprintf(buf + length, max - length, "-arm64");
+#   elif defined(__arm__)
+    length += snprintf(buf + length, max - length, "-arm");
+#   else
+    length += snprintf(buf + length, max - length, "-i386");
+#   endif
+
+    return buf;
+}
+
+
 #ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {

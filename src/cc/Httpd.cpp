@@ -88,29 +88,24 @@ int Httpd::start()
 
   m_srv->Get(R"(/.*)", [this](const httplib::Request& req, httplib::Response& res)
   {
-    int status;
-
-    if (req.path.find("/client/") == 0)
-    {
-      status = this->bearerAuth(req, res);
-    }
-    else
-    {
-      status = this->basicAuth(req, res);
-    }
-
-    if (status == HTTP_OK)
-    {
-      status = this->m_service->handleGET(req, res);
-    }
-
-    res.status = status;
-
+    res.status = this->m_service->handleGET(req, res);;
     addResponseHeader(res);
   });
 
   m_srv->Post(R"(/.*)", [this](const httplib::Request& req, httplib::Response& res)
   {
+    res.status = m_service->handlePOST(req, res);;
+    addResponseHeader(res);
+  });
+
+  auto ret = m_srv->set_mount_point("/client/updates", "./client-updates");
+  if (!ret) {
+    LOG_ERR("Unable to find client-updates mount point");
+  }
+
+  m_srv->set_pre_routing_handler([this](const httplib::Request& req, httplib::Response& res) {
+    auto handlerResponse = httplib::Server::HandlerResponse::Unhandled;
+
     int status;
     if (req.path.find("/client/") == 0)
     {
@@ -121,14 +116,14 @@ int Httpd::start()
       status = this->basicAuth(req, res);
     }
 
-    if (status == HTTP_OK)
+    if (status != HTTP_OK)
     {
-      status = this->m_service->handlePOST(req, res);
+      res.status = status;
+      addResponseHeader(res);
+      handlerResponse =  httplib::Server::HandlerResponse::Handled;
     }
 
-    res.status = status;
-
-    addResponseHeader(res);
+    return handlerResponse;
   });
 
   return m_srv->listen(m_config->bindIp().c_str(), m_config->port()) ? 0 : 1;

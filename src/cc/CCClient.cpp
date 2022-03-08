@@ -76,21 +76,10 @@ void xmrig::CCClient::start()
 {
   LOG_DEBUG("CCClient::start");
 
-  updateAuthorization();
   updateClientInfo();
 
   m_timer->start(static_cast<uint64_t>(m_base->config()->ccClient().updateInterval() * 1000),
                  static_cast<uint64_t>(m_base->config()->ccClient().updateInterval() * 1000));
-}
-
-void xmrig::CCClient::updateAuthorization()
-{
-  LOG_DEBUG("CCClient::updateAuthorization");
-
-  if (m_base->config()->ccClient().token() != nullptr)
-  {
-    m_authorization = std::string("Bearer ") + m_base->config()->ccClient().token();
-  }
 }
 
 void xmrig::CCClient::updateClientInfo()
@@ -215,10 +204,17 @@ void xmrig::CCClient::publishClientStatusReport()
       else if (controlCommand.getCommand() == ControlCommand::REBOOT)
       {
         LOG_WARN(CLEAR "%s" YELLOW("Command: REBOOT received"), Tags::cc());
+        fetchUpdate();
+        return;
       }
       else if (controlCommand.getCommand() == ControlCommand::EXECUTE)
       {
         LOG_WARN(CLEAR "%s" YELLOW("Command: EXECUTE received"), Tags::cc());
+      }
+      else if (controlCommand.getCommand() == ControlCommand::UPDATE)
+      {
+        LOG_WARN(CLEAR "%s" YELLOW("Command: UPDATE received"), Tags::cc());
+        fetchUpdate();
       }
 
       for (ICommandListener* listener : m_Commandlisteners)
@@ -350,15 +346,15 @@ void xmrig::CCClient::publishConfig()
   }
 }
 
-std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::string& requestUrl,
-                                                                   const std::string& requestBuffer,
-                                                                   const std::string& operation)
+
+void xmrig::CCClient::fetchUpdate()
 {
+  LOG_DEBUG("CCClient::fetchUpdate");
   std::shared_ptr<httplib::ClientImpl> cli;
 
   auto config = m_base->config()->ccClient();
 
-#   ifdef XMRIG_FEATURE_TLS
+# ifdef XMRIG_FEATURE_TLS
   if (config.useTLS())
   {
     cli = std::make_shared<httplib::SSLClient>(config.host(),
@@ -367,10 +363,70 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   }
   else
   {
-#   endif
+# endif
     cli = std::make_shared<httplib::ClientImpl>(config.host(),
                                                 config.port());
-#   ifdef XMRIG_FEATURE_TLS
+# ifdef XMRIG_FEATURE_TLS
+  }
+#   endif
+
+  std::stringstream hostHeader;
+  hostHeader << config.host()
+             << ":"
+             << config.port();
+
+  //LOG_DEBUG("CCClient::performRequest %s [%s%s] send: '%.2048s'", operation.c_str(), hostHeader.str().c_str(),
+  //          requestUrl.c_str(), requestBuffer.c_str());
+
+  httplib::Headers headers = {
+    { "Host", hostHeader.str().c_str() },
+    { "User-Agent", Platform::userAgent().data() }
+  };
+
+  std::string path = std::string("/client/updates/") + Platform::updateType().data() + "/xmrigMiner";
+
+  if (config.token() != nullptr)
+  {
+    cli->set_bearer_token_auth(config.token());
+  }
+
+  std::uint32_t lastProgress {0};
+  auto res = cli->Get(path.c_str(), headers, [&hostHeader, &path, &lastProgress](uint64_t len, uint64_t total) {
+    if (total > 0)
+    {
+      auto progress = static_cast<uint32_t>(static_cast<float>(len) / static_cast<float>(total) * 100);
+      if (lastProgress != progress)
+      {
+        lastProgress = progress;
+        LOG_INFO("CCClient::fetchUpdate [%lu/%lu]: %lu%%", len, total, progress);
+      }
+    }
+    return true;
+  });
+}
+
+
+std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::string& requestUrl,
+                                                                   const std::string& requestBuffer,
+                                                                   const std::string& operation)
+{
+  std::shared_ptr<httplib::ClientImpl> cli;
+
+  auto config = m_base->config()->ccClient();
+
+# ifdef XMRIG_FEATURE_TLS
+  if (config.useTLS())
+  {
+    cli = std::make_shared<httplib::SSLClient>(config.host(),
+                                               config.port());
+    cli->enable_server_certificate_verification(false);
+  }
+  else
+  {
+# endif
+    cli = std::make_shared<httplib::ClientImpl>(config.host(),
+                                                config.port());
+# ifdef XMRIG_FEATURE_TLS
   }
 #   endif
 
@@ -391,9 +447,9 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   req.set_header("Accept", "application/json");
   req.set_header("Content-Type", "application/json");
 
-  if (!m_authorization.empty())
+  if (config.token() != nullptr)
   {
-    req.set_header("Authorization", m_authorization.c_str());
+    cli->set_bearer_token_auth(config.token());
   }
 
   if (!requestBuffer.empty())

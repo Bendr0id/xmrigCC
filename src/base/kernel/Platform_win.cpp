@@ -71,6 +71,28 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
+char *xmrig::Platform::createUpdateType()
+{
+    constexpr const size_t max = 256;
+
+    char *buf = new char[max]();
+
+#   ifdef __GNUC__
+    int length = snprintf(buf, max, "gcc");
+#   elif _MSC_VER
+    int length = snprintf(buf, max, "mvc");
+#   endif
+
+#   if defined(__x86_64__) || defined(_M_AMD64)
+    length += snprintf(buf + length, max - length, "-win64");
+#   else
+    length += snprintf(buf + length, max - length, "-win32");
+#   endif
+
+    return buf;
+}
+
+
 #ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {

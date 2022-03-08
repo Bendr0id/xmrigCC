@@ -179,7 +179,7 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
     {
       if (req.path.rfind("/client/getUpdate", 0) == 0)
       {
-        resultCode = getClientCommand(req, res);
+        resultCode = getClientCommand(clientId, res);
       }
       else
       {
@@ -233,7 +233,7 @@ int Service::handlePOST(const httplib::Request& req, httplib::Response& res)
   {
     if (req.path.rfind("/admin/resetClientStatusList", 0) == 0)
     {
-      resultCode = resetClientStatusList(req, clientId, res);
+      resultCode = resetClientStatusList();
     }
     else
     {
@@ -582,7 +582,7 @@ int Service::getClientLog(const std::string& clientId, httplib::Response& res)
 
   return HTTP_OK;
 }
-
+/*
 int Service::getClientUpdate(const httplib::Request& req, const std::string& clientId, httplib::Response& res)
 {
   const auto os = req.get_param_value("os");
@@ -608,6 +608,7 @@ int Service::getClientUpdate(const httplib::Request& req, const std::string& cli
 
   return HTTP_OK;
 }
+ */
 
 int Service::setClientConfig(const httplib::Request& req, const std::string& clientId, httplib::Response& res)
 {

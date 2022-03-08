@@ -50,14 +50,17 @@ public:
 
     static inline bool isUserActive(uint64_t ms)    { return idleTime() < ms; }
     static inline const String &userAgent()         { return m_userAgent; }
+    static inline const String &updateType()        { return m_updateType; }
 
     static bool isOnBatteryPower();
     static uint64_t idleTime();
 
 private:
     static char *createUserAgent();
+    static char *createUpdateType();
 
     static String m_userAgent;
+    static String m_updateType;
 
     static thread_local int64_t m_threadTimeToSleep;
     static thread_local int64_t m_threadUsageTime;
