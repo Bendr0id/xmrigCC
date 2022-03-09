@@ -27,10 +27,9 @@
 #include <windows.h>
 #include <signal.h>
 #else
-
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include <errno.h>
-
 #endif
 
 #ifndef MINER_EXECUTABLE_NAME
@@ -51,10 +50,10 @@ int main(int argc, char** argv)
   std::string ownPath(argv[0]);
 
 #if defined(_WIN32) || defined(WIN32)
-  int pos = ownPath.rfind('\\');
+  auto pos = ownPath.rfind('\\');
   std::string minerBinaryName(VALUE(MINER_EXECUTABLE_NAME) ".exe");
 #else
-  int pos = ownPath.rfind('/');
+  auto pos = ownPath.rfind('/');
   std::string minerBinaryName(VALUE(MINER_EXECUTABLE_NAME));
 #endif
 
@@ -71,34 +70,61 @@ int main(int argc, char** argv)
     params += argv[i];
   }
 
-  int status = 0;
+  auto status = EXIT_SUCCESS;
 
   do
   {
     // apply update if we have one
     if (fileFound(fullMinerBinaryPath + UPDATE_EXTENSION))
     {
-      if (!std::rename(fullMinerBinaryPath.c_str(), (fullMinerBinaryPath + BACKUP_EXTENSION).c_str()))
+      // remove old backup file
+      if (fileFound(fullMinerBinaryPath + BACKUP_EXTENSION))
       {
-        if (std::rename((fullMinerBinaryPath + UPDATE_EXTENSION).c_str(), fullMinerBinaryPath.c_str()))
+        status = std::remove((fullMinerBinaryPath + BACKUP_EXTENSION).c_str());
+      }
+
+      if (status == EXIT_SUCCESS)
+      {
+        // rename original to backup
+        status = std::rename(fullMinerBinaryPath.c_str(), (fullMinerBinaryPath + BACKUP_EXTENSION).c_str());
+        if (status == EXIT_SUCCESS)
+        {
+          // rename update to original
+          status = std::rename((fullMinerBinaryPath + UPDATE_EXTENSION).c_str(), fullMinerBinaryPath.c_str());
+
+#if !defined(_WIN32) && !defined(WIN32)
+          if (status == EXIT_SUCCESS)
+          {
+            // on non-windows system make file executable
+            status = chmod(fullMinerBinaryPath.c_str(), S_IRWXU);
+          }
+#endif
+        }
+
+        if (status != EXIT_SUCCESS)
         {
           // try to rollback
           std::rename((fullMinerBinaryPath + BACKUP_EXTENSION).c_str(), fullMinerBinaryPath.c_str());
         }
       }
+      else
+      {
+        // update failed try to remove the update
+        std::remove((fullMinerBinaryPath + UPDATE_EXTENSION).c_str());
+      }
     }
 
+    // execute miner and wait for result
     status = system((fullMinerBinaryPath + params).c_str());
 #if defined(_WIN32) || defined(WIN32)
-    } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != 0);
+  } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != SUCCESS);
 
-    if (status == EINVAL)
-    {
-      std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-    }
+  if (status == EINVAL)
+  {
+    std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+  }
 #else
-
   } while (WEXITSTATUS(status) != EINVAL && WEXITSTATUS(status) != SIGHUP && WEXITSTATUS(status) != SIGINT &&
-           WEXITSTATUS(status) != 0);
+           WEXITSTATUS(status) != EXIT_SUCCESS);
 #endif
 }

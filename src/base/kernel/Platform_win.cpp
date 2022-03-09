@@ -71,7 +71,7 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-char *xmrig::Platform::createUpdateType()
+char *xmrig::Platform::createUpdatePath()
 {
     constexpr const size_t max = 256;
 
@@ -88,6 +88,8 @@ char *xmrig::Platform::createUpdateType()
 #   else
     length += snprintf(buf + length, max - length, "-win32");
 #   endif
+
+    snprintf(buf + length, max - length, "/xmrigMiner.exe");
 
     return buf;
 }

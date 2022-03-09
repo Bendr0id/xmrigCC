@@ -79,7 +79,7 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-char *xmrig::Platform::createUpdateType()
+char *xmrig::Platform::createUpdatePath()
 {
     constexpr const size_t max = 256;
 
@@ -106,6 +106,8 @@ char *xmrig::Platform::createUpdateType()
 #   else
     length += snprintf(buf + length, max - length, "-i386");
 #   endif
+
+    snprintf(buf + length, max - length, "/xmrigMiner");
 
     return buf;
 }

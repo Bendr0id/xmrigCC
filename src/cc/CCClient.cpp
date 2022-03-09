@@ -26,6 +26,7 @@
 #include "base/tools/Chrono.h"
 #include "base/kernel/Base.h"
 #include "base/kernel/Platform.h"
+#include "base/kernel/Process.h"
 
 #include "base/cc/interfaces/IClientStatusListener.h"
 #include "base/cc/interfaces/ICommandListener.h"
@@ -46,6 +47,8 @@
 
 namespace
 {
+  constexpr static int HTTP_OK = 200;
+
   static std::string VersionString()
   {
     std::string version = std::to_string(APP_VER_MAJOR) + std::string(".") + std::to_string(APP_VER_MINOR) +
@@ -163,7 +166,7 @@ void xmrig::CCClient::publishClientStatusReport()
     LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST [http%s://%s:%d%s]"), Tags::cc(),
             config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
   }
-  else if (res->status != 200)
+  else if (res->status != HTTP_OK)
   {
     LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status,
             config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
@@ -242,7 +245,7 @@ void xmrig::CCClient::fetchConfig()
     LOG_ERR(CLEAR "%s" RED("error:unable to performRequest GET [http%s://%s:%d%s]"), Tags::cc(),
             config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
   }
-  else if (res->status != 200)
+  else if (res->status != HTTP_OK)
   {
     LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status,
             config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
@@ -257,7 +260,7 @@ void xmrig::CCClient::fetchConfig()
       std::ofstream clientConfigFile(m_base->config()->fileName());
       if (clientConfigFile)
       {
-        rapidjson::StringBuffer buffer(0, 65536);
+        rapidjson::StringBuffer buffer(0, 4096);
         rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
         writer.SetMaxDecimalPlaces(10);
         document.Accept(writer);
@@ -309,7 +312,7 @@ void xmrig::CCClient::publishConfig()
 
     if (!document.HasParseError())
     {
-      rapidjson::StringBuffer buffer(0, 65536);
+      rapidjson::StringBuffer buffer(0, 4096);
       rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
       writer.SetMaxDecimalPlaces(10);
       document.Accept(writer);
@@ -320,7 +323,7 @@ void xmrig::CCClient::publishConfig()
         LOG_ERR(CLEAR "%s" RED("error:unable to performRequest POST [http%s://%s:%d%s]"), Tags::cc(),
                 config.useTLS() ? "s" : "", config.host(), config.port(), requestUrl.c_str());
       }
-      else if (res->status != 200)
+      else if (res->status != HTTP_OK)
       {
         LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
                 config.useTLS() ? "s" : "", config.port(), requestUrl.c_str());
@@ -348,63 +351,86 @@ void xmrig::CCClient::publishConfig()
 void xmrig::CCClient::fetchUpdate()
 {
   LOG_DEBUG("CCClient::fetchUpdate");
-  std::shared_ptr<httplib::ClientImpl> cli;
 
   auto config = m_base->config()->ccClient();
-
-# ifdef XMRIG_FEATURE_TLS
-  if (config.useTLS())
-  {
-    cli = std::make_shared<httplib::SSLClient>(config.host(),
-                                               config.port());
-    cli->enable_server_certificate_verification(false);
-  }
-  else
-  {
-# endif
-    cli = std::make_shared<httplib::ClientImpl>(config.host(),
-                                                config.port());
-# ifdef XMRIG_FEATURE_TLS
-  }
-#   endif
-
   std::stringstream hostHeader;
   hostHeader << config.host()
              << ":"
              << config.port();
 
-  //LOG_DEBUG("CCClient::performRequest %s [%s%s] send: '%.2048s'", operation.c_str(), hostHeader.str().c_str(),
-  //          requestUrl.c_str(), requestBuffer.c_str());
+  auto updatePath = std::string("/client/updates/") + Platform::updatePath().data();
 
-  httplib::Headers headers =
+  httplib::Headers headers;
+  headers.emplace("Host", hostHeader.str().c_str());
+  headers.emplace("Accept", "*//*");
+  headers.emplace("User-Agent", Platform::userAgent().data());
+
+  std::uint32_t lastProgress{0};
+
+  LOG_WARN(CLEAR "%s" YELLOW("Downloading update."), Tags::cc());
+
+  auto cli = getClient();
+  auto res = cli->Get(updatePath.c_str(), headers, [&lastProgress](uint64_t len, uint64_t total)
   {
-    {"Host",       hostHeader.str().c_str()},
-    {"User-Agent", Platform::userAgent().data()}
-  };
+    if (total > 0)
+    {
+      auto progress = static_cast<uint32_t>(static_cast<float>(len) / static_cast<float>(total) * 100);
+      if (lastProgress != progress && (progress % 10 == 0))
+      {
+        lastProgress = progress;
+        LOG_WARN(CLEAR "%s" WHITE("[%lu%%]"), Tags::cc(), progress);
+      }
+    }
+    return true;
+  });
 
-  std::string path = std::string("/client/updates/") + Platform::updateType().data() + "/xmrigMiner";
+  if (res && res->status == HTTP_OK)
+  {
+    std::string updateFile = std::string(xmrig::Process::exepath()) + UPDATE_EXTENSION;
+    std::ofstream os(updateFile, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+    if (os.is_open())
+    {
+      LOG_WARN(CLEAR "%s" YELLOW("Download completed. Updating."), Tags::cc());
+      os << res->body;
+    }
+    else
+    {
+      LOG_ERR(CLEAR "%s" RED("error: failed to write update file [%s]"), Tags::cc(), updateFile.c_str());
+    }
+  }
+  else
+  {
+    LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
+            config.useTLS() ? "s" : "", config.port(), updatePath.c_str());
+  }
+}
+
+
+std::shared_ptr<httplib::ClientImpl> xmrig::CCClient::getClient()
+{
+  std::shared_ptr<httplib::ClientImpl> cli;
+
+  auto config = m_base->config()->ccClient();
+# ifdef XMRIG_FEATURE_TLS
+  if (config.useTLS())
+  {
+    cli = std::make_shared<httplib::SSLClient>(config.host(), config.port());
+    cli->enable_server_certificate_verification(false);
+  }
+  else
+  {
+# endif
+    cli = std::make_shared<httplib::ClientImpl>(config.host(), config.port());
+# ifdef XMRIG_FEATURE_TLS
+  }
+#   endif
 
   if (config.token() != nullptr)
   {
     cli->set_bearer_token_auth(config.token());
   }
 
-  std::uint32_t lastProgress{0};
-  auto res = cli->Get(path.c_str(), headers, [&hostHeader, &path, &lastProgress](uint64_t len, uint64_t total)
-  {
-    if (total > 0)
-    {
-      auto progress = static_cast<uint32_t>(static_cast<float>(len) / static_cast<float>(total) * 100);
-      if (lastProgress != progress)
-      {
-        lastProgress = progress;
-        LOG_INFO("CCClient::fetchUpdate [%lu/%lu]: %lu%%", len, total, progress);
-      }
-    }
-    return true;
-  });
-
-
+  return cli;
 }
 
 
@@ -412,26 +438,7 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
                                                                    const std::string& requestBuffer,
                                                                    const std::string& operation)
 {
-  std::shared_ptr<httplib::ClientImpl> cli;
-
   auto config = m_base->config()->ccClient();
-
-# ifdef XMRIG_FEATURE_TLS
-  if (config.useTLS())
-  {
-    cli = std::make_shared<httplib::SSLClient>(config.host(),
-                                               config.port());
-    cli->enable_server_certificate_verification(false);
-  }
-  else
-  {
-# endif
-    cli = std::make_shared<httplib::ClientImpl>(config.host(),
-                                                config.port());
-# ifdef XMRIG_FEATURE_TLS
-  }
-#   endif
-
   std::stringstream hostHeader;
   hostHeader << config.host()
              << ":"
@@ -449,19 +456,14 @@ std::shared_ptr<httplib::Response> xmrig::CCClient::performRequest(const std::st
   req.set_header("Accept", "application/json");
   req.set_header("Content-Type", "application/json");
 
-  if (config.token() != nullptr)
-  {
-    cli->set_bearer_token_auth(config.token());
-  }
-
   if (!requestBuffer.empty())
   {
     req.body = requestBuffer;
   }
 
+  auto err = httplib::Error::Success;
   auto res = std::make_shared<httplib::Response>();
-
-  httplib::Error err = httplib::Error::Success;
+  auto cli = getClient();
 
   return cli->send(req, *res, err) ? res : nullptr;
 }

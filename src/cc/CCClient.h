@@ -79,6 +79,8 @@ private:
                                                     const std::string& requestBuffer,
                                                     const std::string& operation);
 
+  std::shared_ptr<httplib::ClientImpl> getClient();
+
 private:
   Base* m_base;
 
@@ -93,6 +95,7 @@ private:
   std::vector<IClientStatusListener*> m_ClientStatuslisteners;
 
   void fetchUpdate();
+
 };
 }
 

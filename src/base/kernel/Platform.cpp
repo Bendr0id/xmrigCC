@@ -33,7 +33,7 @@
 namespace xmrig {
 
 String Platform::m_userAgent;
-String Platform::m_updateType;
+String Platform::m_updatePath;
 
 thread_local int64_t Platform::m_threadTimeToSleep = {0};
 thread_local int64_t Platform::m_threadUsageTime = {0};
@@ -60,5 +60,5 @@ void xmrig::Platform::init(const char *userAgent)
         m_userAgent = createUserAgent();
     }
 
-    m_updateType = createUpdateType();
+    m_updatePath = createUpdatePath();
 }

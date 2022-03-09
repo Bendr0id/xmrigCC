@@ -147,6 +147,7 @@ void xmrig::App::onCommandReceived(ControlCommand& command)
         case ControlCommand::UPDATE:
         case ControlCommand::RESTART:
             close(RC_RESTART);
+            break;
         case ControlCommand::SHUTDOWN:
             close(RC_OK);
             break;

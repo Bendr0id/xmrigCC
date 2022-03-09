@@ -534,29 +534,19 @@
             table.on('select', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                table.button(1).enable(selectedRows > 0);
-                table.button(2).enable(selectedRows > 0);
-                table.button(3).enable(selectedRows > 0);
-                table.button(4).enable(selectedRows > 0);
-                table.button(5).enable(selectedRows > 0);
-                table.button(6).enable(selectedRows > 0);
-                table.button(7).enable(selectedRows > 0);
-                table.button(8).enable(selectedRows > 0);
-                table.button(9).enable(selectedRows > 0);
+                for (var i=0; i < 11; i++)
+                {
+                    table.button(i).enable(selectedRows > 0);
+                }
             });
 
             table.on('deselect', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                table.button(1).enable(selectedRows > 0);
-                table.button(2).enable(selectedRows > 0);
-                table.button(3).enable(selectedRows > 0);
-                table.button(4).enable(selectedRows > 0);
-                table.button(5).enable(selectedRows > 0);
-                table.button(6).enable(selectedRows > 0);
-                table.button(7).enable(selectedRows > 0);
-                table.button(8).enable(selectedRows > 0);
-                table.button(9).enable(selectedRows > 0);
+                for (var i=0; i < 11; i++)
+                {
+                    table.button(1).enable(selectedRows > 0);
+                }
             });
 
             table.buttons().container().appendTo('#clientStatusList_wrapper .col-sm-6:eq(0)');
