@@ -12,7 +12,7 @@
     "cert-file" : "server.pem",                 // when tls is turned on, use this to point to the right cert file
     "key-file" : "server.key",                  // when tls is turned on, use this to point to the right key file
     "client-config-folder" : null,              // folder which contains the client-config files (null=current)
-    "client-update-folder" : null,              // folder which contains the client-update files (null=current)
+    "client-update-folder" : null,              // folder which contains the client-update files (null=client-updates)
     "client-log-lines-history" : 100,           // maximum lines of log history kept per miner
     "custom-dashboard" : "index.html",          // dashboard html file
     // Pushnotification Howto @ https://github.com/Bendr0id/xmrigCC/wiki/Setup-Pushover

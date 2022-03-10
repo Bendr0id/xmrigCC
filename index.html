@@ -229,7 +229,7 @@
                     'colvis',
                     {
                         text: '<i class="fa fa-upload"> Push miner config</i>',
-                        className: 'btn-primary',
+                        className: 'btn-info',
                         enabled: false,
                         action: function () {
                             table.rows({selected: true}).eq(0).each(function (index) {
@@ -242,7 +242,7 @@
                     },
                     {
                         text: '<i class="fa fa-download"> Pull miner config</i>',
-                        className: 'btn-info',
+                        className: 'btn-primary',
                         enabled: false,
                         action: function () {
                             table.rows({selected: true}).eq(0).each(function (index) {
@@ -263,6 +263,77 @@
                                 var data = row.data();
 
                                 sendAction("UPDATE", data.client_status.client_id);
+                            });
+                        }
+                    },
+                    {
+                        text: '<i class="fa fa-table"> Assign template</i>',
+                        className: 'btn-info',
+                        enabled: false,
+                        action: function () {
+                            $.ajax({
+                                type: "GET",
+                                url: "/admin/getClientConfigTemplates",
+                                dataType: "json",
+                                success: function (data) {
+                                    var htmlContent = "";
+
+                                    var arrayLength = data["templates"].length;
+                                    for (var i = 0; i < arrayLength; i++) {
+                                        htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                    }
+
+                                    if (arrayLength > 0) {
+                                        $('#assignTemplate').prop('disabled', false);
+
+                                        $('#assignTemplateSelector').html(htmlContent);
+                                        $('#assignTemplateSelector').selectpicker('refresh');
+                                    } else {
+                                        $('#assignTemplate').prop('disabled', true);
+                                    }
+
+                                    $('#assignTemplateEditor').modal('show');
+                                },
+                                error: function (data) {
+                                    setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: '<i class="fa fa-edit"> Template Editor</i>',
+                        className: 'btn-primary',
+                        enabled: true,
+                        action: function () {
+                            $.ajax({
+                                type: "GET",
+                                url: "/admin/getClientConfigTemplates",
+                                dataType: "json",
+                                success: function (data) {
+                                    var htmlContent = "";
+
+                                    var arrayLength = data["templates"].length;
+                                    for (var i = 0; i < arrayLength; i++) {
+                                        htmlContent += "<option>" + data["templates"][i] + "</option>";
+                                    }
+
+                                    if (arrayLength > 0) {
+                                        $('#templateEditorSave').prop('disabled', false);
+                                        $('#templateEditorDeleteDialog').prop('disabled', false);
+
+                                        $('#templateSelector').html(htmlContent);
+                                        $('#templateSelector').selectpicker('refresh');
+                                        $('#templateSelector').trigger('change');
+                                    } else {
+                                        $('#templateEditorSave').prop('disabled', true);
+                                        $('#templateEditorDeleteDialog').prop('disabled', true);
+                                    }
+
+                                    $('#templateEditor').modal('show');
+                                },
+                                error: function (data) {
+                                    setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
+                                }
                             });
                         }
                     },
@@ -302,7 +373,7 @@
                     },
                     {
                         text: '<i class="fa fa-repeat"> Restart</i>',
-                        className: 'btn-warning',
+                        className: 'btn-info',
                         enabled: false,
                         action: function () {
                             table.rows({selected: true}).eq(0).each(function (index) {
@@ -315,7 +386,7 @@
                     },
                     {
                         text: '<i class="fa fa-refresh"> Reboot</i>',
-                        className: 'btn-warning',
+                        className: 'btn-danger',
                         enabled: false,
                         action: function () {
                             table.rows({selected: true}).eq(0).each(function (index) {
@@ -328,81 +399,10 @@
                     },
                     {
                         text: '<i class="fa fa-rocket"> Execute</i>',
-                        className: 'btn-warning',
-                        enabled: false,
-                        action: function () {
-                            $('#commandExecuteDialog').modal('show');
-                        }
-                    },
-                    {
-                        text: '<i class="fa fa-table"> Assign template</i>',
                         className: 'btn-primary',
                         enabled: false,
                         action: function () {
-                            $.ajax({
-                                type: "GET",
-                                url: "/admin/getClientConfigTemplates",
-                                dataType: "json",
-                                success: function (data) {
-                                    var htmlContent = "";
-
-                                    var arrayLength = data["templates"].length;
-                                    for (var i = 0; i < arrayLength; i++) {
-                                        htmlContent += "<option>" + data["templates"][i] + "</option>";
-                                    }
-
-                                    if (arrayLength > 0) {
-                                        $('#assignTemplate').prop('disabled', false);
-
-                                        $('#assignTemplateSelector').html(htmlContent);
-                                        $('#assignTemplateSelector').selectpicker('refresh');
-                                    } else {
-                                        $('#assignTemplate').prop('disabled', true);
-                                    }
-
-                                    $('#assignTemplateEditor').modal('show');
-                                },
-                                error: function (data) {
-                                    setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
-                                }
-                            });
-                        }
-                    },
-                    {
-                        text: '<i class="fa fa-edit"> Template Editor</i>',
-                        className: 'btn-info',
-                        enabled: true,
-                        action: function () {
-                            $.ajax({
-                                type: "GET",
-                                url: "/admin/getClientConfigTemplates",
-                                dataType: "json",
-                                success: function (data) {
-                                    var htmlContent = "";
-
-                                    var arrayLength = data["templates"].length;
-                                    for (var i = 0; i < arrayLength; i++) {
-                                        htmlContent += "<option>" + data["templates"][i] + "</option>";
-                                    }
-
-                                    if (arrayLength > 0) {
-                                        $('#templateEditorSave').prop('disabled', false);
-                                        $('#templateEditorDeleteDialog').prop('disabled', false);
-
-                                        $('#templateSelector').html(htmlContent);
-                                        $('#templateSelector').selectpicker('refresh');
-                                        $('#templateSelector').trigger('change');
-                                    } else {
-                                        $('#templateEditorSave').prop('disabled', true);
-                                        $('#templateEditorDeleteDialog').prop('disabled', true);
-                                    }
-
-                                    $('#templateEditor').modal('show');
-                                },
-                                error: function (data) {
-                                    setError('<strong>Unable to fetch templates</strong> - Please make they exist!');
-                                }
-                            });
+                            $('#commandExecuteDialog').modal('show');
                         }
                     }
                 ],
@@ -534,18 +534,18 @@
             table.on('select', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                for (var i=0; i < 11; i++)
+                for (var i=0; i < 12; i++)
                 {
-                    table.button(i).enable(selectedRows > 0);
+                    table.button(i).enable(selectedRows > 0 || i === 5);
                 }
             });
 
             table.on('deselect', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                for (var i=0; i < 11; i++)
+                for (var i=0; i < 12; i++)
                 {
-                    table.button(1).enable(selectedRows > 0);
+                    table.button(i).enable(selectedRows > 0 || i === 5);
                 }
             });
 

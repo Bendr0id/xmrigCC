@@ -98,7 +98,7 @@ int Httpd::start()
     addResponseHeader(res);
   });
 
-  auto ret = m_srv->set_mount_point("/client/updates", "./client-updates");
+  auto ret = m_srv->set_mount_point("/client/updates", m_config->clientUpdateFolder());
   if (!ret) {
     LOG_ERR("Unable to find client-updates mount point");
   }
@@ -122,6 +122,14 @@ int Httpd::start()
       addResponseHeader(res);
       handlerResponse =  httplib::Server::HandlerResponse::Handled;
     }
+    else
+    {
+      const auto clientId = req.get_param_value("clientId");
+      const auto remoteAddr = req.get_header_value("REMOTE_ADDR");
+
+      LOG_INFO("[%s] %s %s%s%s", remoteAddr.c_str(), req.method.c_str(), req.path.c_str(),
+               clientId.empty() ? "" : "/?clientId=", clientId.c_str());
+    }
 
     return handlerResponse;
   });
@@ -139,9 +147,8 @@ void Httpd::stop()
 
 int Httpd::basicAuth(const httplib::Request& req, httplib::Response& res)
 {
-  int result = HTTP_UNAUTHORIZED;
-
-  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
+  auto result = HTTP_UNAUTHORIZED;
+  auto remoteAddr = req.get_header_value("REMOTE_ADDR");
 
   if (m_config->adminUser().empty() || m_config->adminPass().empty())
   {
@@ -149,8 +156,10 @@ int Httpd::basicAuth(const httplib::Request& req, httplib::Response& res)
                                 "Please configure admin user and pass to view this Page."
                                 "</body><html\\>"), CONTENT_TYPE_HTML);
 
-    LOG_ERR("[%s] 403 FORBIDDEN - Admin user/password not set!", removeAddr.c_str());
     result = HTTP_FORBIDDEN;
+
+    LOG_ERR("[%s] %s %s (403 FORBIDDEN) - Admin user/password not set!",
+            remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
   }
   else
   {
@@ -163,11 +172,13 @@ int Httpd::basicAuth(const httplib::Request& req, httplib::Response& res)
     }
     else if (authHeader.empty())
     {
-      LOG_WARN("[%s] 401 UNAUTHORIZED", removeAddr.c_str());
+      LOG_WARN("[%s] %s %s (401 UNAUTHORIZED)",
+               remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
     }
     else
     {
-      LOG_ERR("[%s] 403 FORBIDDEN - Admin user/password wrong!", removeAddr.c_str());
+      LOG_ERR("[%s] %s %s (403 FORBIDDEN) - Admin user/password wrong!",
+              remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
     }
   }
 
@@ -178,13 +189,14 @@ int Httpd::basicAuth(const httplib::Request& req, httplib::Response& res)
 
 int Httpd::bearerAuth(const httplib::Request& req, httplib::Response& res)
 {
-  int result = HTTP_UNAUTHORIZED;
-
-  std::string removeAddr = req.get_header_value("REMOTE_ADDR");
+  auto result = HTTP_UNAUTHORIZED;
+  auto remoteAddr = req.get_header_value("REMOTE_ADDR");
 
   if (m_config->token().empty())
   {
-    LOG_WARN("[%s] 200 OK - WARNING AccessToken not set!", removeAddr.c_str());
+    LOG_WARN("[%s] %s %s (200 OK) - WARNING AccessToken not set!",
+             remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
+
     result = HTTP_OK;
   }
   else
@@ -198,11 +210,14 @@ int Httpd::bearerAuth(const httplib::Request& req, httplib::Response& res)
     }
     else if (authHeader.empty())
     {
-      LOG_WARN("[%s] 401 UNAUTHORIZED", removeAddr.c_str());
+      LOG_WARN("[%s] %s %s (401 UNAUTHORIZED)",
+               remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
     }
     else
     {
-      LOG_ERR("[%s] 403 FORBIDDEN - AccessToken wrong!", removeAddr.c_str());
+      LOG_ERR("[%s] %s %s (403 FORBIDDEN) - AccessToken wrong!",
+             remoteAddr.c_str(), req.method.c_str(), req.path.c_str());
+
       result = HTTP_FORBIDDEN;
     }
   }

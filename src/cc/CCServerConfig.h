@@ -49,6 +49,7 @@ public:
   inline std::string token() const                { return m_token; }
   inline std::string customDashboard() const      { return m_customDashboard; }
   inline std::string clientConfigFolder() const   { return m_clientConfigFolder; }
+  inline std::string clientUpdateFolder() const   { return m_clientUpdateFolder; }
   inline std::string logFile() const              { return m_logFile; }
   inline std::string keyFile() const              { return m_keyFile; }
   inline std::string certFile() const             { return m_certFile; }
@@ -82,7 +83,7 @@ private:
 
   std::string m_customDashboard = "index.html";
   std::string m_clientConfigFolder;
-  std::string m_clientUpdateFolder;
+  std::string m_clientUpdateFolder = "client-updates";
   std::string m_logFile;
 
   std::string m_keyFile = "server.key";

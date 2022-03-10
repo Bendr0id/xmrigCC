@@ -325,7 +325,7 @@ void xmrig::CCClient::publishConfig()
       }
       else if (res->status != HTTP_OK)
       {
-        LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
+        LOG_ERR(CLEAR "%s" RED("error:\"%d\" POST [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
                 config.useTLS() ? "s" : "", config.port(), requestUrl.c_str());
       }
       else
@@ -367,7 +367,8 @@ void xmrig::CCClient::fetchUpdate()
 
   std::uint32_t lastProgress{0};
 
-  LOG_WARN(CLEAR "%s" YELLOW("Downloading update."), Tags::cc());
+  LOG_WARN(CLEAR "%s" YELLOW("Downloading update. [http%s://%s:%d%s]"), Tags::cc(),
+           config.useTLS() ? "s" : "", config.host(), config.port(), updatePath.c_str());
 
   auto cli = getClient();
   auto res = cli->Get(updatePath.c_str(), headers, [&lastProgress](uint64_t len, uint64_t total)
@@ -384,13 +385,18 @@ void xmrig::CCClient::fetchUpdate()
     return true;
   });
 
-  if (res && res->status == HTTP_OK)
+  if (!res)
+  {
+    LOG_ERR(CLEAR "%s" RED("error:unable to performRequest GET [http%s://%s:%d%s]"), Tags::cc(),
+            config.useTLS() ? "s" : "", config.host(), config.port(), updatePath.c_str());
+  }
+  else if(res->status == HTTP_OK)
   {
     std::string updateFile = std::string(xmrig::Process::exepath()) + UPDATE_EXTENSION;
     std::ofstream os(updateFile, std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
     if (os.is_open())
     {
-      LOG_WARN(CLEAR "%s" YELLOW("Download completed. Updating."), Tags::cc());
+      LOG_WARN(CLEAR "%s" YELLOW("Download completed. Trigger update."), Tags::cc());
       os << res->body;
     }
     else
@@ -400,7 +406,7 @@ void xmrig::CCClient::fetchUpdate()
   }
   else
   {
-    LOG_ERR(CLEAR "%s" RED("error:\"%d\" [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
+    LOG_ERR(CLEAR "%s" RED("error:\"%d\" GET [http%s://%s:%d%s]"), Tags::cc(), res->status, config.host(),
             config.useTLS() ? "s" : "", config.port(), updatePath.c_str());
   }
 }

@@ -19,6 +19,7 @@
 #include <string>
 #include <fstream>
 #include <thread>
+#include <uv.h>
 
 #include "XMRigd.h"
 
@@ -38,16 +39,21 @@
 #define VALUE_TO_STRING(x) #x
 #define VALUE(x) VALUE_TO_STRING(x)
 
-bool fileFound(const std::string& fullMinerBinaryPath)
+bool fileFound(const std::string& filePath)
 {
-  std::ifstream file(fullMinerBinaryPath.c_str());
+  std::ifstream file(filePath.c_str());
   return file.good();
 }
 
 int main(int argc, char** argv)
 {
-
   std::string ownPath(argv[0]);
+  std::string params = " --daemonized";
+  for (int i = 1; i < argc; i++)
+  {
+    params += " ";
+    params += argv[i];
+  }
 
 #if defined(_WIN32) || defined(WIN32)
   auto pos = ownPath.rfind('\\');
@@ -57,23 +63,13 @@ int main(int argc, char** argv)
   std::string minerBinaryName(VALUE(MINER_EXECUTABLE_NAME));
 #endif
 
-  std::string fullMinerBinaryPath = ownPath.substr(0, pos + 1) + minerBinaryName;
-
-#if defined(_WIN32) || defined(WIN32)
-  fullMinerBinaryPath = "\"" + fullMinerBinaryPath + "\"";
-#endif
-
-  std::string params = " --daemonized";
-  for (int i = 1; i < argc; i++)
-  {
-    params += " ";
-    params += argv[i];
-  }
-
+  auto fullMinerBinaryPath = ownPath.substr(0, pos + 1) + minerBinaryName;
   auto status = EXIT_SUCCESS;
 
   do
   {
+    status = EXIT_SUCCESS;
+
     // apply update if we have one
     if (fileFound(fullMinerBinaryPath + UPDATE_EXTENSION))
     {
@@ -115,9 +111,9 @@ int main(int argc, char** argv)
     }
 
     // execute miner and wait for result
-    status = system((fullMinerBinaryPath + params).c_str());
+    status = system(("\"" +fullMinerBinaryPath + "\""  + params).c_str());
 #if defined(_WIN32) || defined(WIN32)
-  } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != SUCCESS);
+    } while (status != EINVAL && status != SIGHUP && status != SIGINT && status != EXIT_SUCCESS);
 
   if (status == EINVAL)
   {

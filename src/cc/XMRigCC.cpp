@@ -55,7 +55,7 @@ int main(int argc, char** argv)
 
       ("custom-dashboard", "The custom dashboard to use", cxxopts::value<std::string>()->default_value("index.html"),"FILE")
       ("client-config-folder", "The folder which contains the client-config files", cxxopts::value<std::string>(),"FOLDER")
-      ("client-update-folder", "The folder which contains the client-update files", cxxopts::value<std::string>(),"FOLDER")
+      ("client-update-folder", "The folder which contains the client-update files", cxxopts::value<std::string>()->default_value("client-updates"),"FOLDER")
       ("log-file", "The log file to write", cxxopts::value<std::string>(), "FILE")
       ("client-log-lines-history", "Maximum lines of log history kept per miner",cxxopts::value<int>()->default_value("100"), "N")
 
