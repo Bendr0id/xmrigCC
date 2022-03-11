@@ -534,7 +534,7 @@
             table.on('select', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                for (var i=0; i < 12; i++)
+                for (var i=1; i < 11; i++)
                 {
                     table.button(i).enable(selectedRows > 0 || i === 5);
                 }
@@ -543,7 +543,7 @@
             table.on('deselect', function () {
                 var selectedRows = table.rows({selected: true}).count();
 
-                for (var i=0; i < 12; i++)
+                for (var i=1; i < 11; i++)
                 {
                     table.button(i).enable(selectedRows > 0 || i === 5);
                 }

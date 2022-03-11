@@ -64,7 +64,7 @@ char *xmrig::Platform::createUpdatePath()
 
     int length = snprintf(buf, max, "macos");
 
-#  ifdef XMRIG_ARM
+#   ifdef XMRIG_ARM
     length += snprintf(buf + length, max - length, "-arm64");
 #   else
     length += snprintf(buf + length, max - length, "-x64_64");
