@@ -174,16 +174,9 @@ int Service::handleGET(const httplib::Request& req, httplib::Response& res)
     }
     else
     {
-      if (req.path.rfind("/client/getUpdate", 0) == 0)
-      {
-        resultCode = getClientCommand(clientId, res);
-      }
-      else
-      {
-        resultCode = HTTP_BAD_REQUEST;
-        LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)",
-                removeAddr.c_str(), req.path.c_str());
-      }
+      resultCode = HTTP_BAD_REQUEST;
+      LOG_ERR("[%s] 400 BAD REQUEST - Request does not contain clientId (%s)",
+              removeAddr.c_str(), req.path.c_str());
     }
   }
 
@@ -576,33 +569,6 @@ int Service::getClientLog(const std::string& clientId, httplib::Response& res)
 
   return HTTP_OK;
 }
-/*
-int Service::getClientUpdate(const httplib::Request& req, const std::string& clientId, httplib::Response& res)
-{
-  const auto os = req.get_param_value("os");
-  const auto arch = req.get_param_value("arch");
-  const auto type = req.get_param_value("type");
-
-  if (os == "linux")
-  {
-
-  }
-  else if (os == "windows")
-  {
-
-  }
-  else if (os == "osx")
-  {
-
-  }
-  else
-  {
-
-  }
-
-  return HTTP_OK;
-}
- */
 
 int Service::setClientConfig(const httplib::Request& req, const std::string& clientId, httplib::Response& res)
 {

@@ -43,70 +43,22 @@ public:
 
   void print() const;
 
-  inline bool enabled() const
-  {
-    return m_enabled;
-  }
+  inline bool enabled() const                               { return m_enabled; }
+  inline bool useTLS() const                                { return m_useTls; }
+  inline bool useRemoteLogging() const                      { return m_useRemoteLogging; }
+  inline bool uploadConfigOnStartup() const                 { return m_uploadConfigOnStartup; }
 
-  inline bool useTLS() const
-  {
-    return m_useTls;
-  }
+  inline const char* url() const                            { return m_url.data(); }
+  inline const char* host() const                           { return m_host.data(); }
+  inline const char* token() const                          { return m_token.data(); }
+  inline const char* workerId() const                       { return m_workerId.data(); }
+  inline const char* rebootCmd() const                      { return m_rebootCmd.data(); }
 
-  inline bool useRemoteLogging() const
-  {
-    return m_useRemoteLogging;
-  }
+  inline int updateInterval() const                         { return m_updateInterval; }
+  inline int port() const                                   { return m_port; }
 
-  inline bool uploadConfigOnStartup() const
-  {
-    return m_uploadConfigOnStartup;
-  }
-
-  inline const char* url() const
-  {
-    return m_url.data();
-  }
-
-  inline const char* host() const
-  {
-    return m_host.data();
-  }
-
-  inline const char* token() const
-  {
-    return m_token.data();
-  }
-
-  inline const char* workerId() const
-  {
-    return m_workerId.data();
-  }
-
-  inline const char* rebootCmd() const
-  {
-    return m_rebootCmd.data();
-  }
-
-  inline int updateInterval() const
-  {
-    return m_updateInterval;
-  }
-
-  inline int port() const
-  {
-    return m_port;
-  }
-
-  inline bool operator!=(const CCClientConfig& other) const
-  {
-    return !isEqual(other);
-  }
-
-  inline bool operator==(const CCClientConfig& other) const
-  {
-    return isEqual(other);
-  }
+  inline bool operator!=(const CCClientConfig& other) const { return !isEqual(other); }
+  inline bool operator==(const CCClientConfig& other) const { return isEqual(other); }
 
   bool isEqual(const CCClientConfig& other) const;
 
