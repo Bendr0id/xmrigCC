@@ -53,6 +53,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_LOZZ:
         return &RandomX_LozzaxConfig;
 
+    case Algorithm::RX_NEVO:
+        return &RandomX_NevoConfig;
+
     default:
         break;
     }

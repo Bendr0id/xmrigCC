@@ -69,16 +69,16 @@ struct RandomX_ConfigurationBase
 	{
 		ArgonMemory = 262144,
 		CacheAccesses = 8,
-		DatasetBaseSize = 2147483648,
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
 		JumpOffset = 8,
-		CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1),
 		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
 		ConditionMask_Calculated = ((1 << JumpBits) - 1) << JumpOffset,
 	};
 
-  int64_t SuperscalarLatency;
+    uint64_t DatasetBaseSize;
+    uint64_t CacheLineAlignMask_Calculated;
+    int64_t SuperscalarLatency;
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
@@ -149,6 +149,7 @@ struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationKeva : public RandomX_ConfigurationBase { RandomX_ConfigurationKeva(); };
 struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_ConfigurationYada(); };
 struct RandomX_ConfigurationLozzax  : public RandomX_ConfigurationBase { RandomX_ConfigurationLozzax(); };
+struct RandomX_ConfigurationNevo  : public RandomX_ConfigurationBase { RandomX_ConfigurationNevo(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
@@ -158,6 +159,7 @@ extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationKeva RandomX_KevaConfig;
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
 extern RandomX_ConfigurationLozzax RandomX_LozzaxConfig;
+extern RandomX_ConfigurationNevo RandomX_NevoConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 

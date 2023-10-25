@@ -121,8 +121,19 @@ RandomX_ConfigurationLozzax::RandomX_ConfigurationLozzax()
   RANDOMX_FREQ_ISTORE  = 25;
 }
 
+RandomX_ConfigurationNevo::RandomX_ConfigurationNevo()
+{
+    ArgonSalt = "RandomNEVO";
+    ArgonIterations = 2;
+    ProgramCount  = 4;
+    ScratchpadL3_Size = 1048576;
+    DatasetBaseSize = 1073741824;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
-	: SuperscalarLatency(170)
+	: DatasetBaseSize(2147483648)
+    , CacheLineAlignMask_Calculated(0)
+    , SuperscalarLatency(170)
 	, ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
@@ -227,13 +238,14 @@ void RandomX_ConfigurationBase::Apply()
 
 	ScratchpadL3Mask_Calculated = (((ScratchpadL3_Size / sizeof(uint64_t)) - 1) * 8);
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
+    CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1);
 
 #if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
 	*(uint32_t*)(codeSshPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
 	// Not needed right now because all variants use default dataset base size
 	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
-	//*(uint32_t*)(codeReadDatasetTweaked + 9) = DatasetBaseMask;
-	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
+	//*(uint32_t*)(codePrefetchScratchpadTweaked + 7) = DatasetBaseMask;
+	//*(uint32_t*)(codePrefetchScratchpadTweaked + 23) = DatasetBaseMask;
 	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	const bool hasBMI2 = xmrig::Cpu::info()->hasBMI2();
@@ -375,6 +387,7 @@ RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
 RandomX_ConfigurationLozzax RandomX_LozzaxConfig;
+RandomX_ConfigurationNevo RandomX_NevoConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -444,7 +457,7 @@ extern "C" {
 
 	#define DatasetItemCount ((RandomX_CurrentConfig.DatasetBaseSize + RandomX_CurrentConfig.DatasetExtraSize) / RANDOMX_DATASET_ITEM_SIZE)
 
-	unsigned long randomx_dataset_item_count() {
+    unsigned long randomx_dataset_item_count() {
 		return DatasetItemCount;
 	}
 
