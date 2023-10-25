@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,15 +20,12 @@
 #define XMRIG_DONATESTRATEGY_H
 
 
-#include <vector>
-
-
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/kernel/interfaces/IStrategy.h"
 #include "base/kernel/interfaces/IStrategyListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/net/stratum/Pool.h"
-#include "base/tools/Object.h"
+#include "base/tools/Buffer.h"
 
 
 namespace xmrig {
@@ -36,7 +33,6 @@ namespace xmrig {
 
 class Client;
 class Controller;
-class IStrategyListener;
 
 
 class DonateStrategy : public IStrategy, public IStrategyListener, public ITimerListener, public IClientListener
@@ -46,6 +42,8 @@ public:
 
     DonateStrategy(Controller *controller, IStrategyListener *listener);
     ~DonateStrategy() override;
+
+    void update(IClient *client, const Job &job);
 
 protected:
     inline bool isActive() const override { return state() == STATE_ACTIVE; }
@@ -105,15 +103,16 @@ private:
 
     IClient *createProxy();
     void idle(double min, double max);
-    void setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params);
     void setJob(IClient *client, const Job &job, const rapidjson::Value &params);
+    void setParams(rapidjson::Document &doc, rapidjson::Value &params);
     void setResult(IClient *client, const SubmitResult &result, const char *error);
     void setState(State state);
     bool hasEnabledAlgos() const;
 
     Algorithm m_algorithm;
-    bool m_tls = false;
-    char m_userId[65] = {0};
+    bool m_tls                      = false;
+    Buffer m_seed;
+    char m_userId[65]               = { 0 };
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
     Controller *m_controller;
@@ -122,13 +121,14 @@ private:
     IStrategyListener *m_listener;
     State m_state = STATE_NEW;
     std::vector<Pool> m_pools;
-    Timer *m_timer = nullptr;
-    uint64_t m_now = 0;
-    uint64_t m_timestamp = 0;
+    Timer *m_timer                  = nullptr;
+    uint64_t m_diff                 = 0;
+    uint64_t m_height               = 0;
+    uint64_t m_now                  = 0;
+    uint64_t m_timestamp            = 0;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-
-#endif /* XMRIG_DONATESTRATEGY_H */
+#endif // XMRIG_DONATESTRATEGY_H

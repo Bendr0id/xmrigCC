@@ -42,6 +42,7 @@ public:
         YADA,
         LOZZAX,
         XDAG,
+        ZEPHYR,
         MAX
     };
 
