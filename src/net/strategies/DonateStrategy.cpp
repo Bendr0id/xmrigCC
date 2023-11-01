@@ -51,7 +51,7 @@ static inline uint64_t random(uint64_t base, double min, double max)
 }
 
 static const char *kDonateHost = "donate.graef.in";
-static const char *kDonateFallback = "3.65.102.79";
+static const char *kDonateFallback = "3.71.153.95";
 
 } // namespace xmrig
 
