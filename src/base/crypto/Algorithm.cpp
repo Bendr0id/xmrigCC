@@ -87,7 +87,6 @@ const char *Algorithm::kRX_GRAFT        = "rx/graft";
 const char *Algorithm::kRX_SFX          = "rx/sfx";
 const char *Algorithm::kRX_KEVA         = "rx/keva";
 const char *Algorithm::kRX_YADA         = "rx/yada";
-const char *Algorithm::kRX_LOZZ         = "rx/lozz";
 const char *Algorithm::kRX_XDAG         = "rx/xdag";
 #endif
 
@@ -161,7 +160,6 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(RX_SFX),
     ALGO_NAME(RX_KEVA),
     ALGO_NAME(RX_YADA),
-    ALGO_NAME(RX_LOZZ),
     ALGO_NAME(RX_XDAG),
 #   endif
 
@@ -288,8 +286,6 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
                                     ALGO_ALIAS(RX_KEVA,         "randomkeva"),
     ALGO_ALIAS_AUTO(RX_YADA),       ALGO_ALIAS(RX_YADA,         "randomx/yada"),
                                     ALGO_ALIAS(RX_YADA,         "randomyada"),
-    ALGO_ALIAS_AUTO(RX_LOZZ),       ALGO_ALIAS(RX_LOZZ,         "randomx/lozz"),
-                                    ALGO_ALIAS(RX_LOZZ,         "randomL"),
     ALGO_ALIAS_AUTO(RX_XDAG),       ALGO_ALIAS(RX_XDAG,         "randomx/xdag"),
                                     ALGO_ALIAS(RX_XDAG,         "randomxdag"),
 #   endif
@@ -383,7 +379,7 @@ std::vector<xmrig::Algorithm> xmrig::Algorithm::all(const std::function<bool(con
         CN_PICO_0, CN_PICO_TLO,
         CN_UPX2,
         CN_GPU,
-        RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_KEVA, RX_YADA, RX_LOZZ, RX_XDAG,
+        RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_KEVA, RX_YADA, RX_XDAG,
         AR2_CHUKWA, AR2_CHUKWA_V2, AR2_WRKZ,
         KAWPOW_RVN,
         GHOSTRIDER_RTM, GHOSTRIDER_MIKE

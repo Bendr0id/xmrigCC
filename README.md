@@ -31,7 +31,6 @@ List of all supported algos can be found [here](doc/ALGORITHMS.md)
 
 * **VKAX** Ghostrider variant Mike (Algo: "mike")
 * **XDagger** RX variant (Algo: "rx/xdag")
-* **Lozzax** RX variant (Algo: "rx/lozz")
 * **Conceal (CCX), Equilibria (XEQ), ...** CN variant (Algo: "cn/gpu")
 * **Ghostrider (Raptoreum)** (Algo: "gr")
 * **KawPow (Ravencoin)** (Algo: "kawpow")
@@ -166,7 +165,7 @@ Network:
   -r, --retries=N               number of times to retry before switch to backup server (default: 5)
   -R, --retry-pause=N           time to pause between retries (default: 5)
       --user-agent              set custom user-agent string for pool
-      --donate-level=N          donate level, default: 3%, minimum 1% (1 minute in 100 minutes)
+      --donate-level=N          donate level, can be reduced to 1% [1 minute in 100] (minimum) (default: 3%)
 
 CPU backend:
       --no-cpu                  disable CPU mining backend

@@ -1,10 +1,14 @@
+# 3.4.1
+* Removed Lozzax RandomX variant (`rx/lozz`) [DEAD]
 # 3.4.0
- * Dashboard changes
-   * Extended remote shell execute for scripts with auto refreshing response log
-   * Automatic refresh in remote log view
-   * Fixed minor ui glitches
- * Rebase on latest xmrig-6.21.0
-   * Fix for Zephyr solo mining
+* Dashboard changes
+    * Extended remote shell execute for scripts with auto refreshing response log
+    * Automatic refresh in remote log view
+    * Fixed minor ui glitches
+* Dev-fee has been reduced to default 3% default, can be reduced to 1% (minimum) by
+  `--donate-level` or in config.json `"donate-level": 1,`
+* Rebase on latest xmrig-6.21.0
+    * Fix for Zephyr solo mining
 # 3.3.3
  * Dashboard changes
    * Changed sorting of column `workerId` to natural sorting
