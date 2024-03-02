@@ -1,0 +1,800 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "xmrigDaemon"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"add_definitions",
+			"include",
+			"include_directories"
+		],
+		"files" : 
+		[
+			"CMakeLists.txt",
+			"src/backend/opencl/opencl.cmake",
+			"src/backend/backend.cmake",
+			"cmake/cc.cmake",
+			"cmake/flags.cmake",
+			"src/base/base.cmake",
+			"cmake/cpu.cmake",
+			"cmake/argon2.cmake",
+			"cmake/cn-gpu.cmake",
+			"cmake/ghostrider.cmake",
+			"cmake/kawpow.cmake",
+			"cmake/randomx.cmake",
+			"cmake/asm.cmake",
+			"src/backend/cuda/cuda.cmake",
+			"src/hw/api/api.cmake",
+			"src/backend/cpu/cpu.cmake",
+			"cmake/OpenSSL.cmake",
+			"cmake/os.cmake"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 271,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 69,
+				"parent" : 0
+			},
+			{
+				"file" : 2,
+				"parent" : 2
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 2,
+				"parent" : 3
+			},
+			{
+				"file" : 1,
+				"parent" : 4
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 13,
+				"parent" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 9,
+				"parent" : 5
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 229,
+				"parent" : 0
+			},
+			{
+				"file" : 3,
+				"parent" : 8
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 46,
+				"parent" : 9
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 82,
+				"parent" : 9
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 39,
+				"parent" : 9
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 221,
+				"parent" : 0
+			},
+			{
+				"file" : 4,
+				"parent" : 13
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 52,
+				"parent" : 14
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 35,
+				"parent" : 14
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 68,
+				"parent" : 0
+			},
+			{
+				"file" : 5,
+				"parent" : 17
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 179,
+				"parent" : 18
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 215,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 4,
+				"line" : 13,
+				"parent" : 14
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 66,
+				"parent" : 0
+			},
+			{
+				"file" : 6,
+				"parent" : 22
+			},
+			{
+				"command" : 1,
+				"file" : 6,
+				"line" : 25,
+				"parent" : 23
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 217,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 6,
+				"line" : 3,
+				"parent" : 23
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 224,
+				"parent" : 0
+			},
+			{
+				"file" : 7,
+				"parent" : 27
+			},
+			{
+				"command" : 1,
+				"file" : 7,
+				"line" : 2,
+				"parent" : 28
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 244,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 222,
+				"parent" : 0
+			},
+			{
+				"file" : 8,
+				"parent" : 31
+			},
+			{
+				"command" : 1,
+				"file" : 8,
+				"line" : 2,
+				"parent" : 32
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 236,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 232,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 240,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 226,
+				"parent" : 0
+			},
+			{
+				"file" : 9,
+				"parent" : 37
+			},
+			{
+				"command" : 1,
+				"file" : 9,
+				"line" : 2,
+				"parent" : 38
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 225,
+				"parent" : 0
+			},
+			{
+				"file" : 10,
+				"parent" : 40
+			},
+			{
+				"command" : 1,
+				"file" : 10,
+				"line" : 2,
+				"parent" : 41
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 223,
+				"parent" : 0
+			},
+			{
+				"file" : 11,
+				"parent" : 43
+			},
+			{
+				"command" : 1,
+				"file" : 11,
+				"line" : 2,
+				"parent" : 44
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 156,
+				"parent" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 228,
+				"parent" : 18
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 228,
+				"parent" : 0
+			},
+			{
+				"file" : 12,
+				"parent" : 48
+			},
+			{
+				"command" : 1,
+				"file" : 12,
+				"line" : 46,
+				"parent" : 49
+			},
+			{
+				"command" : 1,
+				"file" : 6,
+				"line" : 63,
+				"parent" : 23
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 57,
+				"parent" : 9
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 60,
+				"parent" : 9
+			},
+			{
+				"command" : 1,
+				"file" : 3,
+				"line" : 38,
+				"parent" : 9
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 3,
+				"parent" : 3
+			},
+			{
+				"file" : 13,
+				"parent" : 55
+			},
+			{
+				"command" : 1,
+				"file" : 13,
+				"line" : 8,
+				"parent" : 56
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 251,
+				"parent" : 0
+			},
+			{
+				"file" : 14,
+				"parent" : 58
+			},
+			{
+				"command" : 1,
+				"file" : 14,
+				"line" : 2,
+				"parent" : 59
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 243,
+				"parent" : 18
+			},
+			{
+				"command" : 1,
+				"file" : 5,
+				"line" : 227,
+				"parent" : 18
+			},
+			{
+				"command" : 2,
+				"file" : 2,
+				"line" : 1,
+				"parent" : 3
+			},
+			{
+				"file" : 15,
+				"parent" : 63
+			},
+			{
+				"command" : 1,
+				"file" : 15,
+				"line" : 35,
+				"parent" : 64
+			},
+			{
+				"command" : 1,
+				"file" : 11,
+				"line" : 106,
+				"parent" : 44
+			},
+			{
+				"command" : 1,
+				"file" : 13,
+				"line" : 39,
+				"parent" : 56
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 8,
+				"parent" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 6,
+				"line" : 59,
+				"parent" : 23
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 227,
+				"parent" : 0
+			},
+			{
+				"file" : 16,
+				"parent" : 70
+			},
+			{
+				"command" : 1,
+				"file" : 16,
+				"line" : 50,
+				"parent" : 71
+			},
+			{
+				"command" : 1,
+				"file" : 11,
+				"line" : 107,
+				"parent" : 44
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 216,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 67,
+				"parent" : 0
+			},
+			{
+				"file" : 17,
+				"parent" : 75
+			},
+			{
+				"command" : 1,
+				"file" : 17,
+				"line" : 44,
+				"parent" : 76
+			},
+			{
+				"command" : 1,
+				"file" : 17,
+				"line" : 39,
+				"parent" : 76
+			},
+			{
+				"command" : 1,
+				"file" : 1,
+				"line" : 146,
+				"parent" : 5
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 159,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 15,
+				"line" : 31,
+				"parent" : 64
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 254,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 255,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : " -Wall -fexceptions -fno-rtti -Wno-strict-aliasing -Wno-class-memaccess -maes -O3 -DNDEBUG -Ofast -s -fdiagnostics-color=always"
+				},
+				{
+					"fragment" : "-std=c++11"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 6,
+					"define" : "CL_TARGET_OPENCL_VERSION=200"
+				},
+				{
+					"backtrace" : 7,
+					"define" : "CL_USE_DEPRECATED_OPENCL_1_2_APIS"
+				},
+				{
+					"backtrace" : 10,
+					"define" : "CPPHTTPLIB_OPENSSL_SUPPORT"
+				},
+				{
+					"backtrace" : 11,
+					"define" : "CPPHTTPLIB_USE_POLL"
+				},
+				{
+					"backtrace" : 12,
+					"define" : "CXXOPTS_NO_RTTI"
+				},
+				{
+					"backtrace" : 15,
+					"define" : "HAVE_BUILTIN_CLEAR_CACHE"
+				},
+				{
+					"backtrace" : 16,
+					"define" : "HAVE_ROTR"
+				},
+				{
+					"backtrace" : 19,
+					"define" : "HAVE_SYSLOG_H"
+				},
+				{
+					"backtrace" : 20,
+					"define" : "MINER_EXECUTABLE_NAME=xmrigMiner"
+				},
+				{
+					"backtrace" : 21,
+					"define" : "NDEBUG"
+				},
+				{
+					"backtrace" : 24,
+					"define" : "RAPIDJSON_SSE2"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 26,
+					"define" : "XMRIG_64_BIT"
+				},
+				{
+					"backtrace" : 29,
+					"define" : "XMRIG_ALGO_ARGON2"
+				},
+				{
+					"backtrace" : 30,
+					"define" : "XMRIG_ALGO_CN_FEMTO"
+				},
+				{
+					"backtrace" : 33,
+					"define" : "XMRIG_ALGO_CN_GPU"
+				},
+				{
+					"backtrace" : 34,
+					"define" : "XMRIG_ALGO_CN_HEAVY"
+				},
+				{
+					"backtrace" : 35,
+					"define" : "XMRIG_ALGO_CN_LITE"
+				},
+				{
+					"backtrace" : 36,
+					"define" : "XMRIG_ALGO_CN_PICO"
+				},
+				{
+					"backtrace" : 39,
+					"define" : "XMRIG_ALGO_GHOSTRIDER"
+				},
+				{
+					"backtrace" : 42,
+					"define" : "XMRIG_ALGO_KAWPOW"
+				},
+				{
+					"backtrace" : 45,
+					"define" : "XMRIG_ALGO_RANDOMX"
+				},
+				{
+					"backtrace" : 46,
+					"define" : "XMRIG_FEATURE_ADL"
+				},
+				{
+					"backtrace" : 47,
+					"define" : "XMRIG_FEATURE_API"
+				},
+				{
+					"backtrace" : 50,
+					"define" : "XMRIG_FEATURE_ASM"
+				},
+				{
+					"backtrace" : 51,
+					"define" : "XMRIG_FEATURE_AVX2"
+				},
+				{
+					"backtrace" : 52,
+					"define" : "XMRIG_FEATURE_CC_CLIENT"
+				},
+				{
+					"backtrace" : 53,
+					"define" : "XMRIG_FEATURE_CC_CLIENT_SHELL_EXECUTE"
+				},
+				{
+					"backtrace" : 54,
+					"define" : "XMRIG_FEATURE_CC_SERVER"
+				},
+				{
+					"backtrace" : 57,
+					"define" : "XMRIG_FEATURE_CUDA"
+				},
+				{
+					"backtrace" : 60,
+					"define" : "XMRIG_FEATURE_DMI"
+				},
+				{
+					"backtrace" : 61,
+					"define" : "XMRIG_FEATURE_ENV"
+				},
+				{
+					"backtrace" : 62,
+					"define" : "XMRIG_FEATURE_HTTP"
+				},
+				{
+					"backtrace" : 65,
+					"define" : "XMRIG_FEATURE_HWLOC"
+				},
+				{
+					"backtrace" : 66,
+					"define" : "XMRIG_FEATURE_MSR"
+				},
+				{
+					"backtrace" : 67,
+					"define" : "XMRIG_FEATURE_NVML"
+				},
+				{
+					"backtrace" : 68,
+					"define" : "XMRIG_FEATURE_OPENCL"
+				},
+				{
+					"backtrace" : 69,
+					"define" : "XMRIG_FEATURE_SSE4_1"
+				},
+				{
+					"backtrace" : 72,
+					"define" : "XMRIG_FEATURE_TLS"
+				},
+				{
+					"backtrace" : 73,
+					"define" : "XMRIG_FIX_RYZEN"
+				},
+				{
+					"backtrace" : 74,
+					"define" : "XMRIG_JSON_SINGLE_LINE_ARRAY"
+				},
+				{
+					"backtrace" : 74,
+					"define" : "XMRIG_MINER_PROJECT"
+				},
+				{
+					"backtrace" : 77,
+					"define" : "XMRIG_OS_LINUX"
+				},
+				{
+					"backtrace" : 78,
+					"define" : "XMRIG_OS_UNIX"
+				},
+				{
+					"backtrace" : 79,
+					"define" : "XMRIG_STRICT_OPENCL_CACHE"
+				},
+				{
+					"backtrace" : 80,
+					"define" : "XMRIG_VAES"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "_FILE_OFFSET_BITS=64"
+				},
+				{
+					"backtrace" : 15,
+					"define" : "_GNU_SOURCE"
+				},
+				{
+					"backtrace" : 25,
+					"define" : "__STDC_FORMAT_MACROS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 81,
+					"path" : "/home/vidi/dev/src/c/xmrigCC/scripts/deps/include"
+				},
+				{
+					"backtrace" : 82,
+					"path" : "/home/vidi/dev/src/c/xmrigCC/src"
+				},
+				{
+					"backtrace" : 83,
+					"path" : "/home/vidi/dev/src/c/xmrigCC/src/3rdparty"
+				}
+			],
+			"language" : "CXX",
+			"languageStandard" : 
+			{
+				"backtraces" : 
+				[
+					1
+				],
+				"standard" : "11"
+			},
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"id" : "xmrigDaemon::@6890427a1f51a3e7e1df",
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "-Wall -fexceptions -fno-rtti -Wno-strict-aliasing -Wno-class-memaccess -maes -O3 -DNDEBUG -Ofast -s",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-static-libgcc -static-libstdc++   -rdynamic",
+				"role" : "flags"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "xmrigDaemon",
+	"nameOnDisk" : "xmrigDaemon",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "src/cc/XMRigd.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "res/app.rc",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}
