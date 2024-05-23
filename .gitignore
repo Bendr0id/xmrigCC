@@ -16,3 +16,4 @@ test/
 *CMakeFiles*
 *.a
 *.cbp
+.cmake/api/v1/reply
