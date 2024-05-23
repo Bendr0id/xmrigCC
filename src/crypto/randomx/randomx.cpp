@@ -114,6 +114,13 @@ RandomX_ConfigurationYada::RandomX_ConfigurationYada()
 	ArgonIterations = 4;
 }
 
+RandomX_ConfigurationTuske::RandomX_ConfigurationTuske()
+{
+    ArgonSalt = "TuskeRandomX\x03";
+    ArgonIterations = 4;
+    ArgonLanes = 2;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: SuperscalarLatency(170)
 	, ArgonIterations(3)
@@ -367,6 +374,7 @@ RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
+RandomX_ConfigurationTuske RandomX_TuskeConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

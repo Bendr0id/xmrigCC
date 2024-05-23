@@ -1,4 +1,6 @@
 # 3.4.1
+* Added Tuske RandomX variant (`rx/tuske`)
+* Rebase on latest xmrig-6.21.3
 * Removed Lozzax RandomX variant (`rx/lozz`) [DEAD]
 # 3.4.0
 * Dashboard changes

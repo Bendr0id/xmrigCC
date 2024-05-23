@@ -140,10 +140,6 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
         count += threads.move(Algorithm::kRX_WOW, std::move(wow));
     }
 
-    if (!threads.isExist(Algorithm::RX_YADA)) {
-      count += generate(Algorithm::kRX_YADA, threads, Algorithm::RX_YADA, limit);
-    }
-
     count += generate(Algorithm::kRX, threads, Algorithm::RX_0, limit);
 
     return count;

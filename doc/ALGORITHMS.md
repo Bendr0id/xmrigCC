@@ -12,6 +12,7 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name                  | Memory | Version     | Notes                                                                     | Info      |
 |-----------------------|--------|-------------|---------------------------------------------------------------------------|-----------|
+| `rx/tuske`            | 2 MB   | 3.4.1       | RandomxTuske (vkax).                                                      | CPU only
 | `ghostrider/mike`     | 2 MB   | 3.3.1       | Ghostrider variant Mike (vkax).                                           | CPU only
 | `rx/xdag`             | 2 MB   | 3.2.1       | RandomXDAG (xdagger).                                                     | CPU only
 | `astroBWT/v2`         | -      | 3.2.0       | AstroBWT v2 (Dero HE).                                                    | removed

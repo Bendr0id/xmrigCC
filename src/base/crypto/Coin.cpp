@@ -53,10 +53,11 @@ static const CoinInfo coinInfo[] = {
     { Algorithm::RX_KEVA,         "KVA",      "Kevacoin",     0,      0,              MAGENTA_BG_BOLD(WHITE_BOLD_S " keva    ") },
     { Algorithm::KAWPOW_RVN,      "RVN",      "Ravencoin",    0,      0,              BLUE_BG_BOLD(   WHITE_BOLD_S " raven   ") },
     { Algorithm::RX_WOW,          "WOW",      "Wownero",      300,    100000000000,   MAGENTA_BG_BOLD(WHITE_BOLD_S " wownero ") },
-    { Algorithm::RX_YADA,        "YADA",     "YadaCoin",     120,    10000000000,    BLUE_BG_BOLD(   WHITE_BOLD_S " yada    ") },
-    { Algorithm::RX_XDAG,        "XDAG",     "Xdagger",      0,      0,              BLUE_BG_BOLD(   WHITE_BOLD_S " xdagger ") },
-    { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(   WHITE_BOLD_S " zephyr  ") },
+    { Algorithm::RX_YADA,         "YADA",     "YadaCoin",     120,    10000000000,    BLUE_BG_BOLD(    WHITE_BOLD_S " yada    ") },
+    { Algorithm::RX_XDAG,         "XDAG",     "Xdagger",      0,      0,              BLUE_BG_BOLD(    WHITE_BOLD_S " xdagger ") },
+    { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(  WHITE_BOLD_S " zephyr  ") },
     { Algorithm::RX_0,            "Townforge","Townforge",    30,     100000000,      MAGENTA_BG_BOLD(WHITE_BOLD_S " townforge ") },
+    { Algorithm::RX_TUSKE,        "TSK",      "Tuske",        120,    1000000000000,  MAGENTA_BG_BOLD(WHITE_BOLD_S " tuske   ") },
 };
 
 

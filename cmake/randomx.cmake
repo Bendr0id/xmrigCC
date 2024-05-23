@@ -19,6 +19,7 @@ if (WITH_RANDOMX)
         src/crypto/randomx/allocator.cpp
         src/crypto/randomx/blake2_generator.cpp
         src/crypto/randomx/blake2/blake2b.c
+        src/crypto/randomx/sha256/sha256.c
         src/crypto/randomx/bytecode_machine.cpp
         src/crypto/randomx/dataset.cpp
         src/crypto/randomx/instructions_portable.cpp
