@@ -326,7 +326,7 @@ SHA256_Buf(const void * in, size_t len, uint8_t digest[32])
     SHA256_Init(&ctx);
     _SHA256_Update(&ctx, in, len, tmp32);
     _SHA256_Final(digest, &ctx, tmp32);
-ß}
+}
 
 void
 SHA256d_Buf(const void * in, size_t len, uint8_t digest[32])
