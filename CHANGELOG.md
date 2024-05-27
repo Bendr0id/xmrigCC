@@ -1,5 +1,5 @@
 # 3.4.2
-* 
+* Added Equilibria(XEQ) RandomX varirant (rx/xeq)
 # 3.4.1
 * Added Tuske RandomX variant (`rx/tuske`)
 * Rebase on latest xmrig-6.21.3

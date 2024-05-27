@@ -260,6 +260,10 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
 
         { 0x424220,     { Coin::TOWNFORGE,     STAGENET,   PUBLIC,         38881,  38882 } },
         { 0x424221,     { Coin::TOWNFORGE,     STAGENET,   SUBADDRESS,     38881,  38882 } },
+
+        { 0x121,    { Coin::XEQ,        MAINNET,    PUBLIC,          9231,   9232 } },
+        { 0x629f,   { Coin::XEQ,        MAINNET,    INTEGRATED,      9231,   9232 } },
+        { 0x59a0,   { Coin::XEQ,        MAINNET,    SUBADDRESS,      9231,   9232 } },
     };
 
     const auto it = tags.find(tag);

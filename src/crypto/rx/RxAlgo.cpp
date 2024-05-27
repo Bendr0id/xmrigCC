@@ -53,6 +53,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_TUSKE:
         return &RandomX_TuskeConfig;
 
+    case Algorithm::RX_XEQ:
+        return &RandomX_EquilibriaConfig;
+
     default:
         break;
     }

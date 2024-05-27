@@ -121,6 +121,16 @@ RandomX_ConfigurationTuske::RandomX_ConfigurationTuske()
     ArgonLanes = 2;
 }
 
+RandomX_ConfigurationEquilibria::RandomX_ConfigurationEquilibria()
+{
+    ArgonIterations = 1;
+    ArgonSalt = "RandomXEQ\x01";
+    ProgramIterations = 1024;
+    ProgramCount = 4;
+    ScratchpadL2_Size = 131072;
+    ScratchpadL3_Size = 262144;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: SuperscalarLatency(170)
 	, ArgonIterations(3)
@@ -375,6 +385,7 @@ RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
 RandomX_ConfigurationTuske RandomX_TuskeConfig;
+RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

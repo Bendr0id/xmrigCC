@@ -52,6 +52,7 @@ function rx()
         'randomx_constants_arqma.h',
         'randomx_constants_keva.h',
         'randomx_constants_graft.h',
+        'randomx_constants_equilibria.h',
         'aes.cl',
         'blake2b.cl',
         'randomx_vm.cl',

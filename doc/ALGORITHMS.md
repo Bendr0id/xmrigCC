@@ -12,11 +12,12 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name                  | Memory | Version     | Notes                                                                     | Info      |
 |-----------------------|--------|-------------|---------------------------------------------------------------------------|-----------|
-| `rx/tuske`            | 2 MB   | 3.4.1       | RandomxTuske (vkax).                                                      | CPU only
+| `rx/xeq`              | 2 MB   | 3.4.2       | RandomxEquilibria (XEQ).                                                  |
+| `rx/tuske`            | 2 MB   | 3.4.1       | RandomxTuske (TSK).                                                       | CPU only
 | `ghostrider/mike`     | 2 MB   | 3.3.1       | Ghostrider variant Mike (vkax).                                           | CPU only
 | `rx/xdag`             | 2 MB   | 3.2.1       | RandomXDAG (xdagger).                                                     | CPU only
 | `astroBWT/v2`         | -      | 3.2.0       | AstroBWT v2 (Dero HE).                                                    | removed
-| `rx/lozz`             | 2 MB   | 3.1.0       | RandomL (Lozzax).                                                         | removed
+| `rx/lozz`             | 2 MB   | 3.1.0-3.4.1 | RandomL (Lozzax).                                                         | removed
 | `cn/gpu`              | -      | 3.1.0       | Equilibria (XEQ) & Conceal (CCX).                                         |
 | `ghostrider`          | 2 MB   | 3.0.0       | GhostRider (Raptoreum).                                                   | CPU only
 | `kawpow`              | -      | 3.0.0       | KawPow (Ravencoin).                                                       | GPU only

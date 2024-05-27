@@ -149,6 +149,7 @@ struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationKeva : public RandomX_ConfigurationBase { RandomX_ConfigurationKeva(); };
 struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_ConfigurationYada(); };
 struct RandomX_ConfigurationTuske : public RandomX_ConfigurationBase { RandomX_ConfigurationTuske(); };
+struct RandomX_ConfigurationEquilibria : public RandomX_ConfigurationBase { RandomX_ConfigurationEquilibria(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
@@ -158,6 +159,7 @@ extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationKeva RandomX_KevaConfig;
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
 extern RandomX_ConfigurationTuske RandomX_TuskeConfig;
+extern RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
