@@ -29,19 +29,15 @@ Full Windows/Linux/OSx/Android compatible, and you can mix all on a single XMRig
 
 List of all supported algos can be found [here](doc/ALGORITHMS.md)
 
+* **Equilibria (XEQ)** RX variant (Algo: "rx/xeq")
+* **Tuske** RX variant (Algo: "rx/tuske")
 * **VKAX** Ghostrider variant Mike (Algo: "mike")
 * **XDagger** RX variant (Algo: "rx/xdag")
-* **Conceal (CCX), Equilibria (XEQ), ...** CN variant (Algo: "cn/gpu")
+* **Conceal (CCX), RYO, ...** CN variant (Algo: "cn/gpu")
 * **Ghostrider (Raptoreum)** (Algo: "gr")
 * **KawPow (Ravencoin)** (Algo: "kawpow")
 * **Graft** RX variant (Algo: "rx/graft")
 * **Yadacoin** RX variant (Algo: "rx/yada")
-* **Turtlecoin** argon2 chukwa variant 2 (algo: "argon2/chukwav2")
-* **ninjacoin** variant (algo: "ninja")
-* **RandomKEVA** RX variant (algo: "rx/keva")
-* **CN-Talleo** CN variant (algo: "cn-pico/tlo")
-* **UPX2** CN variant (algo: "cn-extremelite/upx2")
-* **CN-Conceal** CN variant (algo: "cn/conceal")
 
 ## XMRigCC features:
 
