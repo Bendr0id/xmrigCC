@@ -68,9 +68,10 @@ Since version 3 mining [algorithm](#algorithm-names) should specified for each p
     {
       "url": "...",
       "algo": "cn/r",
-      "coin": null
+      "coin": null,
       ...
     }
  ],
  ...
 }
+```
