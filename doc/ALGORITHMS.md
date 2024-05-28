@@ -74,4 +74,3 @@ Since version 3 mining [algorithm](#algorithm-names) should specified for each p
  ],
  ...
 }
-```
