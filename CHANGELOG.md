@@ -1,3 +1,5 @@
+# 3.4.3
+* 
 # 3.4.2
 * Added Equilibria(XEQ) RandomX varirant (rx/xeq)
 # 3.4.1
