@@ -257,6 +257,8 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 
     case IConfig::CCAccessToken: /* --cc-access-token */
       return addToNode(doc, BaseConfig::kCCClient, CCClientConfig::kServers, CCClientConfig::kAccessToken, arg);
+    case IConfig::CCProxyServer: /* --cc-http-proxy */
+      return addToNode(doc, BaseConfig::kCCClient, CCClientConfig::kServers, CCClientConfig::kProxyServer, arg);
 #   endif
 
     case IConfig::RetriesKey:       /* --retries */

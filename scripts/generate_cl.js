@@ -50,7 +50,6 @@ function rx()
         'randomx_constants_monero.h',
         'randomx_constants_wow.h',
         'randomx_constants_arqma.h',
-        'randomx_constants_keva.h',
         'randomx_constants_graft.h',
         'randomx_constants_equilibria.h',
         'aes.cl',

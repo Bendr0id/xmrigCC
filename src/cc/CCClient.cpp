@@ -16,6 +16,7 @@
  */
 
 #include <sstream>
+#include <string>
 #include "3rdparty/rapidjson/prettywriter.h"
 #include <crypto/common/VirtualMemory.h>
 #include "base/io/Env.h"
@@ -451,6 +452,11 @@ std::shared_ptr<httplib::ClientImpl> xmrig::CCClient::getClient()
     if (config.token() != nullptr)
     {
       cli->set_bearer_token_auth(config.token());
+    }
+
+    if (config.proxyHost() != nullptr)
+    {
+        cli->set_proxy(config.proxyHost(), config.proxyPort());
     }
   }
 

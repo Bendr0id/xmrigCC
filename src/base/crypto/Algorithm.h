@@ -79,7 +79,6 @@ public:
         RX_ARQ          = 0x72121061,   // "rx/arq"           RandomARQ (Arqma).
         RX_GRAFT        = 0x72151267,   // "rx/graft"         RandomGRAFT (Graft).
         RX_SFX          = 0x72151273,   // "rx/sfx"           RandomSFX (Safex Cash).
-        RX_KEVA         = 0x7214116b,   // "rx/keva"          RandomKEVA (Keva).
         RX_YADA         = 0x72151279,   // "rx/yada"          RandomYADA (Yada).
         RX_XDAG         = 0x72151278,   // "rx/xdag"          RandomXDAG (xdagger).
         RX_TUSKE        = 0x72151274,   // "rx/tuske"         RandomTuske (TUSKE).
@@ -153,7 +152,6 @@ public:
     static const char *kRX_ARQ;
     static const char *kRX_GRAFT;
     static const char *kRX_SFX;
-    static const char *kRX_KEVA;
     static const char *kRX_YADA;
     static const char *kRX_XDAG;
     static const char *kRX_TUSKE;

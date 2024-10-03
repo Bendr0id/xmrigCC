@@ -3,7 +3,7 @@
 Algorithm can be defined in 3 ways:
 
 1. By pool, using algorithm negotiation, in this case no need specify algorithm on miner side.
-2. Per pool `coin` option, currently only usable value for this option is `monero`, `aqrma`, `dero`, `keva`, `turtle`
+2. Per pool `coin` option, currently only usable value for this option is `monero`, `aqrma`, `dero`, `yada`, `turtle`
 3. Per pool `algo` option.
 
 Option `coin` useful for pools without algorithm negotiation support or daemon to allow automatically switch algorithm in next hard fork.
@@ -22,14 +22,14 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 | `ghostrider`          | 2 MB   | 3.0.0       | GhostRider (Raptoreum).                                                   | CPU only
 | `kawpow`              | -      | 3.0.0       | KawPow (Ravencoin).                                                       | GPU only
 | `rx/graft`            | 2 MB   | 2.9.6       | RandomGRAFT.                                                              |
-| `rx/yada`             | 2 MB   | 2.9.3       | RandomYADA.                                                               | CPU only
+| `rx/yada`             | 2 MB   | 2.9.3       | RandomYADA.                                                               |
 | `cn/superfast`        | 2 MB   | 2.9.1-2.9.7 | CryptoNight variant 0 (modified)                                          | removed
 | `cn/cache_hash`       | 2 MB   | 2.8.4-2.9.7 | CryptoNight variant 0 (modified)                                          | removed
 | `argon2/chukwav2`     | 1 MB   | 2.8.2       | Argon2id (Chukwa v2).                                                     | CPU only
 | `panthera`            | 256 KB | 2.8.0-2.9.7 | RandomX variant Panthera (Scala [XLA]).                                   | removed
 | `ninja`               | 256 KB | 2.7.0       | Chukwa variant NinjaCoin.                                                 |
 | `astroBWT`            | 20 MB  | 2.6.0-3.2.0 | AstroBWT.                                                                 | removed
-| `rx/keva`             | 1 MB   | 2.6.0       | RandomKEVA.                                                               |
+| `rx/keva`             | 1 MB   | 2.6.0-3.4.2 | RandomKEVA.                                                               | removed
 | `cn-pico/tlo`         | 256 KB | 2.5.0       | CryptoNight-Pico (Talleo).                                                |
 | `rx/sfx`              | 2 MB   | 2.2.1       | RandomX (Safex).                                                          |
 | `rx/arq`              | 256 KB | 2.2.0       | RandomX (Arqma).                                                          |
@@ -74,4 +74,3 @@ Since version 3 mining [algorithm](#algorithm-names) should specified for each p
  ],
  ...
 }
-```
