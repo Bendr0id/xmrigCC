@@ -199,7 +199,7 @@ void xmrig::OclWorker::start()
             std::this_thread::yield();
         }
 
-        if (!consumeJob()) {
+        if (isReady() && !consumeJob()) {
             return;
         }
     }
