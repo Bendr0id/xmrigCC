@@ -67,7 +67,7 @@ size_t xmrig::OclCnGpuRunner::bufferSize() const
 }
 
 
-void xmrig::OclCnGpuRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void xmrig::OclCnGpuRunner::run(uint32_t nonce, uint32_t /*nonce_offset*/, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
 

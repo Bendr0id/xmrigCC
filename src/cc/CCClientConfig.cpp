@@ -34,6 +34,7 @@ const char* CCClientConfig::kServers = "servers";
 const char* CCClientConfig::kUrl = "url";
 const char* CCClientConfig::kAccessToken = "access-token";
 const char* CCClientConfig::kUseTLS = "use-tls";
+const char* CCClientConfig::kProxyServer = "http-proxy";
 
 const char* CCClientConfig::kWorkerId = "worker-id";
 const char* CCClientConfig::kRebootCmd = "reboot-cmd";
@@ -60,6 +61,7 @@ rapidjson::Value xmrig::CCClientConfig::toJSON(rapidjson::Document& doc) const
     Value serverObj(kObjectType);
     serverObj.AddMember(StringRef(kUrl), server->m_url.toJSON(), allocator);
     serverObj.AddMember(StringRef(kAccessToken), server->m_token.toJSON(), allocator);
+    serverObj.AddMember(StringRef(kProxyServer), server->m_proxyServer.toJSON(), allocator);
     serverObj.AddMember(StringRef(kUseTLS), server->m_useTls, allocator);
 
     serverArray.PushBack(serverObj, allocator);
@@ -91,9 +93,10 @@ bool xmrig::CCClientConfig::load(const rapidjson::Value& value)
       {
         String url = Json::getString(entry, kUrl, "");
         String token = Json::getString(entry, kAccessToken, "");
+        String proxyServer = Json::getString(entry, kProxyServer, "");
         bool useTls = Json::getBool(entry, kUseTLS, false);
 
-        auto server = std::make_shared<Server>(url, token, useTls);
+        auto server = std::make_shared<Server>(url, token, proxyServer, useTls);
         if (server->isValid())
         {
           m_servers.emplace_back(server);
@@ -105,9 +108,10 @@ bool xmrig::CCClientConfig::load(const rapidjson::Value& value)
     {
       String url = Json::getString(value, kUrl, "");
       String token = Json::getString(value, kAccessToken, "");
+      String proxyServer = Json::getString(value, kProxyServer, "");
       bool useTls = Json::getBool(value, kUseTLS, false);
 
-      auto server = std::make_shared<Server>(url, token, useTls);
+      auto server = std::make_shared<Server>(url, token, proxyServer, useTls);
       if (server->isValid())
       {
         m_servers.emplace_back(server);

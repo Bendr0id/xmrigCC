@@ -1,3 +1,6 @@
+# 3.4.3
+* Added http proxy support for CC comunication
+* Rebase on latest xmrig-6.22.0
 # 3.4.2
 * Added Equilibria(XEQ) RandomX varirant (rx/xeq)
 # 3.4.1

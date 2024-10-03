@@ -40,6 +40,7 @@ public:
   static const char* kRebootCmd;
   static const char* kUpdateInterval;
   static const char* kRetriesToFailover;
+  static const char* kProxyServer;
 
   bool load(const rapidjson::Value& value);
   void switchCurrentServer();
@@ -60,10 +61,12 @@ public:
   inline const char* host() const                           { return getCurrentServer()->m_host; }
   inline const char* token() const                          { return getCurrentServer()->m_token; }
   inline const char* url() const                            { return getCurrentServer()->m_url; }
+  inline const char* proxyHost() const                      { return getCurrentServer()->m_proxyHost; }
 
   inline int updateInterval() const                         { return m_updateInterval; }
   inline int retriesToFailover() const                      { return m_retriesToFailover; }
   inline int port() const                                   { return getCurrentServer()->m_port; }
+  inline int proxyPort() const                              { return getCurrentServer()->m_proxyPort; }
 
   inline bool operator!=(const CCClientConfig& other) const { return !isEqual(other); }
   inline bool operator==(const CCClientConfig& other) const { return isEqual(other); }
@@ -78,13 +81,15 @@ public:
     {
     }
 
-    Server(const char* url, const char* token, bool useTls)
+    Server(const char* url, const char* token, const char* proxyServer, bool useTls)
     {
       m_url = url;
       m_token = token;
       m_useTls = useTls;
+      m_proxyServer = proxyServer;
 
       parseUrl(url);
+      parseProxy(proxyServer);
     }
 
     Server(const rapidjson::Value &object)
@@ -92,8 +97,10 @@ public:
       m_url = Json::getString(object, CCClientConfig::kUrl);
       m_token = Json::getString(object, CCClientConfig::kAccessToken);
       m_useTls = Json::getString(object, CCClientConfig::kUseTLS);
+      m_proxyServer = Json::getString(object, CCClientConfig::kProxyServer);
 
       parseUrl(m_url);
+      parseProxy(m_proxyServer);
     }
 
     bool isValid()
@@ -133,12 +140,37 @@ public:
       }
     }
 
+    void parseProxy(const char* proxyServer)
+    {
+      const char* base = proxyServer;
+      if (base && strlen(base) && *base != '/')
+      {
+          const char* port = strchr(base, ':');
+          if (!port)
+          {
+              m_proxyHost = base;
+          }
+          else
+          {
+              const size_t size = port++ - base + 1;
+              auto* host = new char[size]();
+              memcpy(host, base, size - 1);
+
+              m_proxyHost = host;
+              m_proxyPort = static_cast<uint16_t>(strtol(port, nullptr, 10));
+          }
+        }
+      }
+
   public:
     bool m_useTls{false};
     int m_port{3344};
     String m_token;
     String m_host;
     String m_url;
+    String m_proxyServer;
+    String m_proxyHost;
+    int m_proxyPort {8080};
   };
 
 private:
