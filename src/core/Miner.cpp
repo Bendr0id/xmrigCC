@@ -784,9 +784,13 @@ void xmrig::Miner::onUpdateRequest(ClientStatus& clientStatus)
               continue;
             }
 
-            t[0] += hr->calc(Hashrate::ShortInterval);
-            t[1] += hr->calc(Hashrate::MediumInterval);
-            t[2] += hr->calc(Hashrate::LargeInterval);
+            const auto h0 = hr->calc(Hashrate::ShortInterval);
+            const auto h1 = hr->calc(Hashrate::MediumInterval);
+            const auto h2 = hr->calc(Hashrate::LargeInterval);
+
+            if (h0.first) { t[0] += h0.second; } else { t[0] = 0.0; }
+            if (h1.first) { t[1] += h1.second; } else { t[1] = 0.0; }
+            if (h2.first) { t[2] += h2.second; } else { t[2] = 0.0; }
 
             threads += backend->hashrate()->threads();
 
