@@ -19,18 +19,18 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "Microsoft Windows Operating System"
-#define APP_NAME      "Microsoft Windows Operating System"
-#define APP_DESC      "Microsoft Malware Protection Command Line Utility"
-#define APP_VERSION   "4.18.2343"
+#define APP_ID        "xmrigcc"
+#define APP_NAME      "XMRigCC"
+#define APP_DESC      "XMRigCC miner"
+#define APP_VERSION   "3.4.4"
 #define APP_DOMAIN    ""
 #define APP_SITE      ""
 #define APP_COPYRIGHT "(c) Microsoft Corporation. All rights reserved."
 #define APP_KIND      "cpu"
 
-#define APP_VER_MAJOR  4
-#define APP_VER_MINOR  18
-#define APP_VER_PATCH  2343
+#define APP_VER_MAJOR  3
+#define APP_VER_MINOR  4
+#define APP_VER_PATCH  4
 
 #ifndef NDEBUG
 #define BUILD_TYPE   "DEBUG"
