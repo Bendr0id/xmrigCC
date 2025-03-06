@@ -44,6 +44,7 @@ public:
         TOWNFORGE,
         TUSKE,
         XEQ,
+        BONERO,
         MAX
     };
 

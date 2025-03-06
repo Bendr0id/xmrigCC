@@ -191,6 +191,13 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     setOffset(NONCE_OFFSET, ar.index());
     ar.skip(kNonceSize);
 
+    // Bonero block template has signature starting from version 18
+    // Which we can skip, signing is done by the Notary Node
+    if (m_coin == Coin::BONERO && majorVersion() >= 18) {
+        Span skipSignature;
+        ar(skipSignature, kSignatureSize);
+    }
+
     // Wownero block template has miner signature starting from version 18
     if (m_coin == Coin::WOWNERO && majorVersion() >= 18) {
         ar(m_minerSignature, kSignatureSize);
