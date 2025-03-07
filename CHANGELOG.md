@@ -1,7 +1,8 @@
+# 3.4.6
 # 3.4.5
-* Fixed daemon solo mining Bonero v18 (`"coin": "Bonero"`)
-* Added http proxy support for CC comunication
-* Rebase on latest xmrig-6.22.0
+Fixed daemon solo mining Bonero v18 (--coin=Bonero or `"coin": "Bonero"` in config.json)
+Added http proxy support for CC comunication (--cc-http-proxy=URL or `"http-proxy":"url"` in the cc section in config.json)
+Rebase on latest xmrig-6.22.0
 # 3.4.2
 * Added Equilibria(XEQ) RandomX varirant (rx/xeq)
 # 3.4.1

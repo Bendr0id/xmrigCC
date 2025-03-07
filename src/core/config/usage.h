@@ -159,6 +159,7 @@ static inline const std::string &usage()
     u += "      --cc-disabled                 disable CC Client feature\n";
     u += "      --cc-url=URL                  url of the CC Server\n";
     u += "      --cc-access-token=T           access token for CC Server\n";
+    u += "      --cc-http-proxy=URL           http_proxy url to use for communication with the CC Server\n";
     u += "      --cc-worker-id=ID             custom worker-id for CC Server\n";
     u += "      --cc-update-interval-s=N      status update interval in seconds (default: 10 min: 1)\n";
     u += "      --cc-use-tls                  enable tls encryption for CC communication\n";

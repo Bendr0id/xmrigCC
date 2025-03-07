@@ -85,7 +85,8 @@
             {
                 "url": "localhost:3344",
                 "access-token": "mySecret",
-                "use-tls": false
+                "use-tls": false,
+                "http-proxy": null
             }
         ],
         "use-remote-logging": true,
