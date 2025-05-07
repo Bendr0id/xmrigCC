@@ -1,0 +1,39 @@
+name: macOS Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x86_64, arm64]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build Dependencies
+        run: |
+          chmod +x scripts/build_deps.sh
+          ./scripts/build_deps.sh
+      - name: Build for ${{ matrix.arch }}
+        run: |
+          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+          cmake --build build -- -j$(sysctl -n hw.ncpu)
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: xmrig-${{ matrix.arch }}
+          path: build/xmrigMiner
+      - name: Bundle Artifacts
+        run: |
+          mkdir -p bundle
+          cp src/config.json build/xmrigMiner build/xmrigDaemon bundle/
+          tar -czvf xmrig-${{ matrix.arch }}.tar.gz -C bundle .
+      - name: Upload Bundle
+        uses: actions/upload-artifact@v2
+        with:
+          name: xmrig-bundle-${{ matrix.arch }}
+          path: xmrig-${{ matrix.arch }}.tar.gz
