@@ -26,6 +26,7 @@ THE SOFTWARE.
 #define CXXOPTS_HPP_INCLUDED
 
 #include <cstring>
+#include <cstdint>
 #include <cctype>
 #include <exception>
 #include <iostream>
