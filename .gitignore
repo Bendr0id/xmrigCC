@@ -13,6 +13,7 @@ src/crypto/asm/*.inc
 src/crypto/asm/win/*.inc
 src/3rdparty/
 test/
+Testing/
 *CMakeFiles*
 *.a
 *.cbp

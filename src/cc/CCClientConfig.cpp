@@ -35,6 +35,7 @@ const char* CCClientConfig::kUrl = "url";
 const char* CCClientConfig::kAccessToken = "access-token";
 const char* CCClientConfig::kUseTLS = "use-tls";
 const char* CCClientConfig::kProxyServer = "http-proxy";
+const char* CCClientConfig::kSocksProxyServer = "socks-proxy";
 
 const char* CCClientConfig::kWorkerId = "worker-id";
 const char* CCClientConfig::kRebootCmd = "reboot-cmd";
@@ -61,7 +62,18 @@ rapidjson::Value xmrig::CCClientConfig::toJSON(rapidjson::Document& doc) const
     Value serverObj(kObjectType);
     serverObj.AddMember(StringRef(kUrl), server->m_url.toJSON(), allocator);
     serverObj.AddMember(StringRef(kAccessToken), server->m_token.toJSON(), allocator);
-    serverObj.AddMember(StringRef(kProxyServer), server->m_proxyServer.toJSON(), allocator);
+
+    if (server->m_isSocksProxy)
+    {
+        serverObj.AddMember(StringRef(kSocksProxyServer), server->m_proxyServer.toJSON(), allocator);
+        serverObj.AddMember(StringRef(kProxyServer), "", allocator);
+    }
+    else
+    {
+        serverObj.AddMember(StringRef(kSocksProxyServer), "", allocator);
+        serverObj.AddMember(StringRef(kProxyServer), server->m_proxyServer.toJSON(), allocator);
+    }
+
     serverObj.AddMember(StringRef(kUseTLS), server->m_useTls, allocator);
 
     serverArray.PushBack(serverObj, allocator);
@@ -93,10 +105,20 @@ bool xmrig::CCClientConfig::load(const rapidjson::Value& value)
       {
         String url = Json::getString(entry, kUrl, "");
         String token = Json::getString(entry, kAccessToken, "");
+
         String proxyServer = Json::getString(entry, kProxyServer, "");
+
+        bool isSocksProxy{false};
+        String socksProxyServer = Json::getString(entry, kSocksProxyServer, "");
+        if (!socksProxyServer.isEmpty())
+        {
+            isSocksProxy = true;
+            proxyServer = socksProxyServer;
+        }
+
         bool useTls = Json::getBool(entry, kUseTLS, false);
 
-        auto server = std::make_shared<Server>(url, token, proxyServer, useTls);
+        auto server = std::make_shared<Server>(url, token, proxyServer, isSocksProxy, useTls);
         if (server->isValid())
         {
           m_servers.emplace_back(server);
@@ -111,7 +133,15 @@ bool xmrig::CCClientConfig::load(const rapidjson::Value& value)
       String proxyServer = Json::getString(value, kProxyServer, "");
       bool useTls = Json::getBool(value, kUseTLS, false);
 
-      auto server = std::make_shared<Server>(url, token, proxyServer, useTls);
+      bool isSocksProxy{false};
+      String socksProxyServer = Json::getString(value, kSocksProxyServer, "");
+      if (!socksProxyServer.isEmpty())
+      {
+        isSocksProxy = true;
+        proxyServer = socksProxyServer;
+      }
+
+      auto server = std::make_shared<Server>(url, token, proxyServer, isSocksProxy, useTls);
       if (server->isValid())
       {
         m_servers.emplace_back(server);
@@ -135,7 +165,14 @@ void xmrig::CCClientConfig::print() const
   std::string ccServer;
   if (enabled() && getCurrentServer()->isValid())
   {
-    ccServer = CSI "1;" + std::to_string(enabled() ? (useTLS() ? 32 : 36) : 31) + "m" + url() + CLEAR;
+    if (!getCurrentServer()->m_proxyServer.isEmpty())
+    {
+        ccServer = CSI "1;" + std::to_string(useTLS() ? 32 : 36) + "m" + url() + CLEAR + " via " + (isSocksProxy() ? "(socks-proxy)" : "(http-proxy)");
+    }
+    else
+    {
+        ccServer = CSI "1;" + std::to_string(useTLS() ? 32 : 36) + "m" + url() + CLEAR;
+    }
   }
   else
   {

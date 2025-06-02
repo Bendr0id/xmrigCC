@@ -457,6 +457,7 @@ std::shared_ptr<httplib::ClientImpl> xmrig::CCClient::getClient()
     if (config.proxyHost() != nullptr)
     {
         cli->set_proxy(config.proxyHost(), config.proxyPort());
+        cli->set_proxy_type(config.isSocksProxy() ? httplib::ProxyType::SOCKS5 : httplib::ProxyType::HTTP);
     }
   }
 

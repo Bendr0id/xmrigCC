@@ -859,6 +859,12 @@ private:
   Headers request_headers_;
 };
 
+enum class ProxyType {
+    None,
+    HTTP,
+    SOCKS5
+};
+
 class ClientImpl {
 public:
   explicit ClientImpl(const std::string &host);
@@ -1032,6 +1038,8 @@ public:
   void set_proxy(const char *host, int port);
   void set_proxy_basic_auth(const char *username, const char *password);
   void set_proxy_bearer_token_auth(const char *token);
+  void set_proxy_type(const ProxyType type);
+
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
   void set_proxy_digest_auth(const char *username, const char *password);
 #endif
@@ -1059,6 +1067,8 @@ protected:
   };
 
   Result send_(Request &&req);
+
+  bool handle_socks5_connection(Stream &strm, Error &error);
 
   virtual bool create_and_connect_socket(Socket &socket, Error &error);
 
@@ -1134,6 +1144,7 @@ protected:
 
   std::string proxy_host_;
   int proxy_port_ = -1;
+  ProxyType proxy_type_ = ProxyType::None;
 
   std::string proxy_basic_auth_username_;
   std::string proxy_basic_auth_password_;
@@ -5480,6 +5491,7 @@ inline void ClientImpl::copy_settings(const ClientImpl &rhs) {
     interface_ = rhs.interface_;
     proxy_host_ = rhs.proxy_host_;
     proxy_port_ = rhs.proxy_port_;
+
     proxy_basic_auth_username_ = rhs.proxy_basic_auth_username_;
     proxy_basic_auth_password_ = rhs.proxy_basic_auth_password_;
     proxy_bearer_token_auth_token_ = rhs.proxy_bearer_token_auth_token_;
@@ -5685,6 +5697,103 @@ inline Result ClientImpl::send_(Request &&req) {
     return Result{ret ? std::move(res) : nullptr, error, std::move(req.headers)};
 }
 
+inline bool ClientImpl::handle_socks5_connection(Stream &strm, Error &error) {
+  // SOCKS5 handshake
+  uint8_t handshake[3] = {0x05, 0x01, 0x00}; // SOCKS5, 1 auth method, no auth
+  if (strm.write(reinterpret_cast<char*>(handshake), 3) != 3) {
+    error = Error::Connection;
+    return false;
+  }
+
+  // Read server response
+  uint8_t response[2];
+  if (strm.read(reinterpret_cast<char*>(response), 2) != 2) {
+    error = Error::Connection;
+    return false;
+  }
+
+  if (response[0] != 0x05 || response[1] != 0x00) {
+    error = Error::Connection;
+    return false;
+  }
+
+  // Send connect request
+  std::vector<uint8_t> connect_req;
+  connect_req.push_back(0x05); // SOCKS5
+  connect_req.push_back(0x01); // CONNECT
+  connect_req.push_back(0x00); // Reserved
+
+  // Check if host is an IP address
+  struct in_addr ipv4;
+  struct in6_addr ipv6;
+  if (inet_pton(AF_INET, host_.c_str(), &ipv4) == 1) {
+    // IPv4 address
+    connect_req.push_back(0x01); // IPv4 address type
+    connect_req.insert(connect_req.end(), reinterpret_cast<uint8_t*>(&ipv4),
+                      reinterpret_cast<uint8_t*>(&ipv4) + sizeof(ipv4));
+  } else if (inet_pton(AF_INET6, host_.c_str(), &ipv6) == 1) {
+    // IPv6 address
+    connect_req.push_back(0x04); // IPv6 address type
+    connect_req.insert(connect_req.end(), reinterpret_cast<uint8_t*>(&ipv6),
+                      reinterpret_cast<uint8_t*>(&ipv6) + sizeof(ipv6));
+  } else {
+    // Domain name
+    connect_req.push_back(0x03); // Domain name
+    connect_req.push_back(host_.length()); // Domain length
+    connect_req.insert(connect_req.end(), host_.begin(), host_.end());
+  }
+
+  // Add port
+  connect_req.push_back((port_ >> 8) & 0xFF); // Port high byte
+  connect_req.push_back(port_ & 0xFF); // Port low byte
+
+  if (strm.write(reinterpret_cast<char*>(connect_req.data()), connect_req.size()) != connect_req.size()) {
+    error = Error::Connection;
+    return false;
+  }
+
+  // Read connect response
+  uint8_t connect_resp[4];
+  if (strm.read(reinterpret_cast<char*>(connect_resp), 4) != 4) {
+    error = Error::Connection;
+    return false;
+  }
+
+  if (connect_resp[1] != 0x00) {
+    error = Error::Connection;
+    return false;
+  }
+
+  // Skip remaining response bytes based on address type
+  uint8_t addr_type = connect_resp[3];
+  size_t skip_bytes = 0;
+  switch (addr_type) {
+    case 0x01: skip_bytes = 4; break; // IPv4
+    case 0x03: { // Domain name
+      uint8_t domain_len;
+      if (strm.read(reinterpret_cast<char*>(&domain_len), 1) != 1) {
+        error = Error::Connection;
+        return false;
+      }
+      skip_bytes = domain_len;
+      break;
+    }
+    case 0x04: skip_bytes = 16; break; // IPv6
+    default:
+      error = Error::Connection;
+      return false;
+  }
+  skip_bytes += 2; // Skip port
+
+  std::vector<uint8_t> skip(skip_bytes);
+  if (strm.read(reinterpret_cast<char*>(skip.data()), skip_bytes) != skip_bytes) {
+    error = Error::Connection;
+    return false;
+  }
+
+  return true;
+}
+
 inline bool ClientImpl::handle_request(Stream &strm, Request &req,
                                        Response &res, bool close_connection,
                                        Error &error) {
@@ -5698,11 +5807,19 @@ inline bool ClientImpl::handle_request(Stream &strm, Request &req,
     bool ret;
 
     if (!is_ssl() && !proxy_host_.empty() && proxy_port_ != -1) {
-        auto req2 = req;
-        req2.path = "http://" + host_and_port_ + req.path;
-        ret = process_request(strm, req2, res, close_connection, error);
-        req = req2;
-        req.path = req_save.path;
+        if (proxy_type_ == ProxyType::SOCKS5) {
+            if (!handle_socks5_connection(strm, error)) {
+                return false;
+            }
+            ret = process_request(strm, req, res, close_connection, error);
+        } else {
+            // Existing HTTP proxy code
+            auto req2 = req;
+            req2.path = "http://" + host_and_port_ + req.path;
+            ret = process_request(strm, req2, res, close_connection, error);
+            req = req2;
+            req.path = req_save.path;
+        }
     } else {
         ret = process_request(strm, req, res, close_connection, error);
     }
@@ -6665,6 +6782,10 @@ inline void ClientImpl::set_proxy_bearer_token_auth(const char *token) {
     proxy_bearer_token_auth_token_ = token;
 }
 
+inline void ClientImpl::set_proxy_type(const ProxyType type) {
+    proxy_type_ = type;
+}
+
 #ifdef CPPHTTPLIB_OPENSSL_SUPPORT
 inline void ClientImpl::set_proxy_digest_auth(const char *username,
                                               const char *password) {
@@ -7104,54 +7225,66 @@ inline bool SSLClient::create_and_connect_socket(Socket &socket, Error &error) {
 inline bool SSLClient::connect_with_proxy(Socket &socket, Response &res,
                                           bool &success, Error &error) {
     success = true;
-    Response res2;
-    if (!detail::process_client_socket(
-        socket.sock, read_timeout_sec_, read_timeout_usec_,
-        write_timeout_sec_, write_timeout_usec_, [&](Stream &strm) {
-          Request req2;
-          req2.method = "CONNECT";
-          req2.path = host_and_port_;
-          return process_request(strm, req2, res2, false, error);
-        })) {
-        // Thread-safe to close everything because we are assuming there are no
-        // requests in flight
-        shutdown_ssl(socket, true);
-        shutdown_socket(socket);
-        close_socket(socket);
-        success = false;
-        return false;
-    }
 
-    if (res2.status == 407) {
-        if (!proxy_digest_auth_username_.empty() &&
-            !proxy_digest_auth_password_.empty()) {
-            std::map<std::string, std::string> auth;
-            if (detail::parse_www_authenticate(res2, auth, true)) {
-                Response res3;
-                if (!detail::process_client_socket(
-                    socket.sock, read_timeout_sec_, read_timeout_usec_,
-                    write_timeout_sec_, write_timeout_usec_, [&](Stream &strm) {
-                      Request req3;
-                      req3.method = "CONNECT";
-                      req3.path = host_and_port_;
-                      req3.headers.insert(detail::make_digest_authentication_header(
-                          req3, auth, 1, detail::random_string(10),
-                          proxy_digest_auth_username_, proxy_digest_auth_password_,
-                          true));
-                      return process_request(strm, req3, res3, false, error);
-                    })) {
-                    // Thread-safe to close everything because we are assuming there are
-                    // no requests in flight
-                    shutdown_ssl(socket, true);
-                    shutdown_socket(socket);
-                    close_socket(socket);
-                    success = false;
-                    return false;
-                }
-            }
-        } else {
-            res = res2;
+    if (proxy_type_ == ProxyType::SOCKS5) {
+        detail::SocketStream strm(socket.sock, read_timeout_sec_, read_timeout_usec_,
+                          write_timeout_sec_, write_timeout_usec_);
+         if (!handle_socks5_connection(strm, error)) {
+            success = false;
             return false;
+        }
+        return true;
+    }
+    else {
+        Response res2;
+        if (!detail::process_client_socket(
+            socket.sock, read_timeout_sec_, read_timeout_usec_,
+            write_timeout_sec_, write_timeout_usec_, [&](Stream &strm) {
+              Request req2;
+              req2.method = "CONNECT";
+              req2.path = host_and_port_;
+              return process_request(strm, req2, res2, false, error);
+            })) {
+            // Thread-safe to close everything because we are assuming there are no
+            // requests in flight
+            shutdown_ssl(socket, true);
+            shutdown_socket(socket);
+            close_socket(socket);
+            success = false;
+            return false;
+        }
+
+        if (res2.status == 407) {
+            if (!proxy_digest_auth_username_.empty() &&
+                !proxy_digest_auth_password_.empty()) {
+                std::map<std::string, std::string> auth;
+                if (detail::parse_www_authenticate(res2, auth, true)) {
+                    Response res3;
+                    if (!detail::process_client_socket(
+                        socket.sock, read_timeout_sec_, read_timeout_usec_,
+                        write_timeout_sec_, write_timeout_usec_, [&](Stream &strm) {
+                          Request req3;
+                          req3.method = "CONNECT";
+                          req3.path = host_and_port_;
+                          req3.headers.insert(detail::make_digest_authentication_header(
+                              req3, auth, 1, detail::random_string(10),
+                              proxy_digest_auth_username_, proxy_digest_auth_password_,
+                              true));
+                          return process_request(strm, req3, res3, false, error);
+                        })) {
+                        // Thread-safe to close everything because we are assuming there are
+                        // no requests in flight
+                        shutdown_ssl(socket, true);
+                        shutdown_socket(socket);
+                        close_socket(socket);
+                        success = false;
+                        return false;
+                    }
+                }
+            } else {
+                res = res2;
+                return false;
+            }
         }
     }
 

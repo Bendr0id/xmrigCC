@@ -41,6 +41,7 @@ public:
   static const char* kUpdateInterval;
   static const char* kRetriesToFailover;
   static const char* kProxyServer;
+  static const char* kSocksProxyServer;
 
   bool load(const rapidjson::Value& value);
   void switchCurrentServer();
@@ -55,6 +56,7 @@ public:
   inline bool useTLS() const                                { return getCurrentServer()->m_useTls; }
   inline bool hasFailover() const                           { return m_servers.size() > 1; }
   inline bool isValid() const                               { return getCurrentServer()->isValid(); }
+  inline bool isSocksProxy() const                          { return getCurrentServer()->m_isSocksProxy; }
 
   inline const char* workerId() const                       { return m_workerId.data(); }
   inline const char* rebootCmd() const                      { return m_rebootCmd.data(); }
@@ -77,33 +79,38 @@ public:
   class Server
   {
   public:
-    Server()
-    {
-    }
-
-    Server(const char* url, const char* token, const char* proxyServer, bool useTls)
+    Server() = default;
+    Server(const char* url, const char* token, const char* proxyServer, bool isSockProxy, bool useTls)
     {
       m_url = url;
       m_token = token;
       m_useTls = useTls;
       m_proxyServer = proxyServer;
+      m_isSocksProxy = isSockProxy;
 
       parseUrl(url);
       parseProxy(proxyServer);
     }
 
-    Server(const rapidjson::Value &object)
+    explicit Server(const rapidjson::Value &object)
     {
       m_url = Json::getString(object, CCClientConfig::kUrl);
       m_token = Json::getString(object, CCClientConfig::kAccessToken);
       m_useTls = Json::getString(object, CCClientConfig::kUseTLS);
       m_proxyServer = Json::getString(object, CCClientConfig::kProxyServer);
 
+      String socksProxyServer = Json::getString(object, CCClientConfig::kSocksProxyServer);
+      if (!socksProxyServer.isEmpty())
+      {
+        m_isSocksProxy = true;
+        m_proxyServer = socksProxyServer.data();
+      }
+
       parseUrl(m_url);
       parseProxy(m_proxyServer);
     }
 
-    bool isValid()
+    bool isValid() const
     {
       return !m_host.isEmpty() && m_port > 0 && !m_token.isEmpty();
     }
@@ -164,6 +171,7 @@ public:
 
   public:
     bool m_useTls{false};
+    bool m_isSocksProxy{false};
     int m_port{3344};
     String m_token;
     String m_host;

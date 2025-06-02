@@ -115,6 +115,8 @@ R"===(
             {
                 "url": "localhost:3344",
                 "access-token": "mySecret",
+                "http-proxy": null,
+                "socks-proxy": null,
                 "use-tls": false
             }
         ],

@@ -159,6 +159,7 @@ static const option options[] = {
     { "cc-url",                1, nullptr, IConfig::CCUrl                 },
     { "cc-access-token",       1, nullptr, IConfig::CCAccessToken         },
     { "cc-http-proxy",         1, nullptr, IConfig::CCProxyServer         },
+    { "cc-socks-proxy",        1, nullptr, IConfig::CCSocksProxyServer   },
     { "cc-worker-id",          1, nullptr, IConfig::CCWorkerId            },
     { "cc-update-interval-s",  1, nullptr, IConfig::CCUpdateInterval      },
     { "cc-retries-to-failover",1, nullptr, IConfig::CCRetriesToFailover   },

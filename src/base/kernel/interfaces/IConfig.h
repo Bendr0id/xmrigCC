@@ -177,6 +177,7 @@ public:
         CCUpdateInterval        = 9009,
         CCRetriesToFailover     = 9010,
         CCProxyServer           = 9011,
+        CCSocksProxyServer      = 9012,
 
         // xmrigCC added params
         ForceAutoconfigKey   = 9100,

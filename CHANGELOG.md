@@ -1,6 +1,9 @@
+# 3.4.6
+* Removed Bonero
+* Added socks proxy / TOR onion support for CC communication (--cc-socks-proxy=URL or `"socks-proxy":"url"` in the cc section in config.json)
 # 3.4.5
 * Fixed daemon solo mining Bonero v18 (--coin=Bonero or `"coin": "Bonero"` in config.json)
-* Added http proxy support for CC comunication (--cc-http-proxy=URL or `"http-proxy":"url"` in the cc section in config.json)
+* Added http proxy support for CC communication (--cc-http-proxy=URL or `"http-proxy":"url"` in the cc section in config.json)
 * Rebase on latest xmrig-6.22.0
 # 3.4.2
 * Added Equilibria(XEQ) RandomX varirant (rx/xeq)
