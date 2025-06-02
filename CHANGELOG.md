@@ -1,3 +1,5 @@
+# 3.4.7
+* 
 # 3.4.6
 * Removed Bonero
 * Added socks proxy / TOR onion support for CC communication (--cc-socks-proxy=URL or `"socks-proxy":"url"` in the cc section in config.json)
