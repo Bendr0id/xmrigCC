@@ -136,6 +136,17 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
         }
     }
 
+    if (!threads.isExist(Algorithm::RX_VRL)) {
+        auto xeq = cpuInfo->threads(Algorithm::RX_VRL, limit);
+        if (xeq == wow) {
+            threads.setAlias(Algorithm::RX_VRL, Algorithm::kRX_WOW);
+            ++count;
+        }
+        else {
+            count += threads.move(Algorithm::kRX_VRL, std::move(xeq));
+        }
+    }
+
     if (!threads.isExist(Algorithm::RX_WOW)) {
         count += threads.move(Algorithm::kRX_WOW, std::move(wow));
     }

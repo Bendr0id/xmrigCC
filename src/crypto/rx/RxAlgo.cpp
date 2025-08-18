@@ -53,6 +53,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_XEQ:
         return &RandomX_EquilibriaConfig;
 
+    case Algorithm::RX_VRL:
+        return &RandomX_VirelConfig;
+
     default:
         break;
     }

@@ -29,6 +29,7 @@ Full Windows/Linux/OSx/Android compatible, and you can mix all on a single XMRig
 
 List of all supported algos can be found [here](doc/ALGORITHMS.md)
 
+* **Virel (VRL)** RX variant (Algo: "rx/vrl")
 * **Equilibria (XEQ)** RX variant (Algo: "rx/xeq")
 * **Tuske** RX variant (Algo: "rx/tuske")
 * **VKAX** Ghostrider variant Mike (Algo: "mike")

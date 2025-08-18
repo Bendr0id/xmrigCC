@@ -1,5 +1,5 @@
 # 3.4.7
-* 
+* Added Virel(VRL) RandomX varirant (rx/vrl)
 # 3.4.6
 * Removed Bonero
 * Added socks proxy / TOR onion support for CC communication (--cc-socks-proxy=URL or `"socks-proxy":"url"` in the cc section in config.json)

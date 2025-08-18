@@ -124,6 +124,15 @@ RandomX_ConfigurationEquilibria::RandomX_ConfigurationEquilibria()
     ScratchpadL3_Size = 262144;
 }
 
+RandomX_ConfigurationVirel::RandomX_ConfigurationVirel()
+{
+    ArgonIterations = 1;
+    ArgonSalt = "RandomVIREL\x03";
+    ProgramIterations = 1821;
+    ProgramCount = 4;
+    ScratchpadL3_Size = 1048576;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonIterations(3)
 	, ArgonLanes(1)
@@ -378,6 +387,7 @@ RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
 RandomX_ConfigurationTuske RandomX_TuskeConfig;
 RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
+RandomX_ConfigurationVirel RandomX_VirelConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

@@ -44,6 +44,7 @@ public:
         TOWNFORGE,
         TUSKE,
         XEQ,
+        VRL,
         MAX
     };
 
