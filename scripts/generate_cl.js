@@ -84,7 +84,6 @@ function cn_gpu()
     fs.writeFileSync('cryptonight_gpu_cl.h', text2h(cn_gpu, 'xmrig', 'cryptonight_gpu_cl'));
 }
 
-
 for (let i = 0; i < 2; i++) {
     if (fs.existsSync('src/backend/opencl/cl/OclSource.h')) {
         break;

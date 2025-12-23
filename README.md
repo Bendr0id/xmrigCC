@@ -58,7 +58,7 @@ List of all supported algos can be found [here](doc/ALGORITHMS.md)
 * Daemon to restart the miner
 
 ## Mining backends
-- **CPU** (x86/x64/ARMv7/ARMv8)
+- **CPU** (x86/x64/ARMv7/ARMv8/RISC-V)
 - **OpenCL** for AMD GPUs.
 - **CUDA** for NVIDIA GPUs use: 
      - XMRig's official [CUDA plugin](https://github.com/xmrig/xmrig-cuda/releases) 

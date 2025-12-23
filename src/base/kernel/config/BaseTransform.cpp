@@ -285,7 +285,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
     case IConfig::DnsIPv4Key:     /* --ipv4 */
-    case IConfig::DnsIPv6Key:     /* --dns-ipv6 */
+    case IConfig::DnsIPv6Key:     /* --ipv6 */
     case IConfig::CCDaemonizedKey:/* --daemonized */
     case IConfig::CCUploadConfigOnStartup:   /* --cc-upload-config-on-start */
     case IConfig::CCUseRemoteLog: /* --cc-use-remote-logging */

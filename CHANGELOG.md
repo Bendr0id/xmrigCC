@@ -1,4 +1,5 @@
-# 3.4.7
+# 3.4.8
+* Rebase on latest xmrig-6.25.0
 * Added Virel(VRL) RandomX varirant (rx/vrl)
 # 3.4.6
 * Removed Bonero
