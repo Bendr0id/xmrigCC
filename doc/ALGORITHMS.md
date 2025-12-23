@@ -12,6 +12,7 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name                  | Memory | Version     | Notes                                                                     | Info      |
 |-----------------------|--------|-------------|---------------------------------------------------------------------------|-----------|
+| `rx/vrl`              | 2 MB   | 3.4.7       | RandomxVirel (VRL).                                                       | CPU only
 | `rx/xeq`              | 2 MB   | 3.4.2       | RandomxEquilibria (XEQ).                                                  |
 | `rx/tuske`            | 2 MB   | 3.4.1       | RandomxTuske (TSK).                                                       | CPU only
 | `ghostrider/mike`     | 2 MB   | 3.3.1       | Ghostrider variant Mike (vkax).                                           | CPU only

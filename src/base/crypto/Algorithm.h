@@ -83,7 +83,7 @@ public:
         RX_XDAG         = 0x72151278,   // "rx/xdag"          RandomXDAG (xdagger).
         RX_TUSKE        = 0x72151274,   // "rx/tuske"         RandomTuske (TUSKE).
         RX_XEQ          = 0x72121078,   // "rx/xeq"           RandomXEQ (Equilibria).
-        RX_VRL          = 0x72141176,   // "rx/vrl"           RandomXEQ (Virel).
+        RX_VRL          = 0x72141176,   // "rx/vrl"           RandomVRL (Virel).
         AR2_CHUKWA      = 0x61130000,   // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_CHUKWA_V2   = 0x61140000,   // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_WRKZ        = 0x61120000,   // "argon2/wrkz"      Argon2id (WRKZ)

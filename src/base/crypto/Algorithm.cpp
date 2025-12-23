@@ -295,7 +295,7 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
     ALGO_ALIAS_AUTO(RX_XEQ),        ALGO_ALIAS(RX_XEQ,          "randomx/xeq"),
                                     ALGO_ALIAS(RX_XEQ,          "randomxeq"),
     ALGO_ALIAS_AUTO(RX_VRL),        ALGO_ALIAS(RX_VRL,          "randomx/vrl"),
-                                    ALGO_ALIAS(RX_VRL,          "randomvrl"),
+                                    ALGO_ALIAS(RX_VRL,          "randomvirel"),
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
