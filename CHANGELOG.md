@@ -1,6 +1,6 @@
 # 3.4.8
 * Rebase on latest xmrig-6.25.0
-* Added Virel(VRL) RandomX varirant (rx/vrl)
+* Added Virel(VRL) RandomX variant (rx/vrl)
 # 3.4.6
 * Removed Bonero
 * Added socks proxy / TOR onion support for CC communication (--cc-socks-proxy=URL or `"socks-proxy":"url"` in the cc section in config.json)
