@@ -90,6 +90,7 @@ const char *Algorithm::kRX_XDAG         = "rx/xdag";
 const char *Algorithm::kRX_TUSKE        = "rx/tuske";
 const char *Algorithm::kRX_XEQ          = "rx/xeq";
 const char *Algorithm::kRX_VRL          = "rx/vrl";
+const char* Algorithm::kRX_SCASH        = "rx/scash";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
@@ -109,9 +110,6 @@ const char* Algorithm::kGHOSTRIDER      = "ghostrider";
 const char* Algorithm::kGHOSTRIDER_RTM  = "ghostrider";
 const char* Algorithm::kGHOSTRIDER_MIKE = "ghostrider/mike";
 #endif
-
-const char* Algorithm::kRX_SCASH        = "rx/scash";
-
 
 #define ALGO_NAME(ALGO)         { Algorithm::ALGO, Algorithm::k##ALGO }
 #define ALGO_ALIAS(ALGO, NAME)  { NAME, Algorithm::ALGO }
@@ -167,6 +165,7 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(RX_TUSKE),
     ALGO_NAME(RX_XEQ),
     ALGO_NAME(RX_VRL),
+    ALGO_NAME(RX_SCASH),
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
@@ -183,8 +182,6 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(GHOSTRIDER_RTM),
     ALGO_NAME(GHOSTRIDER_MIKE),
 #   endif
-
-    ALGO_NAME(RX_SCASH),
 };
 
 

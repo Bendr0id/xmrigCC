@@ -12,6 +12,7 @@ Option `coin` useful for pools without algorithm negotiation support or daemon t
 
 | Name                  | Memory | Version     | Notes                                                                     | Info      |
 |-----------------------|--------|-------------|---------------------------------------------------------------------------|-----------|
+| `rx/scash`            | 2 MB   | 3.4.9       | RandomSCASH (satoshicash).                                                |
 | `rx/vrl`              | 2 MB   | 3.4.7       | RandomxVirel (VRL).                                                       | CPU only
 | `rx/xeq`              | 2 MB   | 3.4.2       | RandomxEquilibria (XEQ).                                                  |
 | `rx/tuske`            | 2 MB   | 3.4.1       | RandomxTuske (TSK).                                                       | CPU only
