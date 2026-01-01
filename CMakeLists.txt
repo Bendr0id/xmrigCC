@@ -113,6 +113,8 @@ set(HEADERS_CRYPTO
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
+    src/crypto/common/sphlib/sph_sha2.h
+    src/crypto/common/sphlib/sph_types.h
    )
 
 if (XMRIG_ARM OR XMRIG_RISCV)

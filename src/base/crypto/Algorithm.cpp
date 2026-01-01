@@ -110,6 +110,8 @@ const char* Algorithm::kGHOSTRIDER_RTM  = "ghostrider";
 const char* Algorithm::kGHOSTRIDER_MIKE = "ghostrider/mike";
 #endif
 
+const char* Algorithm::kRX_SCASH        = "rx/scash";
+
 
 #define ALGO_NAME(ALGO)         { Algorithm::ALGO, Algorithm::k##ALGO }
 #define ALGO_ALIAS(ALGO, NAME)  { NAME, Algorithm::ALGO }
@@ -181,6 +183,8 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(GHOSTRIDER_RTM),
     ALGO_NAME(GHOSTRIDER_MIKE),
 #   endif
+
+    ALGO_NAME(RX_SCASH),
 };
 
 
@@ -286,16 +290,19 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
                                     ALGO_ALIAS(RX_GRAFT,        "randomgraft"),
     ALGO_ALIAS_AUTO(RX_SFX),        ALGO_ALIAS(RX_SFX,          "randomx/sfx"),
                                     ALGO_ALIAS(RX_SFX,          "randomsfx"),
-    ALGO_ALIAS_AUTO(RX_YADA),       ALGO_ALIAS(RX_YADA,         "randomx/yada"),
-                                    ALGO_ALIAS(RX_YADA,         "randomyada"),
-    ALGO_ALIAS_AUTO(RX_XDAG),       ALGO_ALIAS(RX_XDAG,         "randomx/xdag"),
-                                    ALGO_ALIAS(RX_XDAG,         "randomxdag"),
-    ALGO_ALIAS_AUTO(RX_TUSKE),      ALGO_ALIAS(RX_TUSKE,        "randomx/tuske"),
-                                    ALGO_ALIAS(RX_TUSKE,        "randomtuske"),
-    ALGO_ALIAS_AUTO(RX_XEQ),        ALGO_ALIAS(RX_XEQ,          "randomx/xeq"),
-                                    ALGO_ALIAS(RX_XEQ,          "randomxeq"),
-    ALGO_ALIAS_AUTO(RX_VRL),        ALGO_ALIAS(RX_VRL,          "randomx/vrl"),
-                                    ALGO_ALIAS(RX_VRL,          "randomvirel"),
+    ALGO_ALIAS_AUTO(RX_YADA),    ALGO_ALIAS(RX_YADA,         "randomx/yada"),
+                                        ALGO_ALIAS(RX_YADA,         "randomyada"),
+    ALGO_ALIAS_AUTO(RX_XDAG),    ALGO_ALIAS(RX_XDAG,         "randomx/xdag"),
+                                        ALGO_ALIAS(RX_XDAG,         "randomxdag"),
+    ALGO_ALIAS_AUTO(RX_TUSKE),   ALGO_ALIAS(RX_TUSKE,        "randomx/tuske"),
+                                        ALGO_ALIAS(RX_TUSKE,        "randomtuske"),
+    ALGO_ALIAS_AUTO(RX_XEQ),     ALGO_ALIAS(RX_XEQ,          "randomx/xeq"),
+                                        ALGO_ALIAS(RX_XEQ,          "randomxeq"),
+    ALGO_ALIAS_AUTO(RX_VRL),     ALGO_ALIAS(RX_VRL,          "randomx/vrl"),
+                                        ALGO_ALIAS(RX_VRL,          "randomvirel"),
+    ALGO_ALIAS_AUTO(RX_SCASH),   ALGO_ALIAS(RX_SCASH,        "randomscash"),
+                                        ALGO_ALIAS(RX_SCASH,        "randomx/scash"),
+
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
@@ -387,7 +394,7 @@ std::vector<xmrig::Algorithm> xmrig::Algorithm::all(const std::function<bool(con
         CN_PICO_0, CN_PICO_TLO,
         CN_UPX2,
         CN_GPU,
-        RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_YADA, RX_XDAG, RX_TUSKE, RX_XEQ, RX_VRL,
+        RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_YADA, RX_XDAG, RX_TUSKE, RX_XEQ, RX_VRL, RX_SCASH,
         AR2_CHUKWA, AR2_CHUKWA_V2, AR2_WRKZ,
         KAWPOW_RVN,
         GHOSTRIDER_RTM, GHOSTRIDER_MIKE

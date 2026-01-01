@@ -56,6 +56,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_VRL:
         return &RandomX_VirelConfig;
 
+    case Algorithm::RX_SCASH:
+        return &RandomX_ScashConfig;
+
     default:
         break;
     }

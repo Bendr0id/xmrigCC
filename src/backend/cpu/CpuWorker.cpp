@@ -288,12 +288,15 @@ void xmrig::CpuWorker<N>::start()
 #           ifdef XMRIG_ALGO_RANDOMX
             uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
+                // For RX_SCASH, we need to hash only the first 112 bytes with hashRandomX zeroed
+                const size_t hashInputSize = (job.algorithm() == Algorithm::RX_SCASH) ? 112 : job.size();
+
                 if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
                         job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                     }
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), hashInputSize);
                 }
 
                 if (!nextRound()) {
@@ -304,10 +307,26 @@ void xmrig::CpuWorker<N>::start()
                     memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
                     job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                 }
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), hashInputSize, m_hash);
 
                 if (job.algorithm() == Algorithm::RX_TUSKE) {
                     SHA256d_Buf(m_hash, RANDOMX_HASH_SIZE, m_hash);
+                }
+                else if (job.algorithm() == Algorithm::RX_SCASH) {
+                    // For Scash, calculate commitment: blake2b(block_header || rx_hash)
+                    // IMPORTANT: The commitment must be calculated with the ORIGINAL nonce (N),
+                    // not the incremented nonce (N+1). After nextRound(), the blob has N+1,
+                    // but m_hash is the hash for N. We need to temporarily restore nonce N.
+                    const size_t nonceOffset = m_job.nonceOffset();
+                    uint32_t currentNonce = *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset);
+                    // Restore the original nonce
+                    *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset) = current_job_nonces[0];
+
+                    // Calculate commitment with correct nonce - result stored in m_hash
+                    randomx_calculate_commitment(m_job.blob(), hashInputSize, m_hash, m_hash);
+
+                    // Restore the incremented nonce
+                    *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset) = currentNonce;
                 }
             }
             else

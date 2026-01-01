@@ -151,6 +151,7 @@ struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_Co
 struct RandomX_ConfigurationTuske : public RandomX_ConfigurationBase { RandomX_ConfigurationTuske(); };
 struct RandomX_ConfigurationEquilibria : public RandomX_ConfigurationBase { RandomX_ConfigurationEquilibria(); };
 struct RandomX_ConfigurationVirel : public RandomX_ConfigurationBase { RandomX_ConfigurationVirel(); };
+struct RandomX_ConfigurationScash : public RandomX_ConfigurationBase { RandomX_ConfigurationScash(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
@@ -161,6 +162,7 @@ extern RandomX_ConfigurationYada RandomX_YadaConfig;
 extern RandomX_ConfigurationTuske RandomX_TuskeConfig;
 extern RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 extern RandomX_ConfigurationVirel RandomX_VirelConfig;
+extern RandomX_ConfigurationScash RandomX_ScashConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -323,6 +325,18 @@ RANDOMX_EXPORT void randomx_calculate_hash(randomx_vm *machine, const void *inpu
 
 RANDOMX_EXPORT void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize);
 RANDOMX_EXPORT void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output);
+
+/**
+ * Calculate a RandomX commitment from a RandomX hash and its input.
+ * Used by Scash (RX_SCASH)
+ *
+ * @param input is a pointer to memory that was hashed (block header). Must not be NULL.
+ * @param inputSize is the number of bytes in the input.
+ * @param hash_in is the output from randomx_calculate_hash* (RANDOMX_HASH_SIZE bytes).
+ * @param com_out is a pointer to memory where the commitment will be stored. Must not
+ *        be NULL and at least RANDOMX_HASH_SIZE bytes must be available for writing.
+ */
+RANDOMX_EXPORT void randomx_calculate_commitment(const void* input, size_t inputSize, const void* hash_in, void* com_out);
 
 #if defined(__cplusplus)
 }
