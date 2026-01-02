@@ -26,6 +26,7 @@
 #define ALGO_RX_GRAFT       0x72151267
 #define ALGO_RX_XEQ         0x72121078
 #define ALGO_RX_YADA        0x72151279
+#define ALGO_RX_SCASH       0x72151263
 #define ALGO_AR2_CHUKWA     0x61130000
 #define ALGO_AR2_CHUKWA_V2  0x61140000
 #define ALGO_AR2_WRKZ       0x61120000

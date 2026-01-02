@@ -1,6 +1,6 @@
 #include "../cn/algorithm.cl"
 
-#if ((ALGO == ALGO_RX_0) || (ALGO == ALGO_RX_YADA))
+#if ((ALGO == ALGO_RX_0) || (ALGO == ALGO_RX_YADA) || (ALGO == ALGO_RX_SCASH))
 #include "randomx_constants_monero.h"
 #elif (ALGO == ALGO_RX_WOW)
 #include "randomx_constants_wow.h"

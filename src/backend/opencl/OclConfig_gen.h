@@ -137,6 +137,11 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<OclThreads> &threads, const 
         ++count;
     }
 
+    if (!threads.isExist(Algorithm::RX_SCASH)) {
+        threads.disable(Algorithm::RX_SCASH);
+        ++count;
+    }
+
     return count;
 }
 #endif

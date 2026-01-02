@@ -309,6 +309,22 @@ void xmrig::CpuWorker<N>::start()
                 if (job.algorithm() == Algorithm::RX_TUSKE) {
                     SHA256d_Buf(m_hash, RANDOMX_HASH_SIZE, m_hash);
                 }
+                else if (job.algorithm() == Algorithm::RX_SCASH) {
+                    // For Scash, calculate commitment: blake2b(block_header || rx_hash)
+                    // IMPORTANT: The commitment must be calculated with the ORIGINAL nonce (N),
+                    // not the incremented nonce (N+1). After nextRound(), the blob has N+1,
+                    // but m_hash is the hash for N. We need to temporarily restore nonce N.
+                    const size_t nonceOffset = m_job.nonceOffset();
+                    uint32_t currentNonce = *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset);
+                    // Restore the original nonce
+                    *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset) = current_job_nonces[0];
+
+                    // Calculate commitment with correct nonce - result stored in m_hash
+                    randomx_calculate_commitment(m_job.blob(), job.size(), m_hash, m_hash);
+
+                    // Restore the incremented nonce
+                    *reinterpret_cast<uint32_t*>(m_job.blob() + nonceOffset) = currentNonce;
+                }
             }
             else
 #           endif

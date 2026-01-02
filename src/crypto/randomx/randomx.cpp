@@ -135,6 +135,11 @@ RandomX_ConfigurationVirel::RandomX_ConfigurationVirel()
     ScratchpadL3_Size = 1048576;
 }
 
+RandomX_ConfigurationScash::RandomX_ConfigurationScash()
+{
+    ArgonSalt = "RandomX-Scash\x01";
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonIterations(3)
 	, ArgonLanes(1)
@@ -398,6 +403,7 @@ RandomX_ConfigurationYada RandomX_YadaConfig;
 RandomX_ConfigurationTuske RandomX_TuskeConfig;
 RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 RandomX_ConfigurationVirel RandomX_VirelConfig;
+RandomX_ConfigurationScash RandomX_ScashConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
@@ -638,6 +644,17 @@ extern "C" {
 		// Finish current hash and fill the scratchpad for the next hash at the same time
 		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
 		machine->hashAndFill(output, tempHash);
+	}
+
+	void randomx_calculate_commitment(const void* input, size_t inputSize, const void* hash_in, void* com_out) {
+		assert(inputSize == 0 || input != nullptr);
+		assert(hash_in != nullptr);
+		assert(com_out != nullptr);
+		blake2b_state state;
+		rx_blake2b_init(&state, RANDOMX_HASH_SIZE);
+		rx_blake2b_update(&state, input, inputSize);
+		rx_blake2b_update(&state, hash_in, RANDOMX_HASH_SIZE);
+		rx_blake2b_final(&state, com_out, RANDOMX_HASH_SIZE);
 	}
 
 }

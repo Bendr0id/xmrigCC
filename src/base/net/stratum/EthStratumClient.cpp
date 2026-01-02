@@ -34,14 +34,13 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "net/JobResult.h"
 
-#ifdef XMRIG_ALGO_GHOSTRIDER
+#if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
 #include <cmath>
+#include "base/tools/Cvt.h"
 
 extern "C" {
-#include "crypto/ghostrider/sph_sha2.h"
+#include "crypto/common/sphlib/sph_sha2.h"
 }
-
-#include "base/tools/Cvt.h"
 #endif
 
 
@@ -76,8 +75,12 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     params.PushBack(m_user.toJSON(), allocator);
     params.PushBack(result.jobId.toJSON(), allocator);
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM || m_pool.algorithm().id() == Algorithm::GHOSTRIDER_MIKE) {
+#   if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
+    // Bitcoin-style stratum submit: extranonce2, ntime, nonce (5 params total)
+    // Used by GhostRider and RX_SCASH - pool calculates hash to verify
+    if (m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM ||
+        m_pool.algorithm().id() == Algorithm::GHOSTRIDER_MIKE ||
+        m_pool.algorithm().id() == Algorithm::RX_SCASH) {
         params.PushBack(Value("00000000000000000000000000000000", static_cast<uint32_t>(m_extraNonce2Size * 2)), allocator);
         params.PushBack(Value(m_ntime.data(), allocator), allocator);
 
@@ -113,8 +116,11 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 
     uint64_t actual_diff;
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (result.algorithm == Algorithm::GHOSTRIDER_RTM || result.algorithm == Algorithm::GHOSTRIDER_MIKE) {
+#   if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
+    // Bitcoin-style difficulty calculation for GhostRider and RX_SCASH
+    if (result.algorithm == Algorithm::GHOSTRIDER_RTM ||
+        result.algorithm == Algorithm::GHOSTRIDER_MIKE ||
+        result.algorithm == Algorithm::RX_SCASH) {
         actual_diff = reinterpret_cast<const uint64_t*>(result.result())[3];
     }
     else
@@ -195,14 +201,14 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         setExtraNonce(arr[0]);
     }
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
+#   if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
     if (strcmp(method, "mining.set_difficulty") == 0) {
         if (!params.IsArray()) {
             LOG_ERR("%s " RED("invalid mining.set_difficulty notification: params is not an array"), tag());
             return;
         }
 
-        if (m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM && m_pool.algorithm().id() != Algorithm::GHOSTRIDER_MIKE) {
+        if (m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM && m_pool.algorithm().id() != Algorithm::GHOSTRIDER_MIKE && m_pool.algorithm().id() != Algorithm::RX_SCASH) {
             return;
         }
 
@@ -236,7 +242,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             algo = m_pool.coin().algorithm();
         }
 
-        const size_t min_arr_size = (algo.id() == Algorithm::GHOSTRIDER_RTM || algo.id() == Algorithm::GHOSTRIDER_MIKE) ? 8 : 6;
+        const size_t min_arr_size = (algo.id() == Algorithm::GHOSTRIDER_RTM || algo.id() == Algorithm::GHOSTRIDER_MIKE || algo.id() == Algorithm::RX_SCASH) ? 8 : 6;
 
         if (arr.Size() < min_arr_size) {
             LOG_ERR("%s " RED("invalid mining.notify notification: params array has wrong size"), tag());
@@ -256,10 +262,12 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 
         std::stringstream s;
 
-#       ifdef XMRIG_ALGO_GHOSTRIDER
-        if (algo.id() == Algorithm::GHOSTRIDER_RTM || algo.id() == Algorithm::GHOSTRIDER_MIKE) {
-            // Raptoreum uses Bitcoin's Stratum protocol
-            // https://en.bitcoinwiki.org/wiki/Stratum_mining_protocol#mining.notify
+#       if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
+        // Bitcoin-style Stratum protocol for GhostRider and RX_SCASH
+        // https://en.bitcoinwiki.org/wiki/Stratum_mining_protocol#mining.notify
+        if (algo.id() == Algorithm::GHOSTRIDER_RTM ||
+            algo.id() == Algorithm::GHOSTRIDER_MIKE ||
+            algo.id() == Algorithm::RX_SCASH) {
 
             if (!arr[1].IsString() || !arr[2].IsString() || !arr[3].IsString() || !arr[4].IsArray() || !arr[5].IsString() || !arr[6].IsString() || !arr[7].IsString()) {
                 LOG_ERR("%s " RED("invalid mining.notify notification: invalid param array"), tag());
@@ -337,10 +345,11 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
                 return;
             }
 
-            // zeros up to 80 bytes
+            // zeros up to 80 bytes (nonce field)
             blob.resize(80 * 2, '0');
 
-            // Invert byte order (no idea why, but it's done in Bitcoin's Stratum)
+            // Byte swapping: le32dec for most fields, be32dec for merkle_root
+            // Swap version+prevhash (0-35) and ntime+nbits+nonce (68-79), but NOT merkle_root (36-67)
             buf = Cvt::fromHex(blob.c_str(), blob.length());
             for (size_t i = 0; i < 80; i += sizeof(uint32_t)) {
                 uint32_t& k = *reinterpret_cast<uint32_t*>(buf.data() + i);
@@ -350,8 +359,28 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             }
             blob = Cvt::toHex(buf.data(), buf.size());
 
+            // For Scash, add 32 bytes of zeros for hashRandomX field (total 112 bytes)
+            if (algo.id() == Algorithm::RX_SCASH) {
+                blob.resize(112 * 2, '0');
+            }
+
             job.setBlob(blob.c_str());
             job.setDiff(m_nextDifficulty);
+
+            // RX_SCASH: Generate epoch-based seed for RandomX
+            if (algo.id() == Algorithm::RX_SCASH) {
+                // Epoch = ntime / epoch_duration (604800 seconds = 7 days for mainnet)
+                const uint32_t ntime = static_cast<uint32_t>(strtoul(m_ntime.data(), nullptr, 16));
+                const uint32_t epochDuration = 7 * 24 * 60 * 60;  // 604800 seconds
+                const uint32_t epoch = ntime / epochDuration;
+
+                char epochSeedString[64];
+                snprintf(epochSeedString, sizeof(epochSeedString), "Scash/RandomX/Epoch/%u", epoch);
+
+                uint8_t seedHash[32];
+                sha256d(seedHash, epochSeedString, static_cast<int>(strlen(epochSeedString)));
+                job.setSeedHash(Cvt::toHex(seedHash, 32).data());
+            }
         }
         else
 #       endif
@@ -373,7 +402,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             std::string target_str = arr[3].GetString();
             target_str.resize(16, '0');
             const uint64_t target = strtoull(target_str.c_str(), nullptr, 16);
-            job.setDiff(Job::toDiff(target));
+                job.setDiff(Job::toDiff(target));
 
             job.setHeight(arr[5].GetUint64());
         }
@@ -534,7 +563,7 @@ void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result
 
         setExtraNonce(arr[1]);
 
-#       ifdef XMRIG_ALGO_GHOSTRIDER
+#       if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_RANDOMX)
         if ((arr.Size() > 2) && (arr[2].IsUint())) {
             m_extraNonce2Size = arr[2].GetUint();
         }
