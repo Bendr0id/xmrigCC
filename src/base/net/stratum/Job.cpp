@@ -274,6 +274,7 @@ void xmrig::Job::copy(const Job &other)
     m_minerTxExtraNonceOffset = other.m_minerTxExtraNonceOffset;
     m_minerTxExtraNonceSize = other.m_minerTxExtraNonceSize;
     m_minerTxMerkleTreeBranch = other.m_minerTxMerkleTreeBranch;
+    m_minerTxMerkleTreePath = other.m_minerTxMerkleTreePath;
     m_hasViewTag = other.m_hasViewTag;
 #   else
     memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
@@ -326,6 +327,7 @@ void xmrig::Job::move(Job &&other)
     m_minerTxExtraNonceOffset   = other.m_minerTxExtraNonceOffset;
     m_minerTxExtraNonceSize     = other.m_minerTxExtraNonceSize;
     m_minerTxMerkleTreeBranch   = std::move(other.m_minerTxMerkleTreeBranch);
+    m_minerTxMerkleTreePath     = other.m_minerTxMerkleTreePath;
     m_hasViewTag                = other.m_hasViewTag;
 #   else
     memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
@@ -350,7 +352,7 @@ void xmrig::Job::setSpendSecretKey(const uint8_t *key)
 }
 
 
-void xmrig::Job::setMinerTx(const uint8_t *begin, const uint8_t *end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, size_t minerTxExtraNonceOffset, size_t minerTxExtraNonceSize, const Buffer &minerTxMerkleTreeBranch, bool hasViewTag)
+void xmrig::Job::setMinerTx(const uint8_t *begin, const uint8_t *end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, size_t minerTxExtraNonceOffset, size_t minerTxExtraNonceSize, const Buffer &minerTxMerkleTreeBranch, uint32_t minerTxMerkleTreePath, bool hasViewTag)
 {
     m_minerTxPrefix.assign(begin, end);
     m_minerTxEphPubKeyOffset    = minerTxEphPubKeyOffset;
@@ -358,6 +360,7 @@ void xmrig::Job::setMinerTx(const uint8_t *begin, const uint8_t *end, size_t min
     m_minerTxExtraNonceOffset   = minerTxExtraNonceOffset;
     m_minerTxExtraNonceSize     = minerTxExtraNonceSize;
     m_minerTxMerkleTreeBranch   = minerTxMerkleTreeBranch;
+    m_minerTxMerkleTreePath     = minerTxMerkleTreePath;
     m_hasViewTag                = hasViewTag;
 }
 
@@ -402,7 +405,7 @@ void xmrig::Job::generateHashingBlob(String &blob) const
 {
     uint8_t root_hash[32];
     const uint8_t* p = m_minerTxPrefix.data();
-    BlockTemplate::calculateRootHash(p, p + m_minerTxPrefix.size(), m_minerTxMerkleTreeBranch, root_hash);
+    BlockTemplate::calculateRootHash(p, p + m_minerTxPrefix.size(), m_minerTxMerkleTreeBranch, m_minerTxMerkleTreePath, root_hash);
 
     uint64_t root_hash_offset = nonceOffset() + nonceSize();
 
