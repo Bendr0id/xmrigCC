@@ -13,17 +13,19 @@ jobs:
       matrix:
         arch: [x86_64, arm64]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: Build Dependencies
         run: |
           chmod +x scripts/build_deps.sh
           ./scripts/build_deps.sh
       - name: Build for ${{ matrix.arch }}
+        env:
+          XMRIG_DEPS: ${{ github.workspace }}/scripts/deps
         run: |
           cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
           cmake --build build -- -j$(sysctl -n hw.ncpu)
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: xmrig-${{ matrix.arch }}
           path: build/xmrigMiner
@@ -33,7 +35,7 @@ jobs:
           cp src/config.json build/xmrigMiner build/xmrigDaemon bundle/
           tar -czvf xmrig-${{ matrix.arch }}.tar.gz -C bundle .
       - name: Upload Bundle
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: xmrig-bundle-${{ matrix.arch }}
           path: xmrig-${{ matrix.arch }}.tar.gz
