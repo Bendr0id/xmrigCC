@@ -27,8 +27,9 @@ jobs:
         run: |
           cd scripts
           chmod +x build_deps.sh
-          # Native arm64 deps for arm64; Rosetta x86_64 for Intel target so .a
-          # archives match CMAKE_OSX_ARCHITECTURES (same tree as HWLOC/UV).
+          # Tell deps (OpenSSL ./Configure) which macOS slice we build for; arch
+          # -x86_64 alone is not enough for OpenSSL to emit x86_64 libssl.a.
+          export XMRIG_MACOSX_DEP_ARCH="${{ matrix.arch }}"
           if [ "${{ matrix.arch }}" = "x86_64" ]; then
             arch -x86_64 ./build_deps.sh
           else
