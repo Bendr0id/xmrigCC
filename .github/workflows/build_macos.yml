@@ -2,9 +2,9 @@ name: macOS Build
 
 on:
   push:
-    branches: [ master ]
+    branches: [ master, dev ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, dev ]
   workflow_dispatch:
 
 jobs:
@@ -22,13 +22,17 @@ jobs:
         run: |
           cd scripts
           chmod +x build_deps.sh
-          ./build_deps.sh
+          # Native arm64 deps for arm64; Rosetta x86_64 for Intel target so .a
+          # archives match CMAKE_OSX_ARCHITECTURES (same tree as HWLOC/UV).
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            arch -x86_64 ./build_deps.sh
+          else
+            ./build_deps.sh
+          fi
           cd ..
       - name: Build for ${{ matrix.arch }}
-        env:
-          XMRIG_DEPS: ${{ github.workspace }}/scripts/deps
         run: |
-          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }}
+          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DXMRIG_DEPS=${{ github.workspace }}/scripts/deps
           cmake --build build -- -j$(sysctl -n hw.ncpu)
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
