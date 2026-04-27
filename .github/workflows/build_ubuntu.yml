@@ -23,16 +23,12 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt install -y git build-essential cmake automake libtool autoconf
-      - name: Build xmrig
+      - name: Build dependencies
         run: |
-          git clone https://github.com/xmrig/xmrig.git
-          mkdir xmrig/build && cd xmrig/scripts
-          ./build_deps.sh && cd ../build
-          cmake .. -DXMRIG_DEPS=scripts/deps
-          make -j$(nproc)
+          cd scripts && ./build_deps.sh
       - name: Build project
         run: |
-          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DXMRIG_DEPS=${{ github.workspace }}/xmrig/scripts/deps
+          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DXMRIG_DEPS=${{ github.workspace }}/scripts/deps
           cmake --build build -- -j$(nproc)
       - name: Package (full + miner_only, same as macOS build)
         id: bundle
