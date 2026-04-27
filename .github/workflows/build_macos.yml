@@ -15,6 +15,11 @@ jobs:
         arch: [x86_64, arm64]
     steps:
       - uses: actions/checkout@v4
+      - name: App version
+        id: appver
+        run: |
+          v=$(sed -n 's/^#define APP_VERSION[[:space:]]*"\([^"]*\)".*/\1/p' src/version.h | head -1)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
       - name: Prepare
         run: |
           brew install cmake wget automake libtool autoconf
@@ -34,18 +39,24 @@ jobs:
         run: |
           cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DXMRIG_DEPS=${{ github.workspace }}/scripts/deps
           cmake --build build -- -j$(sysctl -n hw.ncpu)
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: xmrig-${{ matrix.arch }}
-          path: build/xmrigMiner
-      - name: Bundle Artifacts
+      - name: Package (miner + server, same layout as Linux build_package.sh)
+        id: bundle
         run: |
-          mkdir -p bundle
-          cp src/config.json build/xmrigMiner build/xmrigDaemon bundle/
-          tar -czvf xmrig-${{ matrix.arch }}.tar.gz -C bundle .
-      - name: Upload Bundle
+          VERSION="${{ steps.appver.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          TAR="xmrigCC-${VERSION}-macos-${ARCH}.tar.gz"
+          mkdir -p release/miner/scripts release/server
+          cp build/xmrigMiner build/xmrigDaemon src/config.json release/miner/
+          cp scripts/randomx_boost.sh scripts/enable_1gb_pages.sh release/miner/scripts/
+          cp build/xmrigServer index.html src/config_cc.json release/server/
+          cp src/config.json release/server/default_miner_config.json
+          if [ -d build/client-updates ]; then
+            cp -R build/client-updates release/server/
+          fi
+          tar -czvf "$TAR" -C release miner server
+          echo "tarball=$TAR" >> "$GITHUB_OUTPUT"
+      - name: Upload tarball
         uses: actions/upload-artifact@v4
         with:
-          name: xmrig-bundle-${{ matrix.arch }}
-          path: xmrig-${{ matrix.arch }}.tar.gz
+          name: xmrigCC-${{ steps.appver.outputs.version }}-macos-${{ matrix.arch }}
+          path: ${{ steps.bundle.outputs.tarball }}
