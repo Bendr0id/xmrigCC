@@ -39,12 +39,13 @@ jobs:
         run: |
           cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES=${{ matrix.arch }} -DXMRIG_DEPS=${{ github.workspace }}/scripts/deps
           cmake --build build -- -j$(sysctl -n hw.ncpu)
-      - name: Package (miner + server, same layout as Linux build_package.sh)
+      - name: Package (full + miner_only, same as Linux build_package.sh)
         id: bundle
         run: |
           VERSION="${{ steps.appver.outputs.version }}"
           ARCH="${{ matrix.arch }}"
           TAR="xmrigCC-${VERSION}-macos-${ARCH}.tar.gz"
+          MINER_ONLY="xmrigCC-miner_only-${VERSION}-macos-${ARCH}.tar.gz"
           mkdir -p release/miner/scripts release/server
           cp build/xmrigMiner build/xmrigDaemon src/config.json release/miner/
           cp scripts/randomx_boost.sh scripts/enable_1gb_pages.sh release/miner/scripts/
@@ -54,9 +55,16 @@ jobs:
             cp -R build/client-updates release/server/
           fi
           tar -czvf "$TAR" -C release miner server
+          ( cd release/miner && tar -czvf "../../$MINER_ONLY" * )
           echo "tarball=$TAR" >> "$GITHUB_OUTPUT"
-      - name: Upload tarball
+          echo "miner_only=$MINER_ONLY" >> "$GITHUB_OUTPUT"
+      - name: Upload full tarball
         uses: actions/upload-artifact@v4
         with:
           name: xmrigCC-${{ steps.appver.outputs.version }}-macos-${{ matrix.arch }}
           path: ${{ steps.bundle.outputs.tarball }}
+      - name: Upload miner_only tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmrigCC-miner_only-${{ steps.appver.outputs.version }}-macos-${{ matrix.arch }}
+          path: ${{ steps.bundle.outputs.miner_only }}
