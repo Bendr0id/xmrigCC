@@ -1,0 +1,65 @@
+name: Ubuntu 20.04 Build
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+      - name: App version
+        id: appver
+        run: |
+          v=$(sed -n 's/^#define APP_VERSION[[:space:]]*"\([^"]*\)".*/\1/p' src/version.h | head -1)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+      - name: Install dependencies
+        run: |
+          sudo apt install -y git build-essential cmake automake libtool autoconf
+      - name: Build xmrig
+        run: |
+          git clone https://github.com/xmrig/xmrig.git
+          mkdir xmrig/build && cd xmrig/scripts
+          ./build_deps.sh && cd ../build
+          cmake .. -DXMRIG_DEPS=scripts/deps
+          make -j$(nproc)
+      - name: Build project
+        run: |
+          cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DXMRIG_DEPS=${{ github.workspace }}/xmrig/scripts/deps
+          cmake --build build -- -j$(nproc)
+      - name: Package (full + miner_only, same as macOS build)
+        id: bundle
+        run: |
+          VERSION="${{ steps.appver.outputs.version }}"
+          ARCH="${{ matrix.arch }}"
+          TAR="xmrigCC-${VERSION}-linux-${ARCH}.tar.gz"
+          MINER_ONLY="xmrigCC-miner_only-${VERSION}-linux-${ARCH}.tar.gz"
+          mkdir -p release/miner/scripts release/server
+          cp build/xmrigMiner build/xmrigDaemon src/config.json release/miner/
+          cp scripts/randomx_boost.sh scripts/enable_1gb_pages.sh release/miner/scripts/
+          cp build/xmrigServer index.html src/config_cc.json release/server/
+          cp src/config.json release/server/default_miner_config.json
+          if [ -d build/client-updates ]; then
+            cp -R build/client-updates release/server/
+          fi
+          tar -czvf "$TAR" -C release miner server
+          ( cd release/miner && tar -czvf "../../$MINER_ONLY" * )
+          echo "tarball=$TAR" >> "$GITHUB_OUTPUT"
+          echo "miner_only=$MINER_ONLY" >> "$GITHUB_OUTPUT"
+      - name: Upload full tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmrigCC-${{ steps.appver.outputs.version }}-linux-${{ matrix.arch }}
+          path: ${{ steps.bundle.outputs.tarball }}
+      - name: Upload miner_only tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: xmrigCC-miner_only-${{ steps.appver.outputs.version }}-linux-${{ matrix.arch }}
+          path: ${{ steps.bundle.outputs.miner_only }}
