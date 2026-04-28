@@ -1,4 +1,4 @@
-name: Ubuntu 20.04 Build
+name: Ubuntu 22.04 Build
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         arch: [x64]
