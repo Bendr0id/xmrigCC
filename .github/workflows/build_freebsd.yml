@@ -1,0 +1,78 @@
+name: FreeBSD 13 Build
+
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [x64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build on FreeBSD 13
+        id: buildstep
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          release: '13.4'
+          prepare: |
+            pkg install -y git build-essential cmake automake libtool autoconf wget
+          run: |
+            # App version
+            v=$(sed -n 's/^#define APP_VERSION[[:space:]]*"\([^"]*\)".*/\1/p' src/version.h | head -1)
+            echo "version=$v" >> "$GITHUB_OUTPUT"
+
+            # Build dependencies
+            cd scripts && ./build_deps.sh && cd ..
+
+            # Build project (static)
+            cmake -Bbuild -DCMAKE_BUILD_TYPE=Release -DXMRIG_DEPS=scripts/deps -DBUILD_STATIC=ON
+            cmake --build build -- -j$(sysctl -n hw.ncpu)
+
+            # Package (full + miner_only, same as Linux/macOS build)
+            ARCH="${{ matrix.arch }}"
+            TAR="xmrigCC-${v}-freebsd13-${ARCH}.tar.gz"
+            MINER_ONLY="xmrigCC-miner_only-${v}-freebsd13-${ARCH}.tar.gz"
+            mkdir -p release/miner/scripts release/server
+            cp build/xmrigMiner build/xmrigDaemon src/config.json release/miner/
+            cp scripts/randomx_boost.sh scripts/enable_1gb_pages.sh release/miner/scripts/
+            cp build/xmrigServer index.html src/config_cc.json release/server/
+            cp src/config.json release/server/default_miner_config.json
+            if [ -d build/client-updates ]; then
+              cp -R build/client-updates release/server/
+            fi
+            tar -czvf "$TAR" -C release miner server
+            ( cd release/miner && tar -czvf "../../$MINER_ONLY" * )
+
+      - name: Upload full tarball
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          release: '13.4'
+          run: |
+            VERSION="${{ steps.buildstep.outputs.version }}"
+            ARCH="${{ matrix.arch }}"
+            TAR="xmrigCC-${VERSION}-freebsd13-${ARCH}.tar.gz"
+            if [ -f "$TAR" ]; then
+              tar -czvf upload.tar.gz "$TAR"
+            fi
+
+      - name: Upload miner_only tarball
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          release: '13.4'
+          run: |
+            VERSION="${{ steps.buildstep.outputs.version }}"
+            ARCH="${{ matrix.arch }}"
+            MINER_ONLY="xmrigCC-miner_only-${VERSION}-freebsd13-${ARCH}.tar.gz"
+            if [ -f "$MINER_ONLY" ]; then
+              tar -czvf upload.tar.gz "$MINER_ONLY"
+            fi
