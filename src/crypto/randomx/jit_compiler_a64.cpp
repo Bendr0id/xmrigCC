@@ -64,6 +64,8 @@ constexpr uint32_t MOVN        = 0x92800000;
 constexpr uint32_t MOVK        = 0xF2800000;
 constexpr uint32_t ADD_IMM_LO  = 0x91000000;
 constexpr uint32_t ADD_IMM_HI  = 0x91400000;
+constexpr uint32_t SUB_IMM_LO  = 0xD1000000;
+constexpr uint32_t SUB_IMM_HI  = 0xD1400000;
 constexpr uint32_t LDR_LITERAL = 0x58000000;
 constexpr uint32_t ROR         = 0x9AC02C00;
 constexpr uint32_t ROR_IMM     = 0x93C00000;
@@ -534,23 +536,40 @@ void JitCompilerA64::emitAddImmediate(uint32_t dst, uint32_t src, uint32_t imm, 
 {
 	uint32_t k = codePos;
 
-	if (imm < (1 << 24))
-	{
-		const uint32_t imm_lo = imm & ((1 << 12) - 1);
-		const uint32_t imm_hi = imm >> 12;
+	if (imm == 0) {
+		if (dst != src) {
+			emit32(ARMV8A::MOV_REG | dst | (src << 16), code, k);
+		}
 
-		if (imm_lo && imm_hi)
-		{
-			emit32(ARMV8A::ADD_IMM_LO | dst | (src << 5) | (imm_lo << 10), code, k);
-			emit32(ARMV8A::ADD_IMM_HI | dst | (dst << 5) | (imm_hi << 10), code, k);
-		}
-		else if (imm_lo)
-		{
-			emit32(ARMV8A::ADD_IMM_LO | dst | (src << 5) | (imm_lo << 10), code, k);
-		}
-		else
-		{
-			emit32(ARMV8A::ADD_IMM_HI | dst | (src << 5) | (imm_hi << 10), code, k);
+		codePos = k;
+		return;
+	}
+
+	const int32_t simm = static_cast<int32_t>(imm);
+
+	uint32_t mag, opLo, opHi;
+
+	if (simm > 0) {
+		mag  = imm;
+		opLo = ARMV8A::ADD_IMM_LO;
+		opHi = ARMV8A::ADD_IMM_HI;
+	} else {
+		mag  = static_cast<uint32_t>(-static_cast<int64_t>(simm));
+		opLo = ARMV8A::SUB_IMM_LO;
+		opHi = ARMV8A::SUB_IMM_HI;
+	}
+
+	if (mag < (1u << 24)) {
+		const uint32_t lo = mag & ((1u << 12) - 1);
+		const uint32_t hi = mag >> 12;
+
+		if (lo && hi) {
+			emit32(opLo | dst | (src << 5) | (lo << 10), code, k);
+			emit32(opHi | dst | (dst << 5) | (hi << 10), code, k);
+		} else if (lo) {
+			emit32(opLo | dst | (src << 5) | (lo << 10), code, k);
+		} else {
+			emit32(opHi | dst | (src << 5) | (hi << 10), code, k);
 		}
 	}
 	else
@@ -744,7 +763,7 @@ void JitCompilerA64::h_IMUL_M(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg = 20;
 	emitMemLoad<tmp_reg>(dst, src, instr, code, k);
 
-	// sub dst, dst, tmp_reg
+	// mul dst, dst, tmp_reg
 	emit32(ARMV8A::MUL | dst | (dst << 5) | (tmp_reg << 16), code, k);
 
 	reg_changed_offset[instr.dst] = k;
@@ -1109,16 +1128,18 @@ void JitCompilerA64::h_CFROUND(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg = 20;
 	constexpr uint32_t fpcr_tmp_reg = 8;
 
-	// ror tmp_reg, src, imm
-	emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
-
 	if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
-		// tst tmp_reg, 60
-		emit32(0xF27E0E9F, code, k);
+		const uint32_t immr = (62 - instr.getImm32()) & 63;
+
+		// tst src, ROR(60, -(instr.getImm32() & 63))
+		emit32(0xF2400C1F | (immr << 16) | (src << 5), code, k);
 
 		// bne next
-		emit32(0x54000081, code, k);
+		emit32(0x540000A1, code, k);
 	}
+
+	// ror tmp_reg, src, imm
+	emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
 
 	// bfi fpcr_tmp_reg, tmp_reg, 40, 2
 	emit32(0xB3580400 | fpcr_tmp_reg | (tmp_reg << 5), code, k);

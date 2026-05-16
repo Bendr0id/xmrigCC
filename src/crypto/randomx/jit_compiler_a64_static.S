@@ -187,6 +187,7 @@ DECL(randomx_program_aarch64):
 	ldp	x27, x28, [x30, -32]	// literal_x27
 	ldp	x29, x30, [x30, -16]	// literal_x29
 
+	.balign 64
 DECL(randomx_program_aarch64_main_loop):
 	# spAddr0 = spMix1 & ScratchpadL3Mask64;
 	# spAddr1 = (spMix1 >> 32) & ScratchpadL3Mask64;
@@ -215,30 +216,28 @@ DECL(randomx_program_aarch64_main_loop):
 	eor	x14, x14, x20
 	eor	x15, x15, x19
 
-	# Load group F registers (spAddr1)
-	ldr	q17, [x17]
-	sxtl	v16.2d, v17.2s
-	scvtf	v16.2d, v16.2d
-	sxtl2	v17.2d, v17.4s
-	scvtf	v17.2d, v17.2d
+	# Load group F/E registers (spAddr1)
+	ldp	q17, q19, [x17]
+	ldp	q21, q23, [x17, 32]
 
-	ldr q19, [x17, 16]
+	sxtl	v16.2d, v17.2s
+	sxtl2	v17.2d, v17.4s
 	sxtl	v18.2d, v19.2s
-	scvtf	v18.2d, v18.2d
 	sxtl2	v19.2d, v19.4s
+
+	scvtf	v16.2d, v16.2d
+	scvtf	v17.2d, v17.2d
+	scvtf	v18.2d, v18.2d
 	scvtf	v19.2d, v19.2d
 
-	# Load group E registers (spAddr1)
-	ldr	q21, [x17, 32]
 	sxtl	v20.2d, v21.2s
-	scvtf	v20.2d, v20.2d
 	sxtl2	v21.2d, v21.4s
-	scvtf	v21.2d, v21.2d
-
-	ldr	q23, [x17, 48]
 	sxtl	v22.2d, v23.2s
-	scvtf	v22.2d, v22.2d
 	sxtl2	v23.2d, v23.4s
+
+	scvtf	v20.2d, v20.2d
+	scvtf	v21.2d, v21.2d
+	scvtf	v22.2d, v22.2d
 	scvtf	v23.2d, v23.2d
 
 	bif	v20.16b, v30.16b, v29.16b
@@ -283,6 +282,7 @@ literal_v13: .fill 2,8,0
 literal_v14: .fill 2,8,0
 literal_v15: .fill 2,8,0
 
+	.balign 64
 DECL(randomx_program_aarch64_vm_instructions_end):
 	# Calculate dataset pointer for dataset read
 	# Do it here to break false dependency from readReg2 and readReg3 (see next line)
@@ -345,15 +345,18 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e0), f1 = aesdec(f1, e0), f2 = aesenc(f2, e0), f3 = aesdec(f3, e0)
 
-	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
+	# Quote from ARM optimization guides for basically all ARM Cortex CPUs starting from Cortex-A53:
+	#
+	# "pairs of dependent AESE/AESMC and AESD/AESIMC instructions are higher performance
+	# when they are adjacent in the program code and both instructions use the same
+	# destination register since they are fused"
+	#
+	# Same applies to all Apple silicon CPUs
 
-	aesmc	v16.16b, v16.16b
-	aesimc	v17.16b, v17.16b
-	aesmc	v18.16b, v18.16b
-	aesimc	v19.16b, v19.16b
+	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
+	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
+	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
+	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v20.16b
 	eor	v17.16b, v17.16b, v20.16b
@@ -362,15 +365,10 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e1), f1 = aesdec(f1, e1), f2 = aesenc(f2, e1), f3 = aesdec(f3, e1)
 
-	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
-	aesmc	v16.16b, v16.16b
-	aesimc	v17.16b, v17.16b
-	aesmc	v18.16b, v18.16b
-	aesimc	v19.16b, v19.16b
+	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
+	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
+	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
+	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v21.16b
 	eor	v17.16b, v17.16b, v21.16b
@@ -379,15 +377,10 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e2), f1 = aesdec(f1, e2), f2 = aesenc(f2, e2), f3 = aesdec(f3, e2)
 
-	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
-	aesmc	v16.16b, v16.16b
-	aesimc	v17.16b, v17.16b
-	aesmc	v18.16b, v18.16b
-	aesimc	v19.16b, v19.16b
+	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
+	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
+	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
+	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v22.16b
 	eor	v17.16b, v17.16b, v22.16b
@@ -396,15 +389,10 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e3), f1 = aesdec(f1, e3), f2 = aesenc(f2, e3), f3 = aesdec(f3, e3)
 
-	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
-	aesmc	v16.16b, v16.16b
-	aesimc	v17.16b, v17.16b
-	aesmc	v18.16b, v18.16b
-	aesimc	v19.16b, v19.16b
+	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
+	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
+	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
+	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v23.16b
 	eor	v17.16b, v17.16b, v23.16b

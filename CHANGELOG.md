@@ -1,4 +1,8 @@
-# 3.4.9
+# 3.5.0
+* Rebase on latest xmrig-6.26.0
+  * RandomX V2
+* 
+* # 3.4.9
 * Added satoshicash RandomX variant (rx/scash) +25% faster compared to cpuminer-scash
 # 3.4.8
 * Rebase on latest xmrig-6.25.0
