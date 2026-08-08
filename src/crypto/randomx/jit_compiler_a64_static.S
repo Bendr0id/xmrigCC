@@ -303,7 +303,7 @@ DECL(randomx_program_aarch64_cacheline_align_mask1):
 	add	x20, x20, x1
 
 	# Prefetch dataset data
-	prfm	pldl2strm, [x20]
+	prfm	pldl1strm, [x20]
 
 DECL(randomx_program_aarch64_cacheline_align_mask2):
 	# Actual mask will be inserted by JIT compiler
@@ -312,16 +312,16 @@ DECL(randomx_program_aarch64_cacheline_align_mask2):
 
 DECL(randomx_program_aarch64_xor_with_dataset_line):
 	# xor integer registers with dataset data
-	ldp	x20, x19, [x10]
+	ldnp	x20, x19, [x10]
 	eor	x4, x4, x20
 	eor	x5, x5, x19
-	ldp	x20, x19, [x10, 16]
+	ldnp	x20, x19, [x10, 16]
 	eor	x6, x6, x20
 	eor	x7, x7, x19
-	ldp	x20, x19, [x10, 32]
+	ldnp	x20, x19, [x10, 32]
 	eor	x12, x12, x20
 	eor	x13, x13, x19
-	ldp	x20, x19, [x10, 48]
+	ldnp	x20, x19, [x10, 48]
 	eor	x14, x14, x20
 	eor	x15, x15, x19
 

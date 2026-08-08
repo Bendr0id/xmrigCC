@@ -171,7 +171,7 @@ extern RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 extern RandomX_ConfigurationVirel RandomX_VirelConfig;
 extern RandomX_ConfigurationScash RandomX_ScashConfig;
 
-extern RandomX_ConfigurationBase RandomX_CurrentConfig;
+alignas(64) extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 template<typename T>
 void randomx_apply_config(const T& config)

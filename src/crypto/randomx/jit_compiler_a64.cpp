@@ -141,7 +141,7 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 
 	codePos = PrologueSize;
 	literalPos = ImulRcpLiteralsEnd;
-	num32bitLiterals = 0;
+	num32bitLiterals = 64; // effectively disabled because it's slower than plain movn/movz+movk
 
 	for (uint32_t i = 0; i < RegistersCount; ++i)
 		reg_changed_offset[i] = codePos;
@@ -237,7 +237,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 
 	codePos = PrologueSize;
 	literalPos = ImulRcpLiteralsEnd;
-	num32bitLiterals = 0;
+	num32bitLiterals = 64; // effectively disabled because it's slower than plain movn/movz+movk
 
 	for (uint32_t i = 0; i < RegistersCount; ++i)
 		reg_changed_offset[i] = codePos;
@@ -488,13 +488,31 @@ void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code,
 {
 	uint32_t k = codePos;
 
+	// 196606 different values can be encoded with a single instruction, the rest requires smov/umov load, or movn/movz+movk pair
 	if (imm < (1 << 16))
 	{
+		// Sign-extended 64-bit value: 0x000000000000xxxx
 		// movz tmp_reg, imm32 (16 low bits)
 		emit32(ARMV8A::MOVZ | dst | (imm << 5), code, k);
 	}
+	else if ((imm >> 16) == 0xFFFF) {
+		// Sign-extended 64-bit value: 0xFFFFFFFFFFFFxxxx
+		// movn tmp_reg, ~imm32 (16 low bits)
+		emit32(ARMV8A::MOVN | dst | ((~imm & 0xFFFF) << 5), code, k);
+	}
+	else if (((imm & 0xFFFF) == 0xFFFF) && (static_cast<int32_t>(imm) < 0)) {
+		// Sign-extended 64-bit value: 0xFFFFFFFFxxxxFFFF
+		// movn tmp_reg, ~imm32 (16 high bits)
+		emit32(ARMV8A::MOVN | dst | (1 << 21) | ((~imm >> 16) << 5), code, k);
+	}
+	else if (((imm & 0xFFFF) == 0) && (static_cast<int32_t>(imm) >= 0)) {
+		// Sign-extended 64-bit value: 0x00000000xxxx0000
+		// movz tmp_reg, imm32 (16 high bits)
+		emit32(ARMV8A::MOVZ | dst | (1 << 21) | ((imm >> 16) << 5), code, k);
+	}
 	else
 	{
+		// Full sign-extended 64-bit value: 0x00000000xxxxxxxx or 0xFFFFFFFFxxxxxxxx
 		if (num32bitLiterals < 64)
 		{
 			if (static_cast<int32_t>(imm) < 0)
@@ -611,17 +629,16 @@ void JitCompilerA64::emitMemLoad(uint32_t dst, uint32_t src, Instruction& instr,
 	else
 	{
 		imm = (imm & ScratchpadL3Mask) >> 3;
-		if (imm)
+		if (imm < 4096) {
+			// ldr tmp_reg, [x2, #imm*8]
+			emit32(0xf9400040 | tmp_reg | (imm << 10), code, k);
+		}
+		else
 		{
 			emitMovImmediate(tmp_reg, imm, code, k);
 
 			// ldr tmp_reg, [x2, tmp_reg, lsl 3]
 			emit32(0xf8607840 | tmp_reg | (tmp_reg << 16), code, k);
-		}
-		else
-		{
-			// ldr tmp_reg, [x2]
-			emit32(0xf9400040 | tmp_reg, code, k);
 		}
 	}
 
@@ -709,7 +726,16 @@ void JitCompilerA64::h_ISUB_R(Instruction& instr, uint32_t& codePos)
 	}
 	else
 	{
-		emitAddImmediate(dst, dst, -instr.getImm32(), code, k);
+		const uint32_t imm = instr.getImm32();
+
+		if (imm == 0x80000000ul) {
+			constexpr uint32_t tmp_reg = 20;
+			emit32(ARMV8A::MOVZ | tmp_reg | (1u << 21) | (0x8000u << 5), code, k);
+			emit32(ARMV8A::ADD | dst | (dst << 5) | (tmp_reg << 16), code, k);
+		}
+		else {
+			emitAddImmediate(dst, dst, -instr.getImm32(), code, k);
+		}
 	}
 
 	reg_changed_offset[instr.dst] = k;
