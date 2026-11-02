@@ -50,14 +50,8 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_YADA:
         return &RandomX_YadaConfig;
 
-    case Algorithm::RX_TUSKE:
-        return &RandomX_TuskeConfig;
-
     case Algorithm::RX_XEQ:
         return &RandomX_EquilibriaConfig;
-
-    case Algorithm::RX_VRL:
-        return &RandomX_VirelConfig;
 
     case Algorithm::RX_SCASH:
         return &RandomX_ScashConfig;

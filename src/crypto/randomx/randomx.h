@@ -154,9 +154,7 @@ struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationGraft : public RandomX_ConfigurationBase { RandomX_ConfigurationGraft(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
 struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_ConfigurationYada(); };
-struct RandomX_ConfigurationTuske : public RandomX_ConfigurationBase { RandomX_ConfigurationTuske(); };
 struct RandomX_ConfigurationEquilibria : public RandomX_ConfigurationBase { RandomX_ConfigurationEquilibria(); };
-struct RandomX_ConfigurationVirel : public RandomX_ConfigurationBase { RandomX_ConfigurationVirel(); };
 struct RandomX_ConfigurationScash : public RandomX_ConfigurationBase { RandomX_ConfigurationScash(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
@@ -166,9 +164,7 @@ extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 extern RandomX_ConfigurationGraft RandomX_GraftConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
-extern RandomX_ConfigurationTuske RandomX_TuskeConfig;
 extern RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
-extern RandomX_ConfigurationVirel RandomX_VirelConfig;
 extern RandomX_ConfigurationScash RandomX_ScashConfig;
 
 alignas(64) extern RandomX_ConfigurationBase RandomX_CurrentConfig;

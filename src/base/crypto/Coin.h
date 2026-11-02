@@ -42,9 +42,7 @@ public:
         XDAG,
         ZEPHYR,
         TOWNFORGE,
-        TUSKE,
         XEQ,
-        VRL,
         MAX
     };
 

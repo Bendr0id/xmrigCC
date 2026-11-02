@@ -56,9 +56,7 @@ static const CoinInfo coinInfo[] = {
     { Algorithm::RX_XDAG,         "XDAG",     "Xdagger",      0,      0,              BLUE_BG_BOLD(    WHITE_BOLD_S " xdagger ") },
     { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(  WHITE_BOLD_S " zephyr  ") },
     { Algorithm::RX_0,            "Townforge","Townforge",    30,     100000000,      MAGENTA_BG_BOLD(WHITE_BOLD_S " townforge ") },
-    { Algorithm::RX_TUSKE,        "TSK",      "Tuske",        120,    1000000000000,  MAGENTA_BG_BOLD(WHITE_BOLD_S " tuske   ") },
     { Algorithm::RX_XEQ,          "XEQ",      "Equilibria",   120,    10000,          BLUE_BG_BOLD( WHITE_BOLD_S " equilibria ") },
-    { Algorithm::RX_VRL,          "VRL",      "Virel",        5,      1000000000,     BLUE_BG_BOLD(   WHITE_BOLD_S " virel   ") },
 };
 
 

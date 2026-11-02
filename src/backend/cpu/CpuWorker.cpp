@@ -43,7 +43,6 @@
 
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/randomx/randomx.h"
-#   include "crypto/randomx/sha256/sha256.h"
 #endif
 
 
@@ -315,10 +314,7 @@ void xmrig::CpuWorker<N>::start()
 
                 randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
 
-                if (job.algorithm() == Algorithm::RX_TUSKE) {
-                    SHA256d_Buf(m_hash, RANDOMX_HASH_SIZE, m_hash);
-                }
-                else if (job.algorithm() == Algorithm::RX_SCASH) {
+                if (job.algorithm() == Algorithm::RX_SCASH) {
                     // For Scash, calculate commitment: blake2b(block_header || rx_hash)
                     // IMPORTANT: The commitment must be calculated with the ORIGINAL nonce (N),
                     // not the incremented nonce (N+1). After nextRound(), the blob has N+1,

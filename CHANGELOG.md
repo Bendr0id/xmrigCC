@@ -1,7 +1,8 @@
 # 3.5.0
 * Rebase on latest xmrig-6.26.0
-  * RandomX V2
-* 
+  * RandomX V2 (`rx/2`)
+* Removed Virel RandomX variant (`rx/vrl`) [DEAD]
+* Removed Tuske RandomX variant (`rx/tuske`) [DEAD]
 * # 3.4.9
 * Added satoshicash RandomX variant (rx/scash) +25% faster compared to cpuminer-scash
 # 3.4.8
